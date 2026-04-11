@@ -1,0 +1,801 @@
+# 🏗️ MÓDULO RECLUTAMIENTO GEAT
+
+**Automatización completa de reclutamiento de contratistas para GEAT - Construcción y Consultoría**
+
+[![Status](https://img.shields.io/badge/status-ready-brightgreen)]()
+[![Node](https://img.shields.io/badge/node->=16.0-green)]()
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)]()
+
+---
+
+## 📋 Índice
+
+- [Descripción](#descripción)
+- [Características](#características)
+- [Instalación](#instalación)
+- [Configuración](#configuración)
+- [Uso](#uso)
+- [API](#api)
+- [Troubleshooting](#troubleshooting)
+- [Contribuir](#contribuir)
+
+---
+
+## 📖 Descripción
+
+Sistema automático que **sincroniza obras desde OneDrive, publica en Facebook automáticamente, filtra candidatos por Messenger, y guarda resultados en Excel**.
+
+**Objetivo:** Reducir tiempo de reclutamiento de 50 horas/mes a 3 horas/mes (94% ahorro).
+
+**Stack:**
+- Backend: Node.js + Express
+- Frontend: React + Tailwind
+- Integraciones: OneDrive API, Facebook Graph, Messenger, WhatsApp, Excel
+
+---
+
+## ✨ Características
+
+### ✅ Automáticas
+- ✓ Lee obras de OneDrive automáticamente
+- ✓ Publica en Facebook automático (grupo "trabajos en santa cruz-bolivia")
+- ✓ Bot Messenger responde preguntas automático
+- ✓ Filtra candidatos (disponibilidad, experiencia, precio)
+- ✓ Envía planos por WhatsApp automático
+- ✓ Guarda resultados en Excel automático
+- ✓ Dashboard en tiempo real
+
+### 🎯 Filtro 1 (Automático en Messenger)
+```
+Disponibilidad (SÍ/NO)
+    ↓
+Aceptación precio (SÍ/NO)
+    ↓
+Experiencia en años
+    ↓
+Fotos de trabajos previos (2 min)
+```
+
+### 📊 Dashboard
+- Obras activas
+- Candidatos por obra
+- Filtros dinámicos
+- KPI (conversión, ciclo)
+- Estados visuales
+
+### 🚀 Integraciones
+- OneDrive (lectura/escritura)
+- Facebook (publicar + comentarios)
+- Messenger (respuestas automáticas)
+- WhatsApp (envío de planos)
+- Excel (almacenamiento)
+
+---
+
+## 📦 Instalación
+
+### Requisitos Previos
+- Node.js >= 16.0
+- npm >= 8.0
+- Tokens de APIs (ver Configuración)
+
+### Paso 1: Clonar/Descargar
+
+```bash
+git clone <repo-url>
+cd geat-reclutamiento
+```
+
+### Paso 2: Instalar dependencias
+
+```bash
+npm install
+```
+
+### Paso 3: Crear archivo .env
+
+```bash
+cp .env.template .env
+# Editar .env con tus tokens
+nano .env
+```
+
+### Paso 4: Iniciar servidor
+
+```bash
+npm start
+```
+
+✅ Servidor en: `http://localhost:3000`
+
+---
+
+## ⚙️ Configuración
+
+### 1. ONEDRIVE
+
+**Obtener tokens:**
+1. Ve a https://portal.azure.com
+2. Crea App Registration (nombre: "GEAT-Reclutamiento")
+3. Copia:
+   - Client ID
+   - Client Secret
+   - Tenant ID
+
+**En .env:**
+```
+ONEDRIVE_CLIENT_ID=xxx
+ONEDRIVE_CLIENT_SECRET=xxx
+ONEDRIVE_TENANT_ID=xxx
+```
+
+**Permisos necesarios:**
+- Files.ReadWrite
+- Sites.ReadWrite.All
+
+---
+
+### 2. FACEBOOK MESSENGER
+
+**Obtener tokens:**
+1. Ve a https://developers.facebook.com
+2. Crea App (nombre: "GEAT-Reclutamiento")
+3. Obtén:
+   - Page Access Token
+   - Page ID
+   - Verify Token (túple lo que quieras)
+
+**En .env:**
+```
+FACEBOOK_PAGE_ID=309806206107796
+FACEBOOK_PAGE_TOKEN=xxx
+FACEBOOK_GRAPH_TOKEN=xxx
+FACEBOOK_VERIFY_TOKEN=your_secret_token
+```
+
+**Configurar Webhook:**
+1. Messenger → Webhooks
+2. URL: `https://tu-dominio.com/webhook/facebook`
+3. Verify Token: mismo del .env
+4. Suscribirse a: `messages`, `messaging_postbacks`
+
+---
+
+### 3. FACEBOOK GRAPH (Publicar)
+
+```
+FACEBOOK_GRAPH_TOKEN=xxx
+FACEBOOK_GROUP_ID=637322189611496
+```
+
+**Permisos:**
+- pages_manage_posts
+- pages_manage_metadata
+- pages_read_engagement
+
+---
+
+### 4. WHATSAPP
+
+**Opción A: Twilio**
+1. Ve a https://www.twilio.com
+2. Crea cuenta
+3. Obtén API Key + número WhatsApp
+
+**Opción B: Meta**
+1. Ve a https://business.facebook.com/wa/
+2. Configura WhatsApp Business
+3. Obtén token + número
+
+**En .env:**
+```
+WHATSAPP_API_KEY=xxx
+WHATSAPP_NUMERO=+591XXXXXXXXX
+```
+
+---
+
+## 🚀 Uso
+
+### Iniciar Sistema
+
+```bash
+npm start
+```
+
+**Salida esperada:**
+```
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║   🚀 SERVIDOR GEAT RECLUTAMIENTO INICIADO                 ║
+║                                                             ║
+║   🔗 http://localhost:3000                                 ║
+║   📝 Webhooks: /webhook/facebook                           ║
+║   📊 APIs: /api/*                                          ║
+║                                                             ║
+║   ✅ Sistema listo para procesar candidatos               ║
+║                                                             ║
+╚═════════════════════════════════════════════════════════════╝
+```
+
+### Flujo Típico
+
+```
+1. Fátima crea OBRA en Excel (OneDrive)
+   ↓
+2. [AUTOMÁTICO] Sistema lee OneDrive
+   ↓
+3. [AUTOMÁTICO] Publica en Facebook
+   ↓
+4. Candidato comenta "Interesado"
+   ↓
+5. [AUTOMÁTICO] Bot Messenger envía Filtro 1
+   ↓
+6. [AUTOMÁTICO] Si CUMPLE → Envía WhatsApp + planos
+   ↓
+7. [AUTOMÁTICO] Guarda en Excel
+   ↓
+8. Tú ves en WEBAPP → Llamas → Contratas
+```
+
+---
+
+## 📡 API
+
+### GET `/health`
+Estado del servidor
+```bash
+curl http://localhost:3000/health
+```
+
+### GET `/api/estado`
+Estado actual del sistema
+```bash
+curl http://localhost:3000/api/estado
+```
+
+**Response:**
+```json
+{
+  "estado": {
+    "activo": true,
+    "obrasActivas": 2,
+    "candidatosPendientes": 5,
+    "ultimaSincronizacion": "2026-04-01T14:00:00Z"
+  }
+}
+```
+
+### GET `/api/obras`
+Obtener todas las obras
+```bash
+curl http://localhost:3000/api/obras
+```
+
+**Response:**
+```json
+{
+  "obras": {
+    "OBRA_037": { ... },
+    "OBRA_038": { ... }
+  },
+  "total": 2
+}
+```
+
+### GET `/api/candidatos/:obraId`
+Obtener candidatos de una obra
+```bash
+curl http://localhost:3000/api/candidatos/037
+```
+
+**Response:**
+```json
+{
+  "obraId": "037",
+  "candidatos": [
+    {
+      "nombre": "Juan Pérez",
+      "telefono": "76123456",
+      "zona": "La Paz",
+      "estado": "filtro1_ok"
+    }
+  ],
+  "total": 5,
+  "filtro1OK": 3
+}
+```
+
+### POST `/api/publicar-obra`
+Publicar obra en Facebook
+```bash
+curl -X POST http://localhost:3000/api/publicar-obra \
+  -H "Content-Type: application/json" \
+  -d '{
+    "obraId": "037",
+    "nombre": "Vivienda Quisbert",
+    "zona": "La Paz",
+    "presupuesto": 78,
+    "m2": 154.35,
+    "duracion": "150 días",
+    "fechaInicio": "31/03/2026"
+  }'
+```
+
+### POST `/api/enviar-whatsapp`
+Enviar planos por WhatsApp
+```bash
+curl -X POST http://localhost:3000/api/enviar-whatsapp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "numero": "591xxxxxxxxx",
+    "obraId": "037",
+    "nombre": "Vivienda Quisbert",
+    "presupuesto": 78,
+    "enlacePlanos": "https://drive.google.com/..."
+  }'
+```
+
+### GET `/api/metricas`
+Obtener KPI del sistema
+```bash
+curl http://localhost:3000/api/metricas
+```
+
+**Response:**
+```json
+{
+  "obras": 2,
+  "totalCandidatos": 12,
+  "filtro1OK": 8,
+  "contratados": 1,
+  "tasaConversion": "66.7%",
+  "tiempoPromedioCierre": "5 días"
+}
+```
+
+---
+
+## 🧪 Testing
+
+### Test 1: Conexión OneDrive
+```bash
+curl http://localhost:3000/api/obras
+```
+Esperado: Lista de obras en JSON
+
+### Test 2: Estado Sistema
+```bash
+curl http://localhost:3000/api/estado
+```
+Esperado: Estado = "activo"
+
+### Test 3: Webhook Facebook
+```bash
+curl -X POST http://localhost:3000/webhook/facebook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "object": "page",
+    "entry": [...]
+  }'
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### ❌ "ONEDRIVE_TOKEN no definido"
+**Solución:** Verifica archivo `.env` existe y tiene `ONEDRIVE_CLIENT_ID`
+
+### ❌ "Error conectando OneDrive"
+**Solución:** Valida tokens en https://portal.azure.com
+
+### ❌ "Facebook webhook no responde"
+**Solución:** Verifica FACEBOOK_VERIFY_TOKEN coincida en settings
+
+### ❌ "WhatsApp no envía mensajes"
+**Solución:** Valida número está verificado en Twilio/Meta
+
+### ❌ "Excel no se sincroniza"
+**Solución:** Verifica permisos de Azure (Files.ReadWrite)
+
+---
+
+## 📊 Métricas Esperadas
+
+```
+Métrica                | Esperado  | Actual
+────────────────────────────────────────────
+Obras/mes              | 5         | -
+Candidatos/obra        | 25+       | -
+Filtro 1 OK (%)        | 80%       | -
+Planos enviados        | 8-10      | -
+Llamadas completadas   | 6-8       | -
+Contratados/semana     | 2-3       | -
+Ciclo cierre           | 5 días    | -
+Ahorro de tiempo       | 94%       | -
+```
+
+---
+
+## 🤝 Contribuir
+
+Para reportar bugs o sugerir mejoras:
+
+1. Abre un issue en el repositorio
+2. Describe claramente el problema
+3. Adjunta logs si es posible
+
+---
+
+## 📞 Soporte
+
+**Contacto:** josemiguel@geat.com
+
+**Documentación técnica:**
+- `/docs/GUIA_IMPLEMENTACION.md`
+- `/docs/API.md`
+- `/docs/FLUJOS.md`
+
+---
+
+## 📄 Licencia
+
+ISC © 2026 GEAT - Construcción y Consultoría
+
+---
+
+**Última actualización:** 01 Abril 2026  
+**Versión:** 1.0.0  
+**Estado:** ✅ PRODUCCIÓN
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEAT - Reclutamiento Mano de Obra</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #4f46e5; --success: #10b981; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-700: #374151; --gray-900: #111827; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); color: var(--gray-900); }
+        header { background: linear-gradient(135deg, var(--primary), #4338ca); color: white; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .nav-btn { padding: 0.75rem 1.5rem; border: none; background: white; color: var(--gray-700); cursor: pointer; border-radius: 8px; font-weight: 600; transition: all 0.3s; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        .section { display: none; } .section.active { display: block; }
+        .form-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
+        input, textarea, select { padding: 0.75rem; border: 1px solid var(--gray-200); border-radius: 8px; font-family: inherit; font-size: 1rem; }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: #4338ca; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-block { width: 100%; }
+        .message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+        .message.show { display: block; }
+        .message.success { background: #d1fae5; color: #065f46; }
+        .message.error { background: #fee2e2; color: #991b1b; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .nav-tabs { flex-direction: column; } .nav-btn { width: 100%; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏗️ GEAT - Reclutamiento Mano de Obra Directa</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="mensaje" class="message"></div>
+
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="cambiarTab('fatima')">📝 Fátima - Cargar Obra</button>
+            <button class="nav-btn" onclick="cambiarTab('josemiguel')">👥 Josemiguel - Datos Contratista</button>
+            <button class="nav-btn" onclick="cambiarTab('consulta')">📄 Consulta Contrato</button>
+        </div>
+
+        <!-- PANEL FÁTIMA -->
+        <section id="fatima" class="section active">
+            <div class="form-container">
+                <h2 style="margin-bottom: 2rem; color: var(--primary);">Cargar Nueva Obra</h2>
+                <form id="formObra" onsubmit="guardarObra(event)">
+                    <h3 style="margin: 1.5rem 0 1rem 0; font-size: 1.1rem;">Datos de la Obra</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre de la Obra *</label>
+                            <input type="text" id="nombreObra" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Código de Obra</label>
+                            <input type="text" id="codigoObra">
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad m² *</label>
+                            <input type="number" id="superficie" required step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Precio por m² (USD) *</label>
+                            <input type="number" id="precio" required step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación / Google Maps</label>
+                            <input type="url" id="ubicacion">
+                        </div>
+                        <div class="form-group">
+                            <label>Tiempo de Ejecución</label>
+                            <input type="text" id="tiempoEjecucion" placeholder="Ej: 90 DIAS">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Inicio *</label>
+                            <input type="date" id="fechaInicio" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Conclusión</label>
+                            <input type="date" id="fechaConclusion">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem;">
+                        ✅ Guardar Obra
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- PANEL JOSEMIGUEL -->
+        <section id="josemiguel" class="section">
+            <div class="form-container">
+                <h2 style="margin-bottom: 2rem; color: var(--primary);">Datos del Contratista</h2>
+                <form id="formContratista" onsubmit="guardarContratista(event)">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Selecciona Obra *</label>
+                        <select id="obraSelect" required>
+                            <option value="">-- Selecciona --</option>
+                        </select>
+                    </div>
+
+                    <h3 style="margin: 1.5rem 0 1rem 0;">Datos Personales Contratista</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre *</label>
+                            <input type="text" id="nombreContratista" required>
+                        </div>
+                        <div class="form-group">
+                            <label>C.I. *</label>
+                            <input type="text" id="ciContratista" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Celular *</label>
+                            <input type="tel" id="telefonoContratista" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Número de Trabajadores *</label>
+                            <input type="number" id="numTrabajadores" required min="8">
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 1.5rem 0 1rem 0;">Documentos</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Google Maps (Domicilio)</label>
+                            <input type="url" id="mapsDomicilio">
+                        </div>
+                        <div class="form-group">
+                            <label>Foto C.I.</label>
+                            <input type="file" id="fotoCi" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>Foto Aviso Agua/Luz</label>
+                            <input type="file" id="fotoRecibo" accept="image/*">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem;">
+                        ✅ Generar Contrato
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- PANEL CONSULTA -->
+        <section id="consulta" class="section">
+            <div class="form-container">
+                <h2 style="margin-bottom: 2rem; color: var(--primary);">📄 Contratos</h2>
+                
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label>Selecciona Contrato</label>
+                    <select id="contratoSelect" onchange="cargarContrato()">
+                        <option value="">-- Selecciona --</option>
+                    </select>
+                </div>
+
+                <div id="vistaContrato" style="display: none;">
+                    <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                        <div id="previewContrato" style="background: white; padding: 2rem; border-radius: 8px; max-height: 500px; overflow-y: auto; border: 1px solid var(--gray-200); font-size: 0.9rem; line-height: 1.6;"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                        <button class="btn btn-primary" onclick="descargarPDF()">📥 Descargar PDF</button>
+                    </div>
+
+                    <h3 style="margin-bottom: 1rem;">Contrato Firmado</h3>
+                    <div class="form-group">
+                        <input type="file" id="contratoFirmado" accept=".pdf">
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="subirFirmado()">✅ Subir Firmado</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://jsacnpgpnvoslrpurfxc.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_7WkrAMUvM7uJdPC3_m5-ew_VkV9drdJ';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let obras = [];
+        let contratos = [];
+
+        function cambiarTab(tab) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'josemiguel') cargarObrasSelect();
+            if (tab === 'consulta') cargarContratosSelect();
+        }
+
+        async function guardarObra(e) {
+            e.preventDefault();
+            const obra = {
+                nombreObra: document.getElementById('nombreObra').value,
+                codigoObra: document.getElementById('codigoObra').value,
+                superficie: parseFloat(document.getElementById('superficie').value),
+                precio: parseFloat(document.getElementById('precio').value),
+                ubicacion: document.getElementById('ubicacion').value,
+                tiempoEjecucion: document.getElementById('tiempoEjecucion').value,
+                fechaInicio: document.getElementById('fechaInicio').value,
+                estado: 'activa'
+            };
+
+            try {
+                const { data, error } = await supabase.from('obras').insert([obra]);
+                if (error) throw error;
+                mostrarMensaje('✅ Obra guardada', 'success');
+                document.getElementById('formObra').reset();
+                obras.push(obra);
+            } catch (err) {
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
+            }
+        }
+
+        async function cargarObrasSelect() {
+            const select = document.getElementById('obraSelect');
+            select.innerHTML = '<option value="">-- Selecciona --</option>';
+            try {
+                const { data } = await supabase.from('obras').select('*');
+                data?.forEach(obra => {
+                    const option = document.createElement('option');
+                    option.value = obra.id || obra.nombreObra;
+                    option.textContent = obra.nombreObra;
+                    select.appendChild(option);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        async function guardarContratista(e) {
+            e.preventDefault();
+
+            const contrato = {
+                nombreContratista: document.getElementById('nombreContratista').value,
+                ciContratista: document.getElementById('ciContratista').value,
+                telefonoContratista: document.getElementById('telefonoContratista').value,
+                numTrabajadores: document.getElementById('numTrabajadores').value,
+                mapsDomicilio: document.getElementById('mapsDomicilio').value,
+                estado: 'generado'
+            };
+
+            try {
+                const { data, error } = await supabase.from('contratos').insert([contrato]);
+                if (error) throw error;
+                
+                contratos.push(contrato);
+                mostrarMensaje('✅ Contrato generado', 'success');
+                generarContratoHTML(contrato);
+                document.getElementById('formContratista').reset();
+            } catch (err) {
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
+            }
+        }
+
+        function generarContratoHTML(contrato) {
+            const html = `
+                <h3>CONTRATO DE PRESTACIÓN DE SERVICIOS</h3>
+                <p><strong>Contratista:</strong> ${contrato.nombreContratista}</p>
+                <p><strong>C.I.:</strong> ${contrato.ciContratista}</p>
+                <p><strong>Celular:</strong> ${contrato.telefonoContratista}</p>
+                <p><strong>Trabajadores:</strong> ${contrato.numTrabajadores}</p>
+                <p style="margin-top: 2rem;">El CONTRATISTA se compromete a ejecutar los trabajos conforme a las especificaciones técnicas y planos provistos.</p>
+                <p style="margin-top: 2rem;">Garantía: 1 año | Retención: 5% | Pagos: Quincenales</p>
+                <p style="margin-top: 3rem;">CONTRATISTA: _____________________ &nbsp;&nbsp;&nbsp;&nbsp; CONTRATANTE: _____________________</p>
+                <p>${contrato.nombreContratista} &nbsp;&nbsp;&nbsp;&nbsp; JOSÉ MIGUEL GAMBARTE</p>
+                <p>Fecha: ${new Date().toLocaleDateString()}</p>
+            `;
+            
+            document.getElementById('vistaContrato').style.display = 'block';
+            document.getElementById('previewContrato').innerHTML = html;
+            
+            guardarContratoHTML(contrato, html);
+        }
+
+        async function guardarContratoHTML(contrato, html) {
+            try {
+                await supabase.from('contratos').update({ html_contrato: html }).eq('ciContratista', contrato.ciContratista);
+            } catch (err) { console.error(err); }
+        }
+
+        async function cargarContratosSelect() {
+            const select = document.getElementById('contratoSelect');
+            select.innerHTML = '<option value="">-- Selecciona --</option>';
+            try {
+                const { data } = await supabase.from('contratos').select('*');
+                data?.forEach(contrato => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(contrato);
+                    option.textContent = `${contrato.nombreContratista} - ${contrato.ciContratista}`;
+                    select.appendChild(option);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function cargarContrato() {
+            const valor = document.getElementById('contratoSelect').value;
+            if (valor) {
+                const contrato = JSON.parse(valor);
+                document.getElementById('vistaContrato').style.display = 'block';
+                document.getElementById('previewContrato').innerHTML = contrato.html_contrato || 'Sin contrato';
+            }
+        }
+
+        function descargarPDF() {
+            const html = document.getElementById('previewContrato').innerHTML;
+            const element = document.createElement('div');
+            element.innerHTML = html;
+            const opt = { margin: 10, filename: 'CONTRATO_GEAT.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
+            window.html2pdf().set(opt).from(element).save();
+            mostrarMensaje('✅ Descargando PDF', 'success');
+        }
+
+        async function subirFirmado() {
+            const archivo = document.getElementById('contratoFirmado').files[0];
+            if (!archivo) {
+                mostrarMensaje('❌ Selecciona PDF', 'error');
+                return;
+            }
+            try {
+                const { data, error } = await supabase.storage.from('contratos').upload(`firmado_${Date.now()}.pdf`, archivo);
+                if (error) throw error;
+                mostrarMensaje('✅ Contrato firmado subido', 'success');
+                document.getElementById('contratoFirmado').value = '';
+            } catch (err) {
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
+            }
+        }
+
+        function mostrarMensaje(texto, tipo) {
+            const msg = document.getElementById('mensaje');
+            msg.textContent = texto;
+            msg.className = `message show ${tipo}`;
+            setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        window.addEventListener('load', () => cargarObrasSelect());
+    </script>
+</body>
+</html>
