@@ -3,330 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAT - Reclutamiento Mano de Obra</title>
+    <title>GEAT - Sistema Reclutamiento Mano de Obra</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #4f46e5; --success: #10b981; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-700: #374151; --gray-900: #111827; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); color: var(--gray-900); }
-        header { background: linear-gradient(135deg, var(--primary), #4338ca); color: white; padding: 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-        .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
-        .nav-btn { padding: 0.75rem 1.5rem; border: none; background: white; color: var(--gray-700); cursor: pointer; border-radius: 8px; font-weight: 600; transition: all 0.3s; }
-        .nav-btn.active { background: var(--primary); color: white; }
-        .section { display: none; }
-        .section.active { display: block; }
-        .form-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1f2937; }
+        header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        header h1 { font-size: 28px; font-weight: 600; margin: 0; }
+        header p { font-size: 13px; margin: 0.5rem 0 0 0; opacity: 0.9; }
+        .user-info { position: absolute; top: 2rem; right: 2rem; color: white; font-size: 13px; }
+        .nav { background: white; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e7eb; display: flex; gap: 1rem; flex-wrap: wrap; }
+        .nav-btn { padding: 10px 18px; background: white; color: #666; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+        .nav-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1rem; }
+        .panel { background: white; border-radius: 10px; padding: 2rem; border: 1px solid #e5e7eb; margin-bottom: 2rem; display: none; }
+        .panel.active { display: block; }
+        .panel h2 { font-size: 24px; font-weight: 600; color: #1f2937; margin: 0 0 1.5rem 0; padding-bottom: 1rem; border-bottom: 2px solid #f3f4f6; }
+        .section-title { font-size: 13px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin: 1.5rem 0 1rem 0; opacity: 0.8; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
         .form-group { display: flex; flex-direction: column; }
-        label { font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
-        input, textarea, select { padding: 0.75rem; border: 0.5px solid var(--gray-200); border-radius: 8px; font-family: inherit; font-size: 1rem; }
-        input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
-        .btn-primary { background: var(--primary); color: white; }
+        .form-group label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+        input, textarea, select { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-family: inherit; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 6px; margin-bottom: 1.5rem; font-size: 13px; color: #1e40af; }
+        .upload-zone { border: 2px dashed #3b82f6; border-radius: 8px; padding: 2rem; text-align: center; background: #eff6ff; cursor: pointer; margin-bottom: 1rem; transition: all 0.2s; }
+        .upload-zone:hover { border-color: #2563eb; background: #dbeafe; }
+        .upload-zone p { margin: 0; font-size: 13px; color: #3b82f6; }
+        .btn { padding: 11px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 13px; }
+        .btn-primary { background: #4f46e5; color: white; width: 100%; }
         .btn-primary:hover { background: #4338ca; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-block { width: 100%; }
-        .message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
-        .message.show { display: block; }
-        .message.success { background: #d1fae5; color: #065f46; }
-        .message.error { background: #fee2e2; color: #991b1b; }
-        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .nav-tabs { flex-direction: column; } .nav-btn { width: 100%; } }
+        .btn-success { background: #10b981; color: white; width: 100%; }
+        .btn-secondary { background: white; color: #3b82f6; border: 1px solid #3b82f6; padding: 10px 16px; width: auto; }
+        .btn-danger { background: #ef4444; color: white; padding: 8px 12px; font-size: 12px; }
+        .msg { padding: 12px 16px; border-radius: 6px; margin-bottom: 1rem; display: none; font-size: 13px; }
+        .msg.show { display: block; }
+        .msg.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .msg.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .modulos-container { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; max-height: 400px; overflow-y: auto; }
+        .modulo-item { display: grid; grid-template-columns: auto 2fr 1fr auto; gap: 1rem; align-items: center; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; }
+        .modulo-item:last-child { margin-bottom: 0; border-bottom: none; }
+        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .login-container { max-width: 400px; margin: 5rem auto; background: white; padding: 3rem; border-radius: 10px; border: 1px solid #e5e7eb; text-align: center; }
+        .login-container h1 { font-size: 28px; margin-bottom: 2rem; color: #4f46e5; }
+        .login-container input { width: 100%; margin-bottom: 1rem; }
+        .login-container button { width: 100%; }
+        .role-badge { display: inline-block; padding: 4px 12px; background: #dbeafe; color: #1e40af; border-radius: 20px; font-size: 11px; font-weight: 600; margin-left: 1rem; }
+        .doc-item { display: grid; grid-template-columns: auto 1fr auto auto; gap: 1rem; align-items: center; padding: 1rem; background: #f9fafb; border-radius: 6px; margin-bottom: 0.75rem; }
+        .doc-info p { margin: 0; font-size: 13px; }
+        .doc-info p:first-child { font-weight: 500; }
+        .doc-info p:last-child { font-size: 11px; color: #6b7280; margin-top: 4px; }
+        .required { color: #dc2626; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } header { position: relative; } .user-info { position: static; margin-top: 1rem; } }
     </style>
 </head>
 <body>
-    <header>
+    <div id="loginContainer" class="login-container">
+        <h1>🏗️ GEAT</h1>
+        <p style="margin-bottom: 2rem; color: #6b7280;">Reclutamiento Mano de Obra</p>
+        <select id="roleSelect" style="margin-bottom: 1rem;">
+            <option value="">-- Selecciona tu rol --</option>
+            <option value="fatima">📝 Fátima - Cargar Obras</option>
+            <option value="josemiguel">👥 Josemiguel - Contratistas</option>
+            <option value="supervisor">👀 Supervisor - Reportes</option>
+        </select>
+        <input type="text" id="passwordInput" placeholder="Contraseña" style="margin-bottom: 1rem;">
+        <button class="btn btn-primary" onclick="login()">Acceder</button>
+    </div>
+
+    <div id="mainApp" style="display: none;">
+        <header>
+            <h1>🏗️ GEAT - Sistema de Reclutamiento</h1>
+            <p>Mano de Obra Directa</p>
+            <div class="user-info">
+                <span id="userDisplay"></span>
+                <span class="role-badge" id="roleBadge"></span>
+                <button onclick="logout()" style="margin-left: 1rem; padding: 6px 12px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer; font-size: 12px;">Salir</button>
+            </div>
+        </header>
+
+        <div class="nav">
+            <button class="nav-btn active" onclick="cambiarTab('fatima', this)">📝 Fátima - Cargar Obra</button>
+            <button class="nav-btn" onclick="cambiarTab('josemiguel', this)">👥 Josemiguel - Datos Contratista</button>
+            <button class="nav-btn" onclick="cambiarTab('consulta', this)">📄 Consulta Contratos</button>
+        </div>
+
         <div class="container">
-            <h1>🏗️ GEAT - Reclutamiento Mano de Obra Directa</h1>
-        </div>
-    </header>
+            <div id="mensaje" class="msg"></div>
 
-    <div class="container">
-        <div id="mensaje" class="message"></div>
-
-        <div class="nav-tabs">
-            <button class="nav-btn active" onclick="cambiarTab('fatima')">📝 Fátima - Cargar Obra</button>
-            <button class="nav-btn" onclick="cambiarTab('josemiguel')">👥 Josemiguel - Datos Contratista</button>
-            <button class="nav-btn" onclick="cambiarTab('consulta')">📄 Consulta Contrato</button>
-        </div>
-
-        <!-- PANEL FÁTIMA -->
-        <section id="fatima" class="section active">
-            <div class="form-container">
-                <h2 style="margin-bottom: 2rem; color: var(--primary);">Cargar Nueva Obra</h2>
-                <form id="formObra" onsubmit="guardarObra(event)">
-                    <h3 style="margin: 1.5rem 0 1rem 0;">Datos de la Obra</h3>
+            <!-- PANEL FÁTIMA -->
+            <div id="fatima" class="panel active">
+                <h2>Cargar Nueva Obra</h2>
+                <form onsubmit="guardarObra(event)">
+                    <h3 class="section-title">Datos Básicos</h3>
                     <div class="form-grid">
                         <div class="form-group">
-                            <label>Nombre de la Obra *</label>
+                            <label>Nombre Obra <span class="required">*</span></label>
                             <input type="text" id="nombreObra" required>
                         </div>
                         <div class="form-group">
-                            <label>Código de Obra</label>
+                            <label>Código Obra</label>
                             <input type="text" id="codigoObra">
                         </div>
                         <div class="form-group">
-                            <label>Cantidad m² *</label>
-                            <input type="number" id="superficie" required step="0.01">
+                            <label>Superficie m² <span class="required">*</span></label>
+                            <input type="number" id="superficie" step="0.01" required>
                         </div>
                         <div class="form-group">
-                            <label>Precio por m² (USD) *</label>
-                            <input type="number" id="precio" required step="0.01">
-                        </div>
-                        <div class="form-group">
-                            <label>Ubicación / Google Maps</label>
-                            <input type="url" id="ubicacion">
-                        </div>
-                        <div class="form-group">
-                            <label>Tiempo de Ejecución</label>
-                            <input type="text" id="tiempoEjecucion" placeholder="Ej: 90 DIAS">
-                        </div>
-                        <div class="form-group">
-                            <label>Fecha de Inicio *</label>
-                            <input type="date" id="fechaInicio" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Fecha de Conclusión</label>
-                            <input type="date" id="fechaConclusion">
+                            <label>Precio USD/m² <span class="required">*</span></label>
+                            <input type="number" id="precio" value="75" step="0.01" required>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem;">
-                        ✅ Guardar Obra
-                    </button>
+                    <h3 class="section-title">Fechas y Tiempo</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Fecha Inicio <span class="required">*</span></label>
+                            <input type="date" id="fechaInicio" required onchange="calcularFechaConclusion()">
+                        </div>
+                        <div class="form-group">
+                            <label>Tiempo Ejecución (días) <span class="required">*</span></label>
+                            <input type="number" id="tiempoEjecucion" value="90" required onchange="calcularFechaConclusion()">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Conclusión (automática)</label>
+                            <input type="date" id="fechaConclusion" readonly style="background: #f3f4f6;">
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">Módulos (20 items - Editables)</h3>
+                    <div class="modulos-container">
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M01 - Obras Preliminares"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M02 - Excavaciones/Movimiento de Suelo"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M03 - Impermeabilización"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M04 - Muros"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M05 - Estructuras y Hormigones"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M06 - Instalación Eléctrica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M07 - Instalación Hidráulica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M08 - Instalación Sanitaria"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M09 - Cámara Séptica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M10 - Revoques Interior/Exterior"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M11 - Cielo Falso"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M12 - Pisos"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M13 - Revestimientos"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M14 - Acabados"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M15 - Marcos de Puertas"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M16 - Artefactos Sanitarios"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M17 - Pintura"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M18 - Cubierta Metálica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M19 - Huellas Peatonales"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M20 - Limpieza de Obra"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
+                    </div>
+                    <button type="button" class="btn-secondary" onclick="agregarModulo()">+ Agregar Módulo</button>
+
+                    <h3 class="section-title">Notas de Fátima (Características/Referencias)</h3>
+                    <textarea id="notasFatima" style="width: 100%; min-height: 100px; margin-bottom: 1.5rem;" placeholder="Características especiales, referencias, acuerdos previos... (TÚ APROBARÁS ANTES DE USAR)"></textarea>
+
+                    <button type="submit" class="btn btn-success">✅ Guardar Obra</button>
                 </form>
             </div>
-        </section>
 
-        <!-- PANEL JOSEMIGUEL -->
-        <section id="josemiguel" class="section">
-            <div class="form-container">
-                <h2 style="margin-bottom: 2rem; color: var(--primary);">Datos del Contratista</h2>
-                <form id="formContratista" onsubmit="guardarContratista(event)">
-                    <div class="form-group" style="margin-bottom: 1rem;">
-                        <label>Selecciona Obra *</label>
+            <!-- PANEL JOSEMIGUEL -->
+            <div id="josemiguel" class="panel">
+                <h2>Datos del Contratista</h2>
+                <div class="info-box">⚡ Carga CI + Aviso agua/luz PRIMERO → Sistema rellena datos automáticamente</div>
+
+                <form onsubmit="guardarContratista(event)">
+                    <h3 class="section-title">Paso 1: Cargas Básicas (C.I. + Documentos)</h3>
+                    <div class="form-grid" style="grid-template-columns: 1fr;">
+                        <div class="form-group">
+                            <label>Carnet de Identidad (C.I.) <span class="required">*</span></label>
+                            <input type="text" id="ci" placeholder="Ej: 123456789" required>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px;">Foto Aviso Agua</label>
+                            <div class="upload-zone" onclick="document.getElementById('fotoAgua').click()">
+                                <p>📤 Subir foto</p>
+                                <p style="font-size: 11px;">JPG, PNG</p>
+                            </div>
+                            <input type="file" id="fotoAgua" accept="image/*" style="display: none;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px;">Foto Aviso Luz</label>
+                            <div class="upload-zone" onclick="document.getElementById('fotoLuz').click()">
+                                <p>📤 Subir foto</p>
+                                <p style="font-size: 11px;">JPG, PNG</p>
+                            </div>
+                            <input type="file" id="fotoLuz" accept="image/*" style="display: none;">
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">Paso 2: Datos Rellenados Automáticamente</h3>
+                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Nombre</label>
+                                <input type="text" id="nombreContratista" readonly style="background: #f0fdf4;">
+                            </div>
+                            <div class="form-group">
+                                <label>Teléfono</label>
+                                <input type="text" id="telefonoContratista" readonly style="background: #f0fdf4;">
+                            </div>
+                            <div class="form-group" style="grid-column: 1 / -1;">
+                                <label>Dirección (de Maps/Croquis/Aviso)</label>
+                                <input type="text" id="direccionContratista" readonly style="background: #f0fdf4;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="section-title">Paso 3: Selecciona Obra</h3>
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
                         <select id="obraSelect" required>
-                            <option value="">-- Selecciona --</option>
+                            <option value="">-- Selecciona Obra --</option>
                         </select>
                     </div>
 
-                    <h3 style="margin: 1.5rem 0 1rem 0;">Datos Personales Contratista</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Nombre *</label>
-                            <input type="text" id="nombreContratista" required>
-                        </div>
-                        <div class="form-group">
-                            <label>C.I. *</label>
-                            <input type="text" id="ciContratista" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Celular *</label>
-                            <input type="tel" id="telefonoContratista" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Número de Trabajadores *</label>
-                            <input type="number" id="numTrabajadores" required min="8">
-                        </div>
-                    </div>
+                    <h3 class="section-title">Negociación - Condiciones Especiales</h3>
+                    <textarea id="condicionesEspeciales" style="width: 100%; min-height: 80px; margin-bottom: 1.5rem;" placeholder="Madera, materiales, horarios, etc."></textarea>
 
-                    <h3 style="margin: 1.5rem 0 1rem 0;">Documentos</h3>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Google Maps (Domicilio)</label>
-                            <input type="url" id="mapsDomicilio">
-                        </div>
-                        <div class="form-group">
-                            <label>Foto C.I.</label>
-                            <input type="file" id="fotoCi" accept="image/*">
-                        </div>
-                        <div class="form-group">
-                            <label>Foto Aviso Agua/Luz</label>
-                            <input type="file" id="fotoRecibo" accept="image/*">
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem;">
-                        ✅ Generar Contrato
-                    </button>
+                    <button type="submit" class="btn btn-primary">⚡ Generar Contrato Automático</button>
                 </form>
             </div>
-        </section>
 
-        <!-- PANEL CONSULTA -->
-        <section id="consulta" class="section">
-            <div class="form-container">
-                <h2 style="margin-bottom: 2rem; color: var(--primary);">📄 Contratos</h2>
-                
-                <div class="form-group" style="margin-bottom: 2rem;">
-                    <label>Selecciona Contrato</label>
-                    <select id="contratoSelect" onchange="cargarContrato()">
-                        <option value="">-- Selecciona --</option>
-                    </select>
-                </div>
+            <!-- PANEL CONSULTA -->
+            <div id="consulta" class="panel">
+                <h2>📄 Consulta Contratos y Documentos</h2>
 
-                <div id="vistaContrato" style="display: none;">
-                    <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
-                        <div id="previewContrato" style="background: white; padding: 2rem; border-radius: 8px; max-height: 500px; overflow-y: auto; border: 0.5px solid var(--gray-200); font-size: 0.9rem; line-height: 1.6;"></div>
+                <h3 class="section-title">Selecciona Contrato</h3>
+                <select id="contratoSelect" onchange="cargarContrato()" style="width: 100%; margin-bottom: 2rem;">
+                    <option value="">-- Selecciona --</option>
+                </select>
+
+                <div id="vistasContratos" style="display: none;">
+                    <!-- Vista Contrato Generado -->
+                    <h3 class="section-title">Contrato Generado para Contratista</h3>
+                    <div id="contractoGenerado" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; font-size: 12px; line-height: 1.8; max-height: 400px; overflow-y: auto;"></div>
+                    <button class="btn btn-primary" onclick="descargarContrato()" style="margin-bottom: 2rem;">📥 Descargar Contrato PDF</button>
+
+                    <!-- Histórico Obras -->
+                    <h3 class="section-title">Histórico de Obras del Contratista</h3>
+                    <div id="historicoObras" style="margin-bottom: 2rem;"></div>
+
+                    <!-- Resumen Acuerdos Propietario -->
+                    <h3 class="section-title">Resumen Acuerdos con Propietario (Confidencial)</h3>
+                    <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">
+                        <label style="display: block; font-size: 12px; font-weight: 600; color: #92400e; margin-bottom: 8px;">Subir Contrato del Propietario (PDF/DOC)</label>
+                        <div class="upload-zone" onclick="document.getElementById('contratoCliente').click()">
+                            <p>📤 Subir contrato cliente</p>
+                            <p style="font-size: 11px;">PDF, DOC | Sistema extrae cláusulas importantes</p>
+                        </div>
+                        <input type="file" id="contratoCliente" accept=".pdf,.doc,.docx" style="display: none;">
+                        <div id="acuerdosResumen"></div>
                     </div>
 
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
-                        <button class="btn btn-primary" onclick="descargarPDF()">📥 Descargar PDF</button>
-                    </div>
+                    <!-- Resumen para Supervisor (sin expiración) -->
+                    <h3 class="section-title">Descargar Resumen para Supervisor (SIN CI, SIN ACUERDOS)</h3>
+                    <button class="btn btn-success" onclick="descargarResumenSupervisor()" style="margin-bottom: 2rem;">📥 Descargar PDF Resumido</button>
 
-                    <h3 style="margin-bottom: 1rem;">Contrato Firmado</h3>
-                    <div class="form-group">
-                        <input type="file" id="contratoFirmado" accept=".pdf">
+                    <!-- Subir Documentos Firmados -->
+                    <h3 class="section-title">Subir Contratos Firmados Escaneados</h3>
+                    <div class="upload-zone" onclick="document.getElementById('contratosFirmados').click()">
+                        <p>📤 Subir contratos firmados</p>
+                        <p style="font-size: 11px;">PDF, JPG, PNG | OCR automático, reconocimiento de archivos</p>
                     </div>
-                    <button class="btn btn-success btn-block" onclick="subirFirmado()">✅ Subir Firmado</button>
+                    <input type="file" id="contratosFirmados" accept=".pdf,.jpg,.jpeg,.png" multiple style="display: none;">
+                    <div id="archivosFirmados"></div>
                 </div>
             </div>
-        </section>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
+        let usuario = null;
         let obras = [];
         let contratos = [];
+        let archivosPorContrato = {};
 
-        function cambiarTab(tab) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        const CREDENCIALES = {
+            fatima: 'fatima123',
+            josemiguel: 'jose123',
+            supervisor: 'supervisor123'
+        };
+
+        function login() {
+            const rol = document.getElementById('roleSelect').value;
+            const password = document.getElementById('passwordInput').value;
+            
+            if (!rol || !password) {
+                alert('Selecciona rol e ingresa contraseña');
+                return;
+            }
+            
+            if (CREDENCIALES[rol] !== password) {
+                alert('Contraseña incorrecta');
+                return;
+            }
+
+            usuario = rol;
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'block';
+            document.getElementById('userDisplay').textContent = rol.toUpperCase();
+            document.getElementById('roleBadge').textContent = rol === 'fatima' ? 'FÁTIMA' : rol === 'josemiguel' ? 'JOSEMIGUEL' : 'SUPERVISOR';
+
+            if (rol !== 'fatima') document.querySelector('[onclick*="fatima"]').style.display = 'none';
+            if (rol !== 'josemiguel') document.querySelector('[onclick*="josemiguel"]').style.display = 'none';
+            if (rol !== 'supervisor' && rol !== 'josemiguel') document.querySelector('[onclick*="consulta"]').style.display = 'none';
+        }
+
+        function logout() {
+            usuario = null;
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+            document.getElementById('roleSelect').value = '';
+            document.getElementById('passwordInput').value = '';
+        }
+
+        function cambiarTab(tab, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
-            
+            btn.classList.add('active');
             if (tab === 'josemiguel') cargarObrasSelect();
             if (tab === 'consulta') cargarContratosSelect();
         }
 
+        function calcularFechaConclusion() {
+            const inicio = new Date(document.getElementById('fechaInicio').value);
+            const dias = parseInt(document.getElementById('tiempoEjecucion').value) || 0;
+            const conclusion = new Date(inicio.getTime() + dias * 24 * 60 * 60 * 1000);
+            document.getElementById('fechaConclusion').value = conclusion.toISOString().split('T')[0];
+        }
+
+        function agregarModulo() {
+            const container = document.querySelector('.modulos-container');
+            const div = document.createElement('div');
+            div.className = 'modulo-item';
+            div.innerHTML = '<input type="checkbox"><input type="text" placeholder="Nuevo módulo"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button>';
+            container.appendChild(div);
+        }
+
         function guardarObra(e) {
             e.preventDefault();
+            const modulos = Array.from(document.querySelectorAll('.modulo-item')).map(m => {
+                const check = m.querySelector('input[type="checkbox"]');
+                return {
+                    activo: check.checked,
+                    nombre: m.querySelectorAll('input[type="text"]')[0].value,
+                    desc: m.querySelectorAll('input[type="text"]')[1].value
+                };
+            });
+
             const obra = {
                 id: Date.now(),
                 nombre: document.getElementById('nombreObra').value,
                 codigo: document.getElementById('codigoObra').value,
                 superficie: parseFloat(document.getElementById('superficie').value),
                 precio: parseFloat(document.getElementById('precio').value),
-                ubicacion: document.getElementById('ubicacion').value,
-                tiempoEjecucion: document.getElementById('tiempoEjecucion').value,
+                tiempoEjecucion: parseInt(document.getElementById('tiempoEjecucion').value),
                 fechaInicio: document.getElementById('fechaInicio').value,
-                estado: 'activa'
+                fechaConclusion: document.getElementById('fechaConclusion').value,
+                notas: document.getElementById('notasFatima').value,
+                modulos: modulos
             };
 
             obras.push(obra);
             mostrarMensaje('✅ Obra guardada correctamente', 'success');
-            document.getElementById('formObra').reset();
+            document.getElementById('fatima').querySelector('form').reset();
         }
 
         function cargarObrasSelect() {
             const select = document.getElementById('obraSelect');
-            select.innerHTML = '<option value="">-- Selecciona --</option>';
+            select.innerHTML = '<option value="">-- Selecciona Obra --</option>';
             obras.forEach(obra => {
                 const option = document.createElement('option');
-                option.value = obra.id;
-                option.textContent = obra.nombre;
+                option.value = JSON.stringify(obra);
+                option.textContent = `${obra.nombre} (${obra.superficie}m²)`;
                 select.appendChild(option);
             });
         }
 
         function guardarContratista(e) {
             e.preventDefault();
-            const obraId = document.getElementById('obraSelect').value;
-            const obra = obras.find(o => o.id == obraId);
-
+            const obraStr = document.getElementById('obraSelect').value;
+            if (!obraStr) {
+                mostrarMensaje('❌ Selecciona una obra', 'error');
+                return;
+            }
+            const obra = JSON.parse(obraStr);
+            
             const contrato = {
                 id: Date.now(),
-                obraId: obraId,
-                nombreObra: obra.nombre,
-                nombreContratista: document.getElementById('nombreContratista').value,
-                ciContratista: document.getElementById('ciContratista').value,
-                telefonoContratista: document.getElementById('telefonoContratista').value,
-                numTrabajadores: document.getElementById('numTrabajadores').value,
-                mapsDomicilio: document.getElementById('mapsDomicilio').value,
-                estado: 'generado'
+                ci: document.getElementById('ci').value,
+                nombre: document.getElementById('nombreContratista').value || 'Contratista',
+                telefono: document.getElementById('telefonoContratista').value,
+                direccion: document.getElementById('direccionContratista').value,
+                condiciones: document.getElementById('condicionesEspeciales').value,
+                obra: obra,
+                estado: 'generado',
+                fechaGeneracion: new Date().toLocaleDateString('es-ES')
             };
 
             contratos.push(contrato);
+            archivosPorContrato[contrato.id] = [];
             mostrarMensaje('✅ Contrato generado automáticamente', 'success');
-            generarContratoHTML(contrato, obra);
-            document.getElementById('formContratista').reset();
-        }
-
-        function generarContratoHTML(contrato, obra) {
-            const html = `
-                <h3>CONTRATO DE PRESTACIÓN DE SERVICIOS</h3>
-                <p><strong>Obra:</strong> ${contrato.nombreObra}</p>
-                <p><strong>Código:</strong> ${obra.codigo || 'N/A'}</p>
-                <p><strong>Superficie:</strong> ${obra.superficie} m²</p>
-                <p><strong>Precio Total:</strong> $${(obra.superficie * obra.precio).toLocaleString()} USD</p>
-                <hr style="margin: 1.5rem 0;">
-                <p><strong>Contratista:</strong> ${contrato.nombreContratista}</p>
-                <p><strong>C.I.:</strong> ${contrato.ciContratista}</p>
-                <p><strong>Celular:</strong> ${contrato.telefonoContratista}</p>
-                <p><strong>Trabajadores:</strong> ${contrato.numTrabajadores}</p>
-                <hr style="margin: 1.5rem 0;">
-                <p><strong>Garantía:</strong> 1 año</p>
-                <p><strong>Retención:</strong> 5%</p>
-                <p><strong>Pagos:</strong> Quincenales según avance</p>
-                <hr style="margin: 1.5rem 0;">
-                <p style="margin-top: 3rem;">
-                    CONTRATISTA: _____________________ &nbsp;&nbsp;&nbsp;&nbsp; CONTRATANTE: _____________________
-                </p>
-                <p>${contrato.nombreContratista} &nbsp;&nbsp;&nbsp;&nbsp; JOSÉ MIGUEL GAMBARTE</p>
-                <p>Fecha: ${new Date().toLocaleDateString()}</p>
-            `;
-            
-            document.getElementById('vistaContrato').style.display = 'block';
-            document.getElementById('previewContrato').innerHTML = html;
+            document.getElementById('josemiguel').querySelector('form').reset();
         }
 
         function cargarContratosSelect() {
             const select = document.getElementById('contratoSelect');
             select.innerHTML = '<option value="">-- Selecciona --</option>';
-            contratos.forEach(contrato => {
+            contratos.forEach(c => {
                 const option = document.createElement('option');
-                option.value = JSON.stringify(contrato);
-                option.textContent = `${contrato.nombreContratista} - ${contrato.nombreObra}`;
+                option.value = JSON.stringify(c);
+                option.textContent = `${c.nombre} - ${c.obra.nombre}`;
                 select.appendChild(option);
             });
         }
 
         function cargarContrato() {
             const valor = document.getElementById('contratoSelect').value;
-            if (valor) {
-                const contrato = JSON.parse(valor);
-                const obra = obras.find(o => o.id == contrato.obraId);
-                document.getElementById('vistaContrato').style.display = 'block';
-                generarContratoHTML(contrato, obra);
-            }
-        }
-
-        function descargarPDF() {
-            const html = document.getElementById('previewContrato').innerHTML;
-            const element = document.createElement('div');
-            element.innerHTML = html;
-            const opt = { margin: 10, filename: 'CONTRATO_GEAT.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
-            window.html2pdf().set(opt).from(element).save();
-            mostrarMensaje('✅ Descargando PDF', 'success');
-        }
-
-        function subirFirmado() {
-            const archivo = document.getElementById('contratoFirmado').files[0];
-            if (!archivo) {
-                mostrarMensaje('❌ Selecciona un PDF', 'error');
+            if (!valor) {
+                document.getElementById('vistasContratos').style.display = 'none';
                 return;
             }
-            mostrarMensaje('✅ Contrato firmado subido correctamente', 'success');
-            document.getElementById('contratoFirmado').value = '';
+
+            const contrato = JSON.parse(valor);
+            document.getElementById('vistasContratos').style.display = 'block';
+
+            // Generar contrato
+            const html = `
+                <h3 style="margin-bottom: 1rem;">CONTRATO DE PRESTACIÓN DE SERVICIOS</h3>
+                <p><strong>Obra:</strong> ${contrato.obra.nombre}</p>
+                <p><strong>Código:</strong> ${contrato.obra.codigo}</p>
+                <p><strong>Contratista:</strong> ${contrato.nombre}</p>
+                <p><strong>Teléfono:</strong> ${contrato.telefono}</p>
+                <p><strong>Superficie:</strong> ${contrato.obra.superficie} m²</p>
+                <p><strong>Precio USD/m²:</strong> $${contrato.obra.precio}</p>
+                <p><strong>Monto Total:</strong> $${(contrato.obra.superficie * contrato.obra.precio).toFixed(2)}</p>
+                <p><strong>Módulos:</strong> ${contrato.obra.modulos.filter(m => m.activo).map(m => m.nombre).join(', ')}</p>
+                ${contrato.condiciones ? `<p><strong>Condiciones:</strong> ${contrato.condiciones}</p>` : ''}
+                <p style="margin-top: 1.5rem;"><strong>Garantía:</strong> 1 año | <strong>Retención:</strong> 5% | <strong>Pagos:</strong> Quincenales</p>
+                <p style="margin-top: 2rem;">Generado: ${contrato.fechaGeneracion}</p>
+            `;
+            document.getElementById('contractoGenerado').innerHTML = html;
+
+            // Histórico
+            document.getElementById('historicoObras').innerHTML = '<p style="color: #6b7280; font-size: 12px;">Obras anteriores: [Se mostrarían aquí]</p>';
+
+            // Acuerdos
+            document.getElementById('acuerdosResumen').innerHTML = '<p style="color: #92400e; font-size: 12px;">Carga el contrato del propietario para extraer cláusulas importantes...</p>';
+        }
+
+        function descargarContrato() {
+            const valor = document.getElementById('contratoSelect').value;
+            if (!valor) return;
+            const contrato = JSON.parse(valor);
+            const element = document.getElementById('contractoGenerado');
+            const opt = { margin: 10, filename: `Contrato_${contrato.nombre}.pdf`, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
+            window.html2pdf().set(opt).from(element).save();
+            mostrarMensaje('✅ Descargando contrato completo', 'success');
+        }
+
+        function descargarResumenSupervisor() {
+            const valor = document.getElementById('contratoSelect').value;
+            if (!valor) return;
+            const contrato = JSON.parse(valor);
+            
+            const html = `
+                <h2 style="text-align: center; color: #f59e0b; margin-bottom: 1.5rem;">RESUMEN CONFIDENCIAL - SUPERVISOR</h2>
+                <p><strong>Obra:</strong> ${contrato.obra.nombre}</p>
+                <p><strong>Código:</strong> ${contrato.obra.codigo}</p>
+                <p><strong>Contratista:</strong> ${contrato.nombre}</p>
+                <p><strong>Teléfono (últimos 4):</strong> ••••${contrato.telefono.slice(-4)}</p>
+                <p><strong>Superficie:</strong> ${contrato.obra.superficie} m²</p>
+                <p><strong>Monto Total:</strong> $${(contrato.obra.superficie * contrato.obra.precio).toFixed(2)}</p>
+                <p><strong>Módulos Incluidos:</strong></p>
+                <ul style="margin-left: 1.5rem;">
+                    ${contrato.obra.modulos.filter(m => m.activo).map(m => `<li>${m.nombre}</li>`).join('')}
+                </ul>
+                <p style="margin-top: 1.5rem;"><strong>Estado:</strong> ${contrato.estado === 'generado' ? 'Contrato Generado' : 'Pendiente Firma'}</p>
+                <p style="margin-top: 2rem; font-size: 11px; color: #999; text-align: center;">Este resumen NO incluye: CI, ubicación, acuerdos confidenciales con propietario</p>
+            `;
+            
+            const element = document.createElement('div');
+            element.innerHTML = html;
+            element.style.padding = '2rem';
+            const opt = { margin: 10, filename: `Resumen_${contrato.nombre}.pdf`, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
+            window.html2pdf().set(opt).from(element).save();
+            mostrarMensaje('✅ Descargando resumen para supervisor (SIN EXPIRACIÓN)', 'success');
         }
 
         function mostrarMensaje(texto, tipo) {
             const msg = document.getElementById('mensaje');
             msg.textContent = texto;
-            msg.className = `message show ${tipo}`;
-            setTimeout(() => msg.classList.remove('show'), 3000);
+            msg.className = `msg show ${tipo}`;
+            setTimeout(() => msg.classList.remove('show'), 4000);
         }
 
-        window.addEventListener('load', () => cargarObrasSelect());
+        window.addEventListener('load', () => {
+            document.getElementById('nombreObra').focus();
+        });
     </script>
 </body>
 </html>
