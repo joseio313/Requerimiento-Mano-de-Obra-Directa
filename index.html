@@ -1,355 +1,1678 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEAT - Sistema de Reclutamiento Mano de Obra</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1f2937; }
-        header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; padding: 2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1); position: relative; }
-        header h1 { font-size: 28px; font-weight: 600; margin: 0; }
-        header p { font-size: 13px; margin: 0.5rem 0 0 0; opacity: 0.9; }
-        .user-info { position: absolute; top: 2rem; right: 2rem; color: white; font-size: 13px; text-align: right; }
-        .nav { background: white; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e7eb; display: flex; gap: 1rem; flex-wrap: wrap; }
-        .nav-btn { padding: 10px 18px; background: white; color: #666; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.2s; }
-        .nav-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem 1rem; }
-        .panel { background: white; border-radius: 10px; padding: 2rem; border: 1px solid #e5e7eb; margin-bottom: 2rem; display: none; }
-        .panel.active { display: block; }
-        .panel h2 { font-size: 24px; font-weight: 600; color: #1f2937; margin: 0 0 1.5rem 0; padding-bottom: 1rem; border-bottom: 2px solid #f3f4f6; }
-        .section-title { font-size: 13px; font-weight: 600; color: #374151; text-transform: uppercase; letter-spacing: 0.5px; margin: 1.5rem 0 1rem 0; opacity: 0.8; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-        input, textarea, select { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; font-family: inherit; width: 100%; }
-        input:focus, textarea:focus, select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        .info-box { background: #eff6ff; border-left: 4px solid #3b82f6; padding: 12px 16px; border-radius: 6px; margin-bottom: 1.5rem; font-size: 13px; color: #1e40af; }
-        .upload-zone { border: 2px dashed #3b82f6; border-radius: 8px; padding: 2rem; text-align: center; background: #eff6ff; cursor: pointer; margin-bottom: 1rem; transition: all 0.2s; }
-        .upload-zone:hover { border-color: #2563eb; background: #dbeafe; }
-        .upload-zone p { margin: 0; font-size: 13px; color: #3b82f6; }
-        .btn { padding: 11px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 13px; width: 100%; }
-        .btn-primary { background: #4f46e5; color: white; }
-        .btn-primary:hover { background: #4338ca; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-secondary { background: white; color: #3b82f6; border: 1px solid #3b82f6; padding: 10px 16px; width: auto; }
-        .btn-danger { background: #ef4444; color: white; padding: 8px 12px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
-        .msg { padding: 12px 16px; border-radius: 6px; margin-bottom: 1rem; display: none; font-size: 13px; }
-        .msg.show { display: block; }
-        .msg.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-        .msg.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .modulos-container { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; max-height: 400px; overflow-y: auto; }
-        .modulo-item { display: grid; grid-template-columns: auto 2fr 1fr auto; gap: 1rem; align-items: center; margin-bottom: 0.75rem; padding-bottom: 0.75rem; border-bottom: 1px solid #e5e7eb; }
-        .modulo-item:last-child { margin-bottom: 0; border-bottom: none; }
-        .modulo-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
-        .modulo-item input[type="text"] { padding: 8px; font-size: 12px; }
-        .login-container { max-width: 400px; margin: 5rem auto; background: white; padding: 3rem; border-radius: 10px; border: 1px solid #e5e7eb; text-align: center; }
-        .login-container h1 { font-size: 28px; margin-bottom: 2rem; color: #4f46e5; }
-        .login-container select, .login-container input { width: 100%; margin-bottom: 1rem; }
-        .login-container button { width: 100%; }
-        .role-badge { display: inline-block; padding: 4px 12px; background: #dbeafe; color: #1e40af; border-radius: 20px; font-size: 11px; font-weight: 600; margin-left: 1rem; }
-        .required { color: #dc2626; }
-        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } header { position: relative; } .user-info { position: static; margin-top: 1rem; text-align: left; } }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEAT — Reclutamiento MO</title>
+<style>
+:root{
+  --bg:#0a0a0a;--p1:#141414;--p2:#1e1e1e;--p3:#282828;--bd:#333;--bh:#3a3a3a;
+  --am:#f5c400;--amh:#ffd700;--amd:rgba(245,196,0,.1);
+  --w:#fff;--wd:#bbb;--ws:#666;
+  --G:#047856;--Gbg:rgba(4,120,86,.12);--Gc:#10b981;
+  --A:#92400e;--Abg:rgba(146,64,14,.12);--Ac:#fbbf24;
+  --P:#5b21b6;--Pbg:rgba(91,33,182,.12);--Pc:#a78bfa;
+  --Z:#1e40af;--Zbg:rgba(30,64,175,.12);--Zc:#60a5fa;
+  --R:#dc2626;--Rbg:rgba(220,38,38,.12);--Rc:#f87171;
+  --N:#c2410c;--Nbg:rgba(194,65,12,.12);--Nc:#fb923c;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--w);min-height:100vh;font-size:14px;}
+
+/* ════ LOGIN PIN ════ */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 35%,rgba(245,196,0,.07) 0%,transparent 60%),var(--bg);}
+.pin-box{background:var(--p1);border:1px solid var(--bd);border-top:3px solid var(--am);
+  border-radius:8px;padding:40px 32px;width:320px;text-align:center;}
+.logo-g{width:52px;height:52px;background:var(--am);border-radius:5px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#000;margin-bottom:10px;}
+.pin-box h1{font-size:17px;font-weight:800;letter-spacing:5px;color:var(--am);margin-bottom:4px;}
+.pin-box p{font-size:10px;color:var(--ws);letter-spacing:2px;margin-bottom:28px;}
+.pin-display{display:flex;justify-content:center;gap:10px;margin-bottom:24px;}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--bd);transition:all .2s;}
+.pin-dot.filled{background:var(--am);border-color:var(--am);}
+.pin-dot.error{background:var(--R);border-color:var(--R);}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:220px;margin:0 auto 16px;}
+.nk{background:var(--p2);border:1px solid var(--bd);color:var(--w);font-size:18px;font-weight:700;
+  padding:14px;border-radius:5px;cursor:pointer;transition:all .15s;user-select:none;}
+.nk:hover{background:var(--p3);border-color:var(--am);}
+.nk:active{transform:scale(.94);}
+.nk.del{font-size:14px;color:var(--ws);}
+.nk.zero{grid-column:2;}
+.pin-hint{font-size:11px;color:var(--ws);}
+.pin-error{color:var(--Rc);font-size:11px;margin-top:10px;min-height:18px;}
+
+/* ════ APP SHELL ════ */
+#app{display:none;min-height:100vh;}
+.hdr{background:var(--p1);border-bottom:2px solid var(--am);height:52px;padding:0 16px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;}
+.hdr-l{display:flex;align-items:center;gap:9px;}
+.hdr-g{width:28px;height:28px;background:var(--am);border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#000;}
+.hdr-t{font-weight:800;letter-spacing:3px;font-size:12px;color:var(--am);}
+.hdr-r{display:flex;align-items:center;gap:8px;}
+.hdr-user{background:var(--p2);border:1px solid var(--bd);padding:4px 12px;border-radius:20px;font-size:11px;color:var(--wd);cursor:pointer;transition:all .2s;}
+.hdr-user:hover{border-color:var(--am);color:var(--am);}
+.btn-exit{background:transparent;border:1px solid var(--bd);color:var(--ws);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:11px;transition:all .2s;}
+.btn-exit:hover{border-color:var(--R);color:var(--R);}
+
+/* NAV */
+.nav{background:var(--p1);border-bottom:1px solid var(--bd);padding:0 16px;display:flex;gap:0;overflow-x:auto;}
+.nb{background:transparent;border:none;color:var(--ws);padding:12px 16px;cursor:pointer;
+  font-size:12px;font-weight:600;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
+.nb:hover{color:var(--w);}
+.nb.on{color:var(--am);border-bottom-color:var(--am);}
+
+/* MAIN */
+.main{padding:22px 16px;max-width:1160px;margin:0 auto;}
+.panel{display:none;animation:fadeIn .2s ease;}
+.panel.on{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.ph{margin-bottom:20px;}
+.ph h2{font-size:18px;font-weight:800;color:var(--am);letter-spacing:2px;margin-bottom:3px;}
+.ph p{color:var(--ws);font-size:11px;}
+
+/* CARD */
+.card{background:var(--p1);border:1px solid var(--bd);border-radius:5px;padding:18px;margin-bottom:14px;}
+.ct{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:var(--am);
+  margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;}
+
+/* FORMS */
+.f{display:flex;flex-direction:column;gap:4px;}
+.f label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ws);}
+.f input,.f select,.f textarea{background:var(--p2);border:1px solid var(--bd);color:var(--w);
+  padding:8px 11px;border-radius:3px;font-size:12px;outline:none;transition:border-color .2s;font-family:inherit;}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--am);}
+.f input[readonly]{color:var(--wd);border-color:var(--p2);background:#111;}
+.f textarea{resize:vertical;min-height:64px;}
+.f select option{background:var(--p2);}
+.g{display:grid;gap:11px;}
+.g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr 1fr;}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr;}.full{grid-column:1/-1;}
+
+/* BTN */
+.btn{padding:8px 16px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:1px;
+  text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
+.y{background:var(--am);color:#000;}.y:hover{background:var(--amh);transform:translateY(-1px);}
+.o{background:transparent;border:1px solid var(--bd);color:var(--wd);}.o:hover{border-color:var(--am);color:var(--am);}
+.g2b{background:var(--Gbg);border:1px solid var(--G);color:var(--Gc);}
+.rb{background:var(--Rbg);border:1px solid var(--R);color:var(--Rc);}
+.pb{background:var(--Pbg);border:1px solid var(--P);color:var(--Pc);}
+.sm{padding:5px 10px;font-size:9px;}
+.brow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+
+/* UPLOAD */
+.u3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
+.ub{border:2px dashed var(--bd);border-radius:4px;padding:14px 8px;text-align:center;
+  cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.ub:hover{border-color:var(--am);}
+.ub.ok{border-color:var(--G);border-style:solid;background:var(--Gbg);}
+.ub .ico{font-size:20px;margin-bottom:4px;}
+.ub .lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--wd);}
+.ub .st{font-size:9px;color:var(--Gc);margin-top:3px;font-weight:700;word-break:break-all;}
+.ub input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.ua{border:2px dashed var(--bd);border-radius:4px;padding:16px;text-align:center;
+  cursor:pointer;transition:all .2s;position:relative;}
+.ua:hover{border-color:var(--am);}
+.ua.ok{border-color:var(--G);border-style:solid;background:var(--Gbg);}
+.ua input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+
+/* MÓDULOS */
+.mg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;}
+.mi input{width:100%;background:var(--p2);border:1px solid var(--bd);color:var(--w);
+  padding:6px 4px;border-radius:3px;font-size:10px;outline:none;text-align:center;}
+.mi input:focus{border-color:var(--am);}
+.ml{font-size:8px;color:var(--ws);text-align:center;margin-bottom:2px;}
+.add-mod{background:transparent;border:1px dashed var(--bd);color:var(--ws);padding:4px 12px;
+  border-radius:3px;cursor:pointer;font-size:9px;margin-top:8px;transition:all .2s;}
+.add-mod:hover{border-color:var(--am);color:var(--am);}
+
+/* OBRAS CARDS */
+.obra-card{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:12px 14px;
+  margin-bottom:8px;cursor:pointer;transition:all .2s;}
+.obra-card:hover{border-color:var(--am);background:var(--p3);}
+.oc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.oc-nom{font-weight:700;font-size:13px;}
+.obadge{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:700;}
+.ob-a{background:var(--Gbg);color:var(--Gc);}
+.ob-p{background:var(--Nbg);color:var(--Nc);}
+.ob-r{background:var(--Rbg);color:var(--Rc);}
+.oc-inf{font-size:11px;color:var(--wd);}
+.oc-inf span{margin-right:9px;}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;
+  align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
+.overlay.on{display:flex;}
+.modal{background:var(--p1);border:1px solid var(--bd);border-top:3px solid var(--am);
+  border-radius:6px;width:100%;max-width:740px;margin:auto;padding:24px;position:relative;}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;}
+.modal-hdr h3{font-size:14px;font-weight:800;color:var(--am);}
+.xbtn{background:none;border:none;color:var(--ws);font-size:18px;cursor:pointer;padding:2px 7px;}
+.xbtn:hover{color:var(--w);}
+.msec{margin-bottom:14px;}
+.msec h4{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--ws);margin-bottom:8px;}
+.mrow{display:flex;gap:8px;margin-bottom:4px;font-size:12px;}
+.mrow .lbl{color:var(--ws);min-width:118px;flex-shrink:0;}
+.mrow .val{color:var(--w);font-weight:600;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{background:var(--p2);border:1px solid var(--bd);border-radius:3px;padding:3px 8px;font-size:9px;color:var(--wd);}
+
+/* PERFIL MODAL */
+.perfil-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.perfil-btn{background:var(--p2);border:1px solid var(--bd);border-radius:5px;padding:16px 10px;
+  text-align:center;cursor:pointer;transition:all .2s;}
+.perfil-btn:hover{border-color:var(--am);background:var(--p3);}
+.perfil-btn .ico{font-size:22px;margin-bottom:6px;}
+.perfil-btn .lbl{font-size:11px;font-weight:700;}
+.perfil-btn .sub{font-size:9px;color:var(--ws);margin-top:2px;}
+.perfil-info{background:var(--p2);border-radius:4px;padding:14px;margin-bottom:12px;}
+.perfil-info .nombre{font-size:18px;font-weight:800;color:var(--am);margin-bottom:4px;}
+.perfil-info .rol{font-size:11px;color:var(--ws);}
+
+/* KPI */
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px;}
+.kc{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;text-align:center;}
+.kv{font-size:24px;font-weight:900;margin-bottom:2px;}
+.kl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);}
+
+/* TABLE */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+thead th{background:var(--p2);color:var(--am);font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:1px;padding:9px 10px;text-align:left;border-bottom:2px solid var(--am);}
+tbody tr{border-bottom:1px solid var(--bd);transition:background .15s;}
+tbody tr:hover{background:var(--p2);}
+tbody td{padding:9px 10px;color:var(--wd);}
+tbody td:first-child{color:var(--w);font-weight:600;}
+
+/* BADGES ESTADO */
+.est{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;}
+.e-apto{background:var(--Gbg);color:var(--Gc);}
+.e-gen{background:var(--Abg);color:var(--Ac);}
+.e-bus{background:var(--Pbg);color:var(--Pc);}
+.e-ej{background:var(--Zbg);color:var(--Zc);}
+.e-rev{background:var(--Abg);color:var(--Ac);}
+
+/* ALERT */
+.al{padding:8px 12px;border-radius:3px;font-size:11px;margin-bottom:10px;}
+.al-g{background:var(--Gbg);border:1px solid var(--G);color:var(--Gc);}
+.al-z{background:var(--Zbg);border:1px solid var(--Z);color:var(--Zc);}
+.al-n{background:var(--Nbg);border:1px solid var(--N);color:var(--Nc);}
+.al-p{background:var(--Pbg);border:1px solid var(--P);color:var(--Pc);}
+.al-r{background:var(--Rbg);border:1px solid var(--R);color:var(--Rc);}
+
+/* CONTRATOS POR OBRA */
+.obra-contrato-card{background:var(--p2);border:1px solid var(--bd);border-radius:5px;margin-bottom:14px;overflow:hidden;}
+.occ-hdr{background:var(--p3);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.occ-hdr:hover{background:var(--bh);}
+.occ-titulo{font-weight:700;font-size:13px;}
+.occ-sub{font-size:10px;color:var(--wd);margin-top:2px;}
+.occ-arrow{color:var(--am);transition:transform .2s;}
+.occ-card.open .occ-arrow{transform:rotate(180deg);}
+.occ-body{display:none;padding:16px;}
+.occ-card.open .occ-body{display:block;}
+
+/* EDITOR CONTRATO */
+.editor-contrato{background:#0d1117;border:1px solid var(--bd);border-radius:4px;padding:16px;position:relative;}
+.editor-toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--bd);}
+.et-btn{background:var(--p2);border:1px solid var(--bd);color:var(--wd);padding:4px 10px;
+  border-radius:3px;cursor:pointer;font-size:10px;transition:all .2s;}
+.et-btn:hover{border-color:var(--am);color:var(--am);}
+.contrato-editor{width:100%;min-height:340px;background:#0d1117;border:none;color:var(--w);
+  font-family:'Courier New',monospace;font-size:12px;line-height:1.7;outline:none;resize:vertical;padding:4px;}
+.editor-status{font-size:10px;color:var(--ws);margin-top:6px;text-align:right;}
+
+/* SUPERVISIÓN */
+.sup-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.sup-obra{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;}
+.sup-obra h4{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--am);}
+.sup-dato{font-size:11px;color:var(--wd);margin-bottom:4px;}
+.sup-dato b{color:var(--w);}
+.sup-mods{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
+.sup-mod{background:var(--p3);border:1px solid var(--bd);border-radius:3px;padding:2px 7px;font-size:9px;color:var(--wd);}
+
+/* APROBACION */
+.apb{background:linear-gradient(135deg,var(--Nbg),var(--amd));border:1px solid var(--Nc);
+  border-radius:5px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.apb-l{display:flex;align-items:center;gap:10px;}
+.apb-ico{font-size:22px;}
+.apb-txt h4{font-size:12px;font-weight:700;color:var(--Nc);margin-bottom:2px;}
+.apb-txt p{font-size:10px;color:var(--ws);}
+.apb-r{display:flex;gap:7px;}
+
+/* SUPERVISOR BADGE */
+.sup-aviso{background:var(--Pbg);border:1px solid var(--P);border-radius:3px;padding:7px 12px;
+  font-size:10px;color:var(--Pc);margin-bottom:12px;}
+
+/* PRINT */
+@media print{
+  #app>*:not(#panel-contratos){display:none!important;}
+  .no-print{display:none!important;}
+  .print-area{display:block!important;}
+  body{background:white;color:black;}
+  .contrato-editor{border:none;min-height:auto;font-size:11pt;color:black;background:white;}
+}
+
+/* RESP */
+@media(max-width:720px){
+  .g3,.g2{grid-template-columns:1fr;}
+  .kpi{grid-template-columns:repeat(2,1fr);}
+  .u3{grid-template-columns:1fr;}
+  .mg{grid-template-columns:repeat(2,1fr);}
+  .perfil-grid{grid-template-columns:repeat(2,1fr);}
+  .sup-grid{grid-template-columns:1fr;}
+  .main{padding:14px 10px;}
+  .pin-box{width:92%;}
+  thead{display:none;}
+  tbody tr{display:block;padding:8px;}
+  tbody td{display:block;padding:2px 0;font-size:11px;}
+  tbody td::before{content:attr(data-label)': ';font-weight:700;color:var(--am);font-size:9px;text-transform:uppercase;}
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ══════════════════════════════════════
+// SUPABASE — Persistencia real de datos
+// ══════════════════════════════════════
+const SB_URL = 'https://jsacnpgpnvoslrpurfxc.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWNucGdwbnZvc2xycHVyZnhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMTIwNjUsImV4cCI6MjA4OTc4ODA2NX0.fOF7BQuNG6KdWMbsr7YQJ3kUIeJ9mdgV1fGmDMDGWtE';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+// ── CARGAR DATOS AL INICIAR ──
+async function sbCargarDatos() {
+  try {
+    const [{data:obrasDB}, {data:contratosDB}] = await Promise.all([
+      sb.from('rec_obras').select('*').order('created_at'),
+      sb.from('rec_contratos').select('*').order('created_at')
+    ]);
+
+    if(obrasDB && obrasDB.length > 0) {
+      obras = obrasDB.map(o=>({
+        id: o.id, nom: o.nombre, cod: o.codigo, sup: parseFloat(o.superficie)||0,
+        pre: parseFloat(o.precio_usd)||75, map: o.maps_link||'',
+        cuad: o.cuadrilla||4, monto: parseFloat(o.monto_usd)||0,
+        mn: o.modulos_n||0, est: o.estado||'pendiente',
+        fi: o.fecha_inicio||'', di: o.dias_ejecucion||0, not: o.notas||'',
+        cp: o.contrato_propietario_nombre||null, aprobada: o.aprobada||false,
+        mods: o.modulos||[], contrato_firmado_contratista: o.contrato_firmado_contratista||null
+      }));
+    }
+
+    if(contratosDB && contratosDB.length > 0) {
+      contratos = contratosDB.map(c=>({
+        id: c.id, nom: c.nombre_contratista, tel: c.telefono||'',
+        dir: c.direccion||'', ci_n: c.ci_numero||'',
+        oid: c.obra_id, ci: c.ci_archivo||null, ag: c.agua_archivo||null,
+        lz: c.luz_archivo||null, cond: c.condiciones||'',
+        est: c.estado||'generado', est_contrato: c.estado_contrato||'generado',
+        texto_contrato: c.texto_contrato||null,
+        firm: c.contrato_firmado_nombre||null,
+        aprobado_por: c.aprobado_por||null,
+        aprobado_fecha: c.aprobado_fecha||null,
+        fec: c.fecha_registro||null
+      }));
+    }
+
+    renderObras(); renderOS(); renderContratos(); renderSup(); renderAdmin(); uStats();
+    console.log('✅ Datos cargados desde Supabase');
+  } catch(e) {
+    console.warn('Supabase no disponible, usando datos locales:', e.message);
+  }
+}
+
+// ── GUARDAR OBRA ──
+async function sbGuardarObra(o) {
+  const {data, error} = await sb.from('rec_obras').upsert({
+    id: typeof o.id === 'number' && o.id < 1e12 ? o.id : undefined,
+    nombre: o.nom, codigo: o.cod, superficie: o.sup, precio_usd: o.pre,
+    maps_link: o.map, cuadrilla: o.cuad, monto_usd: o.monto,
+    modulos_n: o.mods?.length||0, estado: o.est,
+    fecha_inicio: o.fi||null, dias_ejecucion: o.di||0, notas: o.not||'',
+    contrato_propietario_nombre: o.cp||null, aprobada: o.aprobada||false,
+    modulos: o.mods||[], contrato_firmado_contratista: o.contrato_firmado_contratista||null
+  }, {onConflict: 'id'}).select().single();
+  if(error) console.error('Error obra:', error.message);
+  else { o.id = data.id; }
+  return data;
+}
+
+// ── GUARDAR CONTRATO ──
+async function sbGuardarContrato(c) {
+  const {data, error} = await sb.from('rec_contratos').upsert({
+    id: typeof c.id === 'number' && c.id < 1e12 ? c.id : undefined,
+    obra_id: c.oid, nombre_contratista: c.nom, telefono: c.tel||'',
+    direccion: c.dir||'', ci_numero: c.ci_n||'',
+    ci_archivo: c.ci||null, agua_archivo: c.ag||null, luz_archivo: c.lz||null,
+    condiciones: c.cond||'', estado: c.est||'generado',
+    estado_contrato: c.est_contrato||'generado',
+    texto_contrato: c.texto_contrato||null,
+    contrato_firmado_nombre: c.firm||null,
+    aprobado_por: c.aprobado_por||null,
+    aprobado_fecha: c.aprobado_fecha||null,
+    fecha_registro: c.fec||null
+  }, {onConflict: 'id'}).select().single();
+  if(error) console.error('Error contrato:', error.message);
+  else { c.id = data.id; }
+  return data;
+}
+
+// ── LOG AUDITORÍA ──
+async function sbLog(usuario, accion) {
+  await sb.from('rec_auditoria').insert({usuario, accion});
+}
+</script>
 </head>
 <body>
-    <div id="loginContainer" class="login-container">
-        <h1>🏗️ GEAT</h1>
-        <p style="margin-bottom: 2rem; color: #6b7280;">Reclutamiento Mano de Obra</p>
-        <select id="roleSelect" style="margin-bottom: 1rem;">
-            <option value="">-- Selecciona tu rol --</option>
-            <option value="fatima">📝 Fátima - Cargar Obras</option>
-            <option value="josemiguel">👥 Josemiguel - Contratistas</option>
-            <option value="supervisor">👀 Supervisor - Reportes</option>
-        </select>
-        <input type="text" id="passwordInput" placeholder="Contraseña" style="margin-bottom: 1rem;">
-        <button class="btn btn-primary" onclick="login()">Acceder</button>
+
+<!-- ═══════════════════════════════════ LOGIN PIN ═══════════════════════════════════ -->
+<div id="screen-login">
+  <div class="pin-box">
+    <div class="logo-g">G</div>
+    <h1>GEAT</h1>
+    <p>RECLUTAMIENTO MO</p>
+    <div class="pin-display">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+    <div class="numpad">
+      <button class="nk" onclick="pin(1)">1</button>
+      <button class="nk" onclick="pin(2)">2</button>
+      <button class="nk" onclick="pin(3)">3</button>
+      <button class="nk" onclick="pin(4)">4</button>
+      <button class="nk" onclick="pin(5)">5</button>
+      <button class="nk" onclick="pin(6)">6</button>
+      <button class="nk" onclick="pin(7)">7</button>
+      <button class="nk" onclick="pin(8)">8</button>
+      <button class="nk" onclick="pin(9)">9</button>
+      <button class="nk zero" onclick="pin(0)">0</button>
+      <button class="nk del" onclick="delPin()">⌫</button>
+    </div>
+    <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
+    <div class="pin-error" id="pin-err"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ APP ═══════════════════════════════════ -->
+<div id="app">
+  <header class="hdr">
+    <div class="hdr-l"><div class="hdr-g">G</div><span class="hdr-t">GEAT RECLUTAMIENTO</span></div>
+    <div class="hdr-r">
+      <div class="hdr-user" onclick="abrirPerfil()" id="hdr-nombre">👤 —</div>
+      <button class="btn-exit" onclick="logout()">Salir</button>
+    </div>
+  </header>
+  <nav class="nav" id="nav"></nav>
+
+  <main class="main">
+
+    <!-- ═══ PANEL: CARGAR OBRA ═══ -->
+    <div class="panel" id="panel-obra">
+      <div class="ph"><h2>📝 CARGAR OBRA</h2><p>Nueva obra con contrato del propietario</p></div>
+
+      <div class="card">
+        <div class="ct">📄 Contrato con Propietario <span style="color:var(--Rc)">*Obligatorio para aprobación</span></div>
+        <div class="al al-z" style="margin-bottom:12px;">Documento confidencial — solo Josemiguel. Sin esto la obra no puede aprobarse.</div>
+        <div class="ua" id="box-cp" onclick="document.getElementById('inp-cp').click()">
+          <input type="file" id="inp-cp" accept=".pdf,.jpg,.jpeg,.png" onchange="hCP(this)" style="display:none">
+          <div style="font-size:24px;margin-bottom:6px;">📋</div>
+          <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Subir Contrato Firmado con Propietario</div>
+          <div style="font-size:10px;color:var(--ws);">PDF, JPG, PNG</div>
+          <div id="st-cp" style="font-size:10px;color:var(--Gc);margin-top:6px;font-weight:700;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Datos Generales</div>
+        <div class="g g2">
+          <div class="f"><label>Nombre Obra *</label><input id="o-nom" placeholder="ej. CECILIA-MONTERO" oninput="cO()"></div>
+          <div class="f"><label>Código *</label><input id="o-cod" placeholder="ej. CC-2026-001"></div>
+          <div class="f"><label>Superficie m² *</label><input type="number" id="o-sup" oninput="cO()"></div>
+          <div class="f"><label>Precio USD/m²</label><input type="number" id="o-pre" value="75" oninput="cO()"></div>
+          <div class="f full"><label>📍 Maps Link *</label><input id="o-map" placeholder="https://maps.google.com/maps?q=..."></div>
+          <div class="f"><label>Fecha Inicio</label><input type="date" id="o-fi" oninput="cFF()"></div>
+          <div class="f"><label>Días Ejecución</label><input type="number" id="o-di" oninput="cFF()"></div>
+          <div class="f"><label>Fecha Conclusión</label><input id="o-ff" readonly></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Cálculos Automáticos</div>
+        <div class="g g3">
+          <div class="f"><label>Cuadrilla (auto)</label><input id="c-cua" readonly></div>
+          <div class="f"><label>Monto USD (auto)</label><input id="c-mon" readonly></div>
+          <div class="f"><label>Módulos estimados</label><input id="c-moo" readonly></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Módulos de Obra</div>
+        <div class="mg" id="mg-cont"></div>
+        <button class="add-mod" onclick="addMod()">+ Agregar módulo</button>
+      </div>
+
+      <div class="card">
+        <div class="ct">Notas</div>
+        <div class="f"><textarea id="o-not" placeholder="Observaciones, acceso al terreno, condiciones..."></textarea></div>
+        <div class="brow">
+          <button class="btn y" onclick="gObra()">💾 Guardar Obra</button>
+          <button class="btn o" onclick="lObra()">🔄 Limpiar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Obras Registradas — Clic para ver detalles y documentos</div>
+        <div id="obras-lista"></div>
+      </div>
     </div>
 
-    <div id="mainApp" style="display: none;">
-        <header>
-            <h1>🏗️ GEAT - Sistema de Reclutamiento</h1>
-            <p>Mano de Obra Directa</p>
-            <div class="user-info">
-                <div><span id="userDisplay"></span> <span class="role-badge" id="roleBadge"></span></div>
-                <button onclick="logout()" style="margin-top: 1rem; padding: 6px 12px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); border-radius: 4px; cursor: pointer; font-size: 12px;">Salir</button>
-            </div>
-        </header>
+    <!-- ═══ PANEL: CONTRATISTA ═══ -->
+    <div class="panel" id="panel-contratista">
+      <div class="ph"><h2>👷 CONTRATISTA</h2><p>Registro de datos — guarda al finalizar</p></div>
 
-        <div class="nav">
-            <button class="nav-btn active" onclick="cambiarTab('fatima', this)">📝 Fátima</button>
-            <button class="nav-btn" onclick="cambiarTab('josemiguel', this)">👥 Josemiguel</button>
-            <button class="nav-btn" onclick="cambiarTab('consulta', this)">📄 Consulta</button>
+      <div class="card">
+        <div class="ct">Documentos del Contratista</div>
+        <div class="u3">
+          <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="hUD('ci',this)"></div>
+          <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="hUD('ag',this)"></div>
+          <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="hUD('lz',this)"></div>
         </div>
+      </div>
 
-        <div class="container">
-            <div id="mensaje" class="msg"></div>
-
-            <!-- PANEL FÁTIMA -->
-            <div id="fatima" class="panel active">
-                <h2>Cargar Nueva Obra</h2>
-                <form onsubmit="guardarObra(event)">
-                    <h3 class="section-title">Datos Básicos</h3>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Nombre Obra <span class="required">*</span></label><input type="text" id="nombreObra" required></div>
-                        <div class="form-group"><label>Código</label><input type="text" id="codigoObra"></div>
-                        <div class="form-group"><label>m² <span class="required">*</span></label><input type="number" id="superficie" step="0.01" required></div>
-                        <div class="form-group"><label>USD/m² <span class="required">*</span></label><input type="number" id="precio" value="75" step="0.01" required></div>
-                    </div>
-
-                    <h3 class="section-title">Fechas</h3>
-                    <div class="form-grid">
-                        <div class="form-group"><label>Inicio <span class="required">*</span></label><input type="date" id="fechaInicio" required onchange="calcularFechaConclusion()"></div>
-                        <div class="form-group"><label>Días <span class="required">*</span></label><input type="number" id="tiempoEjecucion" value="90" required onchange="calcularFechaConclusion()"></div>
-                        <div class="form-group"><label>Conclusión (auto)</label><input type="date" id="fechaConclusion" readonly style="background: #f3f4f6;"></div>
-                    </div>
-
-                    <h3 class="section-title">Módulos</h3>
-                    <div class="modulos-container">
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M01 - Obras Preliminares"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M02 - Excavaciones"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M03 - Impermeabilización"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M04 - Muros"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M05 - Estructuras"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M06 - Eléctrica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M07 - Hidráulica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M08 - Sanitaria"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M09 - Cámara Séptica"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox" checked><input type="text" value="M10 - Revoques"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M11 - Cielo Falso"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M12 - Pisos"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M13 - Revestimientos"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M14 - Acabados"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M15 - Marcos"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M16 - Sanitarios"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M17 - Pintura"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M18 - Cubierta"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M19 - Huellas"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                        <div class="modulo-item"><input type="checkbox"><input type="text" value="M20 - Limpieza"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button></div>
-                    </div>
-                    <button type="button" class="btn-secondary" onclick="agregarModulo()" style="margin-bottom: 1.5rem;">+ Agregar</button>
-
-                    <h3 class="section-title">Notas de Fátima</h3>
-                    <textarea id="notasFatima" style="width: 100%; min-height: 100px; margin-bottom: 1.5rem;" placeholder="Características especiales..."></textarea>
-
-                    <button type="submit" class="btn btn-success">✅ Guardar Obra</button>
-                </form>
-            </div>
-
-            <!-- PANEL JOSEMIGUEL -->
-            <div id="josemiguel" class="panel">
-                <h2>Datos Contratista</h2>
-                <div class="info-box">⚡ Paso 1: CI + Aviso agua/luz → Sistema rellena automáticamente</div>
-
-                <form onsubmit="guardarContratista(event)">
-                    <h3 class="section-title">Paso 1: C.I. + Documentos</h3>
-                    <div class="form-group" style="margin-bottom: 1.5rem;"><label>C.I. <span class="required">*</span></label><input type="text" id="ci" placeholder="Ej: 123456789" required></div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                        <div><label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px;">Foto Aviso Agua</label><div class="upload-zone" onclick="document.getElementById('fotoAgua').click()"><p>📤 Subir</p></div><input type="file" id="fotoAgua" accept="image/*" style="display: none;"></div>
-                        <div><label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px;">Foto Aviso Luz</label><div class="upload-zone" onclick="document.getElementById('fotoLuz').click()"><p>📤 Subir</p></div><input type="file" id="fotoLuz" accept="image/*" style="display: none;"></div>
-                    </div>
-
-                    <h3 class="section-title">Paso 2: Datos Automáticos</h3>
-                    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
-                        <div class="form-grid">
-                            <div class="form-group"><label>Nombre</label><input type="text" id="nombreContratista" readonly style="background: #f0fdf4;"></div>
-                            <div class="form-group"><label>Teléfono</label><input type="text" id="telefonoContratista" readonly style="background: #f0fdf4;"></div>
-                            <div class="form-group" style="grid-column: 1 / -1;"><label>Dirección</label><input type="text" id="direccionContratista" readonly style="background: #f0fdf4;"></div>
-                        </div>
-                    </div>
-
-                    <h3 class="section-title">Paso 3: Selecciona Obra</h3>
-                    <div class="form-group" style="margin-bottom: 1.5rem;"><select id="obraSelect" required><option value="">-- Selecciona --</option></select></div>
-
-                    <h3 class="section-title">Condiciones Especiales</h3>
-                    <textarea id="condicionesEspeciales" style="width: 100%; min-height: 80px; margin-bottom: 1.5rem;" placeholder="Madera, materiales, horarios..."></textarea>
-
-                    <button type="submit" class="btn btn-primary">⚡ Generar Contrato</button>
-                </form>
-            </div>
-
-            <!-- PANEL CONSULTA -->
-            <div id="consulta" class="panel">
-                <h2>📄 Consulta Contratos</h2>
-
-                <h3 class="section-title">Selecciona Contrato</h3>
-                <select id="contratoSelect" onchange="cargarContrato()" style="width: 100%; margin-bottom: 2rem;"><option value="">-- Selecciona --</option></select>
-
-                <div id="vistasContratos" style="display: none;">
-                    <h3 class="section-title">Contrato Generado</h3>
-                    <div id="contractoGenerado" style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; font-size: 12px; line-height: 1.8; max-height: 400px; overflow-y: auto;"></div>
-                    <button class="btn btn-primary" onclick="descargarContrato()" style="margin-bottom: 2rem;">📥 Descargar PDF</button>
-
-                    <h3 class="section-title">Resumen para Supervisor</h3>
-                    <button class="btn btn-success" onclick="descargarResumenSupervisor()" style="margin-bottom: 2rem;">📥 Descargar Resumen</button>
-                </div>
-            </div>
+      <div class="card">
+        <div class="ct">Datos Personales <span style="color:var(--ws);font-size:9px;">(automático si detecta número en CI)</span></div>
+        <div class="g g3">
+          <div class="f"><label>Nombre Completo *</label><input id="ct-n" placeholder="Juan Carlos Morales"></div>
+          <div class="f"><label>Teléfono *</label><input id="ct-t" placeholder="72345678"></div>
+          <div class="f"><label>N° C.I.</label><input id="ct-ci" placeholder="14789456"></div>
+          <div class="f full"><label>Dirección</label><input id="ct-d" placeholder="Zona, calle, número"></div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Asignar Obra</div>
+        <div class="f"><label>Seleccionar Obra *</label>
+          <select id="ct-o" onchange="pvO()"><option value="">— Solo obras aprobadas —</option></select>
+        </div>
+        <div id="o-prev" style="display:none;margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Condiciones Especiales</div>
+        <div class="f"><textarea id="ct-co" placeholder="Materiales, horarios de trabajo, forma de pago parcial, observaciones..."></textarea></div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Estado de carga</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;" id="chk-wrap">
+          <span id="chk-ci" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ C.I.</span>
+          <span id="chk-ag" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Aviso Agua</span>
+          <span id="chk-lz" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Aviso Luz</span>
+          <span id="chk-nom" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Nombre</span>
+          <span id="chk-tel" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Teléfono</span>
+          <span id="chk-obra" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Obra asignada</span>
+        </div>
+        <div class="al al-z" style="margin-bottom:12px;">Al marcar como cargado, el contrato se genera automáticamente y pasa al área de Contratos para revisión de Steffi (abogada).</div>
+        <div class="brow">
+          <button class="btn y" onclick="gCont()" id="btn-cargar" style="font-size:13px;padding:11px 22px;">✅ MARCAR COMO CARGADO</button>
+          <button class="btn o" onclick="lCont()">🔄 Limpiar</button>
+        </div>
+        <div id="msg-ct" style="margin-top:10px;"></div>
+      </div>
     </div>
 
-    <script>
-        let usuario = null, obras = [], contratos = [];
-        const CREDENCIALES = { fatima: 'fatima123', josemiguel: 'jose123', supervisor: 'supervisor123' };
+    <!-- ═══ PANEL: CONTRATOS (por obra) ═══ -->
+    <div class="panel" id="panel-contratos">
+      <div class="ph"><h2>📋 CONTRATOS</h2><p>Gestión por obra — revisión, edición e impresión</p></div>
 
-        function login() {
-            const rol = document.getElementById('roleSelect').value;
-            const password = document.getElementById('passwordInput').value;
-            if (!rol || !password) { alert('Selecciona rol e ingresa contraseña'); return; }
-            if (CREDENCIALES[rol] !== password) { alert('Contraseña incorrecta'); return; }
+      <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — acceso de lectura a condiciones de campo.</div>
 
-            usuario = rol;
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            document.getElementById('userDisplay').textContent = rol.toUpperCase();
-            document.getElementById('roleBadge').textContent = rol === 'fatima' ? 'FÁTIMA' : rol === 'josemiguel' ? 'JOSEMIGUEL' : 'SUPERVISOR';
+      <div class="kpi" id="kpi-sect">
+        <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">3</div><div class="kl">Obras</div></div>
+        <div class="kc"><div class="kv" id="k-apt" style="color:var(--Gc);">1</div><div class="kl">Aptos</div></div>
+        <div class="kc"><div class="kv" id="k-ej" style="color:var(--Zc);">0</div><div class="kl">En Ejecución</div></div>
+        <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">$20,809</div><div class="kl">Monto Total</div></div>
+      </div>
+
+      <!-- Pendientes aprobación -->
+      <div id="pend-aprob"></div>
+
+      <!-- CONTRATOS POR OBRA -->
+      <div id="contratos-por-obra"></div>
+    </div>
+
+    <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
+    <div class="panel" id="panel-sup">
+      <div class="ph"><h2>🏗️ SUPERVISIÓN DE OBRA</h2><p>Seleccioná una obra para ver su paquete completo e imprimir</p></div>
+      <div id="sup-selector" style="margin-bottom:16px;"></div>
+      <div id="sup-content"></div>
+    </div>
+
+    <!-- ═══ PANEL: ADMIN ═══ -->
+    <div class="panel" id="panel-admin">
+      <div class="ph"><h2>🔧 CONTROL EJECUTIVO</h2><p>Vista completa — solo Josemiguel</p></div>
+
+      <!-- Resumen financiero ejecutivo -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(245,196,0,.07),var(--p1));border-color:var(--am);">
+        <div class="ct">💰 Resumen Financiero</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--am);" id="a-mon">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Comprometido USD</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--am);" id="a-mon-bs">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Comprometido Bs</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:22px;font-weight:900;color:var(--Gc);" id="a-obr">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Obras activas</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Obras pendientes de mi aprobación -->
+      <div class="card">
+        <div class="ct">⚡ Requieren mi aprobación</div>
+        <div id="adm-pend-apro"></div>
+      </div>
+
+      <!-- Contratos pendientes de aprobación legal -->
+      <div class="card">
+        <div class="ct">⚖️ Contratos pendientes revisión Steffi</div>
+        <div id="adm-pend-legal"></div>
+      </div>
+
+      <!-- Tabla maestra con documentos -->
+      <div class="card">
+        <div class="ct">📊 Estado completo por obra</div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th>Obra</th><th>Contratista</th><th>Tel</th>
+            <th>Docs</th><th>Contrato</th><th>Estado</th><th>Monto USD</th>
+          </tr></thead>
+          <tbody id="a-tb"></tbody>
+        </table></div>
+      </div>
+
+      <!-- Documentos confidenciales -->
+      <div class="card">
+        <div class="ct">🔒 Contratos con Propietarios (confidencial)</div>
+        <div id="adm-props"></div>
+      </div>
+
+      <!-- Auditoría -->
+      <div class="card">
+        <div class="ct">📋 Auditoría del sistema</div>
+        <div id="a-log" style="font-size:10px;color:var(--wd);line-height:2;"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL OBRA DETALLE -->
+<div class="overlay" id="ov-obra"><div class="modal" id="m-obra">
+  <div class="modal-hdr"><h3 id="m-obra-tit">Obra</h3><button class="xbtn" onclick="cOv('obra')">✕</button></div>
+  <div id="m-obra-body"></div>
+</div></div>
+
+<!-- MODAL PERFIL -->
+<div class="overlay" id="ov-perfil"><div class="modal" id="m-perfil">
+  <div class="modal-hdr"><h3>Mi Perfil</h3><button class="xbtn" onclick="cOv('perfil')">✕</button></div>
+  <div id="m-perfil-body"></div>
+</div></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// DATOS INICIALES
+// ══════════════════════════════════════════════════
+const MDEF=['Excavación y nivelación','Cimientos y zapatas','Columnas y vigas','Losas y entrepisos',
+'Mampostería (paredes)','Instalaciones eléctricas','Instalaciones sanitarias','Cubierta y techos',
+'Enlucido y revoques','Pisos y revestimientos','Ventanas y puertas','Pintura interior',
+'Pintura exterior','Acabados baños','Acabados cocina','Escaleras','Jardín y exteriores',
+'Limpieza final','Supervisión técnica','Entrega y cierre'];
+
+const CONTRATO_MODELO=`CONTRATO DE PRESTACIÓN DE SERVICIOS
+
+CÓDIGO: {CODIGO_OBRA}
+
+Conste por el presente documento privado de obra, que a solo reconocimiento de firmas y rúbricas surtirá los efectos de instrumento público, un CONTRATO DE PRESTACIÓN DE SERVICIOS para ejecución de vivienda unifamiliar, suscrito al tenor de las siguientes cláusulas:
+
+CLÁUSULA PRIMERA.- (PARTES)
+
+Forman parte del presente documento:
+
+• GAMBARTE ARQUITECTURA S.R.L., como representante legal de la Empresa JOSÉ MIGUEL GAMBARTE VIDAURRE, con C.I. N° 7714413 SC, mayor de edad y hábil por ley, de nacionalidad boliviana, con domicilio en Avenida Beni 3er anillo, denominado CONTRATANTE.
+
+{NOMBRE_CONTRATISTA}, con C.I. {CI_CONTRATISTA}, mayor de edad y hábil por ley, con domicilio en {DIRECCION_CONTRATISTA}.
+
+CLÁUSULA SEGUNDA.- (OBJETO Y CAUSA)
+
+El CONTRATISTA se compromete a ejecutar los trabajos de CONSTRUCCIÓN DE VIVIENDA UNIFAMILIAR – {NOMBRE_OBRA}, de {SUPERFICIE}m², ubicada en {UBICACION_OBRA}, conforme a los planos y especificaciones técnicas adjuntas.
+
+Documentos adjuntos:
+• Foto de Cédula de Identidad
+• Aviso de servicio
+
+Módulos de ejecución:
+Como parte integrante del presente contrato de compra venta, se deja expresa constancia que el inmueble objeto del presente documento incluye la ejecución de los siguientes ítems constructivos, los cuales forman parte del alcance general de la obra:
+
+{MODULOS}
+
+Se deja expresa constancia que todos los trabajos anteriormente detallados serán ejecutados conforme a especificaciones técnicas estándar de construcción, salvo pacto expreso en contrario entre las partes. Asimismo, cualquier modificación, adicional o mejora deberá ser previamente acordada por escrito y podrá implicar un ajuste en el precio del inmueble.
+
+Documentos técnicos que acompañan el contrato:
+• Planos arquitectónicos
+• Planos estructurales
+• Especificaciones técnicas
+• Vistas 3D de fachada
+
+CLÁUSULA TERCERA.- (ESPECIALISTAS Y CARACTERÍSTICAS DE EJECUCIÓN)
+
+El CONTRATISTA garantizará que los siguientes trabajos sean realizados por especialistas aprobados por el Residente de Obra:
+
+• Instalación Sanitaria (M05)
+• Instalación Eléctrica (M06)
+• Instalación Hidráulica (M07)
+• Estructuras y Cubierta (M10)
+• Pintura Exterior e Interior (M19)
+
+Acabados:
+La mano de obra utilizada en los acabados deberá ser de calidad y ejecutada por personal calificado, con herramientas que garanticen la buena ejecución y calidad del trabajo.
+
+CLÁUSULA CUARTA.- (INICIO DE OBRA, ALCANCE Y MATERIALES)
+
+El inicio de la obra está proyectado para {DIAS} días calendario el {FECHA_INICIO}, y la fecha de conclusión será el {FECHA_FIN}.
+
+Podrá realizarse una ampliación de plazo únicamente por causas de fuerza mayor o caso fortuito debidamente justificadas.
+
+CLÁUSULA QUINTA.- (MONTO Y FORMA DE PAGO)
+
+Se establece un monto de:
+
+Precio total: {MONTO_BS} Bs ({MONTO_LETRAS}) con Pagos quincenales: Según avance aprobado por el Supervisor de Obra.
+
+CLÁUSULA SEXTA.- (DOCUMENTOS DEL CONTRATO)
+
+- Planos arquitectónicos y estructurales.
+- Especificaciones técnicas.
+- Vistas 3D de fachadas.
+
+CLÁUSULA SÉPTIMA.- (MATERIALES E INCENTIVOS)
+
+El CONTRATISTA se obliga a aportar el 50% de la madera necesaria para la ejecución de la obra, mientras que el CONTRATANTE proveerá el 50% restante.
+
+CLÁUSULA OCTAVA.- (ESTIPULACIONES SOBRE IMPUESTOS Y FACTURACIÓN)
+
+El CONTRATISTA deberá también presentar su NIT al contratante y será responsable de emitir las notas fiscales correspondientes a los pagos recibidos por la prestación de servicios, asumiendo todas las obligaciones tributarias derivadas del presente contrato.
+
+CLÁUSULA NOVENA.- (CUMPLIMIENTO DE LEYES LABORALES)
+
+El CONTRATISTA garantiza el cumplimiento de la legislación laboral boliviana para sus trabajadores, incluyendo sus pagos de salarios, beneficios sociales y seguros para su personal. El CONTRATANTE no tiene ni tendrá vínculo laboral con los trabajadores del CONTRATISTA.
+
+CLÁUSULA DÉCIMA.- RESPONSABILIDAD DEL PERSONAL Y SEGUROS
+
+1. Seguros: El CONTRATISTA se obliga a presentar, previo al inicio de los trabajos, la póliza de seguro vigente que cubra a todo su personal afectado a la obra, incluyendo seguros de riesgos del trabajo, accidentes personales y cualquier otra cobertura que corresponda conforme a la normativa vigente.
+
+2. Capacitación: El CONTRATISTA garantizará que todo el personal asignado a la obra cuente con la capacitación adecuada para las tareas a desempeñar.
+
+CLÁUSULA DÉCIMA PRIMERA.- (DERECHOS DEL CONTRATISTA)
+
+El CONTRATISTA podrá reclamar por escrito ante el SUPERVISOR DE OBRA dentro de los 10 días hábiles por:
+
+- Falta de pago.
+- Modificaciones no autorizadas.
+
+CLÁUSULA DÉCIMA SEGUNDA.- FUERZA MAYOR Y CASO FORTUITO
+
+Se considerarán causas justificadas de demora aquellas circunstancias ajenas a la voluntad de las partes que imposibiliten total o parcialmente el cumplimiento de las obligaciones contractuales, tales como: desastres naturales, incendios, inundaciones, sismos, conflictos sociales como huelgas o bloqueos, o cualquier otro suceso imprevisible e inevitable.
+
+CLÁUSULA DÉCIMA TERCERA.- OBLIGACIONES DEL CONTRATISTA
+
+1. Confidencialidad: El CONTRATISTA se compromete a no divulgar, reproducir ni utilizar para fines propios o de terceros ninguna información técnica, comercial o de cualquier otra índole relacionada con la obra, salvo autorización expresa y por escrito del CONTRATANTE.
+
+2. Limpieza y mantenimiento del área de trabajo: El CONTRATISTA deberá mantener en condiciones de limpieza el área de trabajo durante toda la ejecución de la obra.
+
+CONDICIONES ESPECIALES:
+{CONDICIONES}
+
+CLÁUSULA VIGÉSIMA CUARTA.- (DE CONFORMIDAD)
+
+En constancia de conformidad, las partes intervinientes manifiestan expresamente haber leído íntegramente el presente contrato, entender su contenido y alcance legal, y aceptar todas y cada una de las cláusulas y condiciones en él estipuladas. En prueba de ello, firman el presente documento en la ciudad de Santa Cruz de la Sierra, a los ___ días del mes de _________ del 2026.
+
+
+CONTRATISTA                              CONTRATANTE
+{NOMBRE_CONTRATISTA}                     GAMBARTE ARQUITECTURA S.R.L.
+C.I. {CI_CONTRATISTA}                   José Miguel Gambarte Vidaurre
+`
+
+let obras=[
+  {id:1,nom:'CECILIA-MONTERO',cod:'CC-2026-001',sup:94.79,pre:75,map:'https://maps.google.com/maps?q=-17.783,63.182',
+   cuad:4,monto:7109.25,mn:10,est:'activa',fi:'2026-04-14',di:45,not:'Terreno esquinero, buen acceso',
+   cp:'Prop_CECILIA_FIRMADO.pdf',aprobada:true,mods:MDEF.slice(0,10),
+   contrato_firmado_contratista:null},
+  {id:2,nom:'PROYECTO-NUEVO',cod:'PN-2026-002',sup:56.67,pre:75,map:'https://maps.google.com/maps?q=-17.790,63.190',
+   cuad:4,monto:4250.25,mn:8,est:'activa',fi:'2026-04-20',di:35,not:'',
+   cp:'Prop_NUEVO_FIRMADO.pdf',aprobada:true,mods:MDEF.slice(0,8),
+   contrato_firmado_contratista:'Morales_CECILIA_FIRMADO.pdf'},
+  {id:3,nom:'REFORMA-CENTRO',cod:'RC-2026-003',sup:126,pre:75,map:'https://maps.google.com/maps?q=-17.780,63.175',
+   cuad:5,monto:9450,mn:12,est:'pendiente',fi:'2026-05-01',di:60,not:'Requiere permiso municipal',
+   cp:'Prop_REFORMA_FIRMADO.pdf',aprobada:false,mods:MDEF.slice(0,12),
+   contrato_firmado_contratista:null}
+];
+
+let contratos=[
+  {id:101,nom:'Juan Carlos Morales',tel:'71234567',dir:'Villa Primero de Mayo, Calle 5',ci_n:'14789456',
+   oid:2,ci:'Morales_CI.pdf',ag:'Morales_Agua.pdf',lz:'Morales_Luz.pdf',
+   cond:'Hormigón armado, ladrillo cerámico | 7am-5pm | Cuadrilla 8-10',
+   est:'apto_para_obra',firm:'Morales_FIRMADO.pdf',fec:'14 Abril 2026',
+   texto_contrato:null},
+  {id:102,nom:'Carlos Pérez López',tel:'76543210',dir:'Plan Tres Mil',ci_n:'98765432',
+   oid:1,ci:'Perez_CI.pdf',ag:'Perez_Agua.pdf',lz:'Perez_Luz.pdf',
+   cond:'Acero galvanizado, vidrio templado | 8am-4pm | Cuadrilla 6-8',
+   est:'generado',firm:null,fec:'14 Abril 2026',texto_contrato:null,est_contrato:'revisado'},
+  {id:103,nom:'Roberto Silva García',tel:'78901234',dir:'Barrio Nuevo Oriente',ci_n:null,
+   oid:3,ci:null,ag:null,lz:null,cond:null,
+   est:'busqueda',firm:null,fec:null,texto_contrato:null,est_contrato:'generado'}
+];
+
+let logs_=[];
+
+// ══════════════════════════════════════════════════
+// USUARIOS CON PIN
+// ══════════════════════════════════════════════════
+const USERS={
+  '1024':{n:'Josemiguel',        r:'admin',      icon:'👤'},
+  '2232':{n:'Fátima',            r:'captadora',  icon:'📝'},
+  '3343':{n:'Steffi Villarpando',r:'abogada',    icon:'⚖️'},
+  '6677':{n:'Arq. Raí',          r:'supervisor', icon:'🏗️'}
+};
+let CU=null;
+let pinBuf='';
+
+function pin(n){
+  if(pinBuf.length>=4)return;
+  pinBuf+=n;
+  updDots();
+  if(pinBuf.length===4) setTimeout(tryLogin,150);
+}
+function delPin(){
+  pinBuf=pinBuf.slice(0,-1);
+  updDots();
+  document.getElementById('pin-err').textContent='';
+  document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
+}
+function updDots(){
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('d'+i);
+    d.classList.toggle('filled',i<pinBuf.length);
+  }
+}
+function tryLogin(){
+  const u=USERS[pinBuf];
+  if(!u){
+    document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('filled');d.classList.add('error');});
+    document.getElementById('pin-err').textContent='Código incorrecto. Intenta de nuevo.';
+    setTimeout(()=>{
+      pinBuf='';
+      document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('filled','error');});
+      document.getElementById('pin-err').textContent='';
+    },1200);
+    return;
+  }
+  CU={...u,pin:pinBuf};
+  document.getElementById('screen-login').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
+  buildNav(); initMods(); renderOS(); renderObras(); renderContratos(); renderSup(); renderAdmin();
+  goPanel(panelInicial());
+  log(`Sesión iniciada: ${u.n}`);
+}
+function logout(){
+  CU=null;pinBuf='';
+  document.getElementById('screen-login').style.display='flex';
+  document.getElementById('app').style.display='none';
+  updDots();
+}
+function panelInicial(){
+  const m={admin:'obra',comercial:'obra',captadora:'obra',abogada:'contratos',supervisor:'sup'};
+  return m[CU.r]||'obra';
+}
+
+// ══════════════════════════════════════════════════
+// NAV POR ROL
+// ══════════════════════════════════════════════════
+function buildNav(){
+  const nav=document.getElementById('nav');nav.innerHTML='';
+  const maps={
+    admin:    [{id:'obra',l:'📝 Obras'},{id:'contratista',l:'👷 Contratista'},{id:'contratos',l:'📋 Contratos'},{id:'sup',l:'🏗️ Supervisión'},{id:'admin',l:'🔧 Admin'}],
+    abogada:  [{id:'contratos',l:'📋 Contratos'}],
+    supervisor:[{id:'sup',l:'🏗️ Supervisión'}],
+    comercial: [{id:'obra',l:'📝 Obras'},{id:'contratista',l:'👷 Contratista'}],
+    captadora: [{id:'obra',l:'📝 Obras'},{id:'contratista',l:'👷 Contratista'}]
+  };
+  (maps[CU.r]||[]).forEach(b=>{
+    const bt=document.createElement('button');
+    bt.className='nb';bt.id='nb-'+b.id;bt.textContent=b.l;
+    bt.onclick=()=>goPanel(b.id);nav.appendChild(bt);
+  });
+}
+
+function goPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  const p=document.getElementById('panel-'+id);if(p)p.classList.add('on');
+  const n=document.getElementById('nb-'+id);if(n)n.classList.add('on');
+  if(id==='contratos'){
+    const isSup=CU.r==='supervisor';
+    document.getElementById('sup-av').style.display=isSup?'block':'none';
+    document.getElementById('kpi-sect').style.display=isSup?'none':'grid';
+    renderContratos();
+  }
+  if(id==='sup') renderSup();
+}
+
+// ══════════════════════════════════════════════════
+// PERFIL JOSEMIGUEL
+// ══════════════════════════════════════════════════
+function abrirPerfil(){
+  const body=document.getElementById('m-perfil-body');
+  const isAdmin=CU.r==='admin';
+  body.innerHTML=`
+    <div class="perfil-info">
+      <div class="nombre">${CU.icon||'👤'} ${CU.n}</div>
+      <div class="rol">Rol: ${CU.r.toUpperCase()} · PIN: ••••</div>
+    </div>
+    ${isAdmin?`
+    <p style="font-size:10px;color:var(--ws);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Accesos rápidos</p>
+    <div class="perfil-grid">
+      <div class="perfil-btn" onclick="cOv('perfil');goPanel('obra')"><div class="ico">📝</div><div class="lbl">Cargar Obra</div><div class="sub">Nueva obra</div></div>
+      <div class="perfil-btn" onclick="cOv('perfil');goPanel('contratista')"><div class="ico">👷</div><div class="lbl">Contratista</div><div class="sub">Registrar datos</div></div>
+      <div class="perfil-btn" onclick="cOv('perfil');goPanel('contratos')"><div class="ico">📋</div><div class="lbl">Contratos</div><div class="sub">Revisar y aprobar</div></div>
+      <div class="perfil-btn" onclick="cOv('perfil');goPanel('sup')"><div class="ico">🏗️</div><div class="lbl">Supervisión</div><div class="sub">Ver estado en campo</div></div>
+      <div class="perfil-btn" onclick="cOv('perfil');goPanel('admin')"><div class="ico">🔧</div><div class="lbl">Admin</div><div class="sub">Panel de control</div></div>
+      <div class="perfil-btn" onclick="cOv('perfil');abrirAprobaciones()"><div class="ico">✅</div><div class="lbl">Aprobaciones</div><div class="sub">${obras.filter(o=>!o.aprobada&&o.cp).length} pendientes</div></div>
+    </div>
+    `:`<p style="font-size:12px;color:var(--wd);">Bienvenido, ${CU.n}.</p>`}
+    <div class="brow" style="margin-top:14px;">
+      <button class="btn rb sm" onclick="logout()">🚪 Cerrar Sesión</button>
+    </div>`;
+  aOv('perfil');
+}
+
+function abrirAprobaciones(){
+  cOv('perfil');goPanel('contratos');
+}
+
+// ══════════════════════════════════════════════════
+// CARGAR OBRA
+// ══════════════════════════════════════════════════
+let cpFile=null,mc=20;
+
+function hCP(i){if(!i.files[0])return;cpFile=i.files[0].name;document.getElementById('box-cp').classList.add('ok');document.getElementById('st-cp').textContent='✓ '+cpFile;}
+
+function initMods(){
+  const c=document.getElementById('mg-cont');c.innerHTML='';mc=20;
+  for(let i=1;i<=20;i++)c.appendChild(mkM(i,MDEF[i-1]||''));
+}
+function mkM(n,v=''){const d=document.createElement('div');d.className='mi';d.innerHTML=`<div class="ml">M${String(n).padStart(2,'0')}</div><input id="mm${n}" placeholder="Módulo ${n}" value="${v}">`;return d;}
+function addMod(){mc++;document.getElementById('mg-cont').appendChild(mkM(mc,''));}
+
+function cO(){
+  const s=parseFloat(document.getElementById('o-sup').value)||0,p=parseFloat(document.getElementById('o-pre').value)||75;
+  if(!s)return;
+  document.getElementById('c-cua').value=Math.max(4,Math.ceil(s/100*4))+' personas';
+  document.getElementById('c-mon').value='$'+(s*p).toFixed(2);
+  document.getElementById('c-moo').value=Math.max(5,Math.ceil(s/10))+' módulos';
+}
+function cFF(){
+  const fi=document.getElementById('o-fi').value,d=parseInt(document.getElementById('o-di').value)||0;
+  if(fi&&d){const dt=new Date(fi);dt.setDate(dt.getDate()+d);document.getElementById('o-ff').value=dt.toLocaleDateString('es-BO',{day:'2-digit',month:'long',year:'numeric'});}
+}
+
+function gObra(){
+  const nom=document.getElementById('o-nom').value.trim();
+  const cod=document.getElementById('o-cod').value.trim();
+  const sup=parseFloat(document.getElementById('o-sup').value);
+  const mp=document.getElementById('o-map').value.trim();
+  if(!nom||!cod||!sup||!mp){alert('⚠️ Completa: Nombre, Código, Superficie y Maps');return;}
+  const pre=parseFloat(document.getElementById('o-pre').value)||75;
+  const mods=[];for(let i=1;i<=mc;i++){const v=document.getElementById('mm'+i)?.value.trim();if(v)mods.push(v);}
+  const cuad=Math.max(4,Math.ceil(sup/100*4));
+  obras.push({id:Date.now(),nom,cod,sup,pre,map:mp,cuad,monto:sup*pre,mn:mods.length,
+    est:cpFile?'pendiente':'sin_cp',fi:document.getElementById('o-fi').value,
+    di:parseInt(document.getElementById('o-di').value)||0,
+    not:document.getElementById('o-not').value,cp:cpFile,aprobada:false,mods,contrato_firmado_contratista:null});
+  log(`Obra "${nom}" cargada`);renderOS();renderObras();uStats();lObra();
+  alert(`✅ Obra "${nom}" guardada.\n${cpFile?'⏳ Pendiente aprobación de Josemiguel.':'⚠️ Sin contrato propietario.'}`);
+}
+function lObra(){
+  ['o-nom','o-cod','o-sup','o-map','o-fi','o-di','o-not'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('o-pre').value='75';document.getElementById('o-ff').value='';
+  ['c-cua','c-mon','c-moo'].forEach(i=>document.getElementById(i).value='');
+  cpFile=null;document.getElementById('box-cp').classList.remove('ok');document.getElementById('st-cp').textContent='';
+  initMods();
+}
+
+function renderObras(){
+  const c=document.getElementById('obras-lista');if(!c)return;
+  if(!obras.length){c.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras.</p>';return;}
+  c.innerHTML=obras.map(o=>{
+    const cls=o.aprobada?'ob-a':o.cp?'ob-p':'ob-r';
+    const lb=o.aprobada?'✅ Activa':o.cp?'⏳ Pend. aprobación':'⚠️ Sin contrato';
+    return `<div class="obra-card" onclick="aObra(${o.id})">
+      <div class="oc-top"><div class="oc-nom">${o.nom}</div><div class="obadge ${cls}">${lb}</div></div>
+      <div class="oc-inf"><span>📋 ${o.cod}</span><span>📐 ${o.sup}m²</span><span>👥 ${o.cuad} pers.</span>
+      <span>🧱 ${o.mods?.length||0} mód.</span>
+      <span>${o.cp?'📋 Prop. ✓':'⚠️ Sin contrato prop.'}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// MODAL DETALLE OBRA
+// ══════════════════════════════════════════════════
+function aObra(id){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  const isA=CU.r==='admin';
+  document.getElementById('m-obra-tit').textContent=o.nom+' — '+o.cod;
+  document.getElementById('m-obra-body').innerHTML=`
+    <div class="msec"><h4>Datos Generales</h4>
+      <div class="mrow"><span class="lbl">Superficie</span><span class="val">${o.sup} m²</span></div>
+      <div class="mrow"><span class="lbl">Cuadrilla</span><span class="val">${o.cuad} personas</span></div>
+      <div class="mrow"><span class="lbl">Inicio</span><span class="val">${o.fi||'—'} (${o.di} días)</span></div>
+      ${isA?`<div class="mrow"><span class="lbl">Monto Total</span><span class="val" style="color:var(--am);">$${o.monto.toFixed(2)}</span></div>`:''}
+      <div class="mrow"><span class="lbl">Estado</span><span class="val">${o.aprobada?'✅ Aprobada':'⏳ Pendiente'}</span></div>
+      <div class="mrow"><span class="lbl">Contrato Propietario</span><span class="val">${o.cp?'✓ '+o.cp:'⚠️ No cargado'}</span></div>
+      <div class="mrow"><span class="lbl">Maps</span><span class="val"><a href="${o.map}" target="_blank" style="color:var(--am);">📍 Ver</a></span></div>
+    </div>
+    ${o.not?`<div class="msec"><h4>Notas</h4><p style="font-size:11px;color:var(--wd);line-height:1.7;">${o.not}</p></div>`:''}
+    <div class="msec"><h4>Módulos (${o.mods?.length||0})</h4>
+      <div class="chips">${(o.mods||[]).map((m,i)=>`<div class="chip">M${String(i+1).padStart(2,'0')} — ${m}</div>`).join('')||'<span style="color:var(--ws)">Sin módulos</span>'}</div>
+    </div>
+
+<!-- contrato firmado contratista: gestionado en panel Contratos -->
+
+    ${isA&&!o.aprobada&&o.cp?`<div style="margin-top:14px;"><button class="btn y" onclick="aprobOb(${o.id})">✅ APROBAR OBRA — ACTIVAR PROCESO</button></div>`:''}
+    ${isA&&!o.cp?`<div class="al al-r" style="margin-top:10px;">⚠️ Sin contrato del propietario. No se puede aprobar.</div>`:''}
+  `;
+  aOv('obra');
+}
+
+function subirCFC(oid,inp){
+  if(!inp.files[0])return;
+  const o=obras.find(x=>x.id===oid);if(!o)return;
+  o.contrato_firmado_contratista=inp.files[0].name;
+  log(`Contrato firmado contratista subido en obra "${o.nom}": ${o.contrato_firmado_contratista}`);
+  alert(`✅ Contrato firmado cargado en obra ${o.nom}.\nArchivo: ${o.contrato_firmado_contratista}`);
+  cOv('obra');renderObras();
+}
+
+function aprobOb(id){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  if(!confirm(`¿APROBAR "${o.nom}"?\n\n✓ Publicar necesidad de contratista\n✓ Iniciar filtrado\n✓ Activar proceso`))return;
+  o.aprobada=true;o.est='activa';
+  sbGuardarObra(o);
+  sbLog(CU.n,`Obra aprobada: ${o.nom}`);
+  log(`✅ Obra "${o.nom}" APROBADA`);
+  cOv('obra');renderObras();renderOS();renderContratos();uStats();
+  alert(`✅ Obra "${o.nom}" aprobada. Proceso activado.`);
+}
+
+// ══════════════════════════════════════════════════
+// CONTRATISTA
+// ══════════════════════════════════════════════════
+let upD={ci:null,ag:null,lz:null};
+function hUD(t,i){
+  if(!i.files[0])return;upD[t]=i.files[0].name;
+  document.getElementById('b'+t).classList.add('ok');document.getElementById('s-'+t).textContent='✓ '+i.files[0].name;
+  if(t==='ci'){const m=i.files[0].name.match(/(\d{6,10})/);if(m)document.getElementById('ct-ci').value=m[1];}
+  actuChk();
+}
+function actuChk(){
+  const checks={ci:upD.ci,ag:upD.ag,lz:upD.lz,
+    nom:document.getElementById('ct-n')?.value.trim(),
+    tel:document.getElementById('ct-t')?.value.trim(),
+    obra:document.getElementById('ct-o')?.value};
+  Object.entries(checks).forEach(([k,v])=>{
+    const el=document.getElementById('chk-'+k);if(!el)return;
+    if(v){el.textContent='✅ '+el.textContent.replace(/^[⬜✅] /,'');el.style.background='var(--Gbg)';el.style.color='var(--Gc)';}
+    else{el.textContent='⬜ '+el.textContent.replace(/^[⬜✅] /,'');el.style.background='var(--p3)';el.style.color='var(--ws)';}
+  });
+}
+function renderOS(){
+  const s=document.getElementById('ct-o');if(!s)return;
+  s.innerHTML='<option value="">— Solo obras aprobadas —</option>'+obras.filter(o=>o.aprobada).map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
+}
+function pvO(){
+  const id=parseInt(document.getElementById('ct-o').value);
+  const pv=document.getElementById('o-prev');
+  if(!id){pv.style.display='none';actuChk();return;}
+  const o=obras.find(x=>x.id===id);
+  if(!o){pv.style.display='none';return;}
+  pv.style.display='block';
+  pv.innerHTML=`<div class="al al-g">📐 ${o.sup}m² · 👥 ${o.cuad} personas · 🧱 ${o.mods?.length||0} módulos · 📅 ${o.fi||'—'} · ⏱ ${o.di} días</div>`;
+  actuChk();
+}
+function gCont(){
+  const nom=document.getElementById('ct-n').value.trim();
+  const oid=parseInt(document.getElementById('ct-o').value);
+  if(!nom||!oid){alert('⚠️ Nombre y Obra son obligatorios.');return;}
+  const o=obras.find(x=>x.id===oid);
+  // Generar texto contrato pre-llenado desde modelo real
+  const ctObj={nom,ci_n:document.getElementById('ct-ci').value.trim(),
+    tel:document.getElementById('ct-t').value.trim(),
+    dir:document.getElementById('ct-d').value.trim(),
+    cond:document.getElementById('ct-co').value.trim()};
+  const txt=generarTextoBase(ctObj, o||{});
+
+  const newCt={id:Date.now(),nom,tel:document.getElementById('ct-t').value.trim(),
+    dir:document.getElementById('ct-d').value.trim(),ci_n:document.getElementById('ct-ci').value.trim(),
+    oid,ci:upD.ci,ag:upD.ag,lz:upD.lz,cond:document.getElementById('ct-co').value.trim(),
+    est:'generado',firm:null,fec:new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}),
+    texto_contrato:txt,est_contrato:'generado'};
+  contratos.push(newCt);
+  sbGuardarContrato(newCt);
+  sbLog(CU.n,`Contratista registrado: ${nom}`);
+  log(`Contratista "${nom}" registrado → Obra #${oid}`);
+  renderContratos();uStats();
+  document.getElementById('msg-ct').innerHTML=`<div class="al al-g">✅ <b>${nom}</b> guardado. El contrato pre-generado está en el área de Contratos para que Steffi lo revise.</div>`;
+  lCont();
+}
+function lCont(){
+  ['ct-n','ct-t','ct-ci','ct-d','ct-co'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('ct-o').value='';document.getElementById('o-prev').style.display='none';
+  upD={ci:null,ag:null,lz:null};
+  ['ci','ag','lz'].forEach(t=>{document.getElementById('b'+t).classList.remove('ok');document.getElementById('s-'+t).textContent='';});
+}
+
+// ══════════════════════════════════════════════════
+// CONTRATOS POR OBRA — nueva propuesta
+// ══════════════════════════════════════════════════
+const EL={apto_para_obra:`<span class="est e-apto">🟢 Apto</span>`,
+  generado:`<span class="est e-gen">🟡 Generado</span>`,
+  busqueda:`<span class="est e-bus">🟣 Búsqueda</span>`,
+  en_ejecucion:`<span class="est e-ej">🔵 En Ejecución</span>`};
+function gO(id){return obras.find(o=>o.id===id)||{};}
+
+function renderContratos(){
+  renderPendAPrb();
+  const c=document.getElementById('contratos-por-obra');if(!c)return;
+  const isSup=CU&&CU.r==='supervisor';
+  const isAbog=CU&&CU.r==='abogada';
+  const isAdmin=CU&&CU.r==='admin';
+
+  // Agrupar contratos por obra
+  const obrasSorted=[...obras].sort((a,b)=>b.aprobada-a.aprobada);
+  c.innerHTML=obrasSorted.map(o=>{
+    const cts=contratos.filter(ct=>ct.oid===o.id);
+    const ct=cts[0]||null; // principal contratista
+    const estadoObra=o.aprobada?'✅ Aprobada':'⏳ Pendiente';
+
+    return `<div class="obra-contrato-card occ-card" id="occ-${o.id}">
+      <div class="occ-hdr" onclick="togOCC(${o.id})">
+        <div>
+          <div class="occ-titulo">📁 ${o.nom} <span style="font-size:9px;color:var(--ws);font-weight:400;">· ${o.cod}</span></div>
+          <div class="occ-sub">${estadoObra} · ${o.sup}m² · ${cts.length} contratista(s) · ${o.contrato_firmado_contratista?'📄 Contrato firmado ✓':'📄 Sin contrato firmado'}</div>
+        </div>
+        <span class="occ-arrow">▼</span>
+      </div>
+      <div class="occ-body">
+        ${!ct?`<div class="al al-p">Sin contratistas asignados a esta obra aún.</div>`:''}
+        ${cts.map(ct=>renderCtPorObra(ct,o,isSup,isAbog,isAdmin)).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
+  const yaFirmado=!!ct.firm;
+  const puedoEditar=(isAdmin||isAbog)&&!yaFirmado;
+  const textoContrato=ct.texto_contrato||generarTextoBase(ct,o);
+  return `
+  <div style="border:1px solid var(--bd);border-radius:4px;padding:14px;margin-bottom:12px;background:var(--bg);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div>
+        <span style="font-weight:700;font-size:13px;">${isSup?'Contratista #'+ct.id:ct.nom}</span>
+        ${!isSup?`<span style="font-size:11px;color:var(--wd);margin-left:8px;">${ct.tel||''}</span>`:''}
+      </div>
+      ${EL[ct.est]||''}
+    </div>
+
+    ${!isSup?`
+    <div class="g g2" style="margin-bottom:12px;">
+      <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:5px;">Documentos</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn sm ${ct.ci?'g2b':'o'}" onclick="simDl('${ct.ci||''}','CI')">🪪 ${ct.ci?'✓ C.I.':'CI pend.'}</button>
+          <button class="btn sm ${ct.ag?'g2b':'o'}" onclick="simDl('${ct.ag||''}','Agua')">💧 ${ct.ag?'✓ Agua':'Agua pend.'}</button>
+          <button class="btn sm ${ct.lz?'g2b':'o'}" onclick="simDl('${ct.lz||''}','Luz')">⚡ ${ct.lz?'✓ Luz':'Luz pend.'}</button>
+        </div>
+      </div>
+      <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:5px;">Contrato Firmado Escaneado</div>
+        ${ct.firm
+          ?`<div class="al al-g" style="margin:0;display:flex;align-items:center;justify-content:space-between;">
+              <span>✅ ${ct.firm}</span>
+              <button class="btn sm g2b" onclick="verContratoFirmado(${ct.id})" style="margin-left:8px;">👁 Ver</button>
+            </div>`
+          :`<div class="ua" onclick="document.getElementById('inf-${ct.id}').click()" style="padding:10px;">
+             <input type="file" id="inf-${ct.id}" accept=".pdf,.jpg,.jpeg,.png" onchange="sFirm(${ct.id},this)" style="display:none">
+             <div style="font-size:10px;font-weight:700;">📤 Subir firmado → cambia a APTO</div>
+           </div>`
         }
+      </div>
+    </div>`:''}
 
-        function logout() {
-            usuario = null;
-            document.getElementById('loginContainer').style.display = 'block';
-            document.getElementById('mainApp').style.display = 'none';
-            document.getElementById('roleSelect').value = '';
-            document.getElementById('passwordInput').value = '';
-        }
+    ${ct.cond?`<div style="margin-bottom:12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:5px;">Condiciones de Campo</div>
+      <div style="background:var(--p2);border-radius:3px;padding:9px 12px;font-size:11px;line-height:1.7;">${ct.cond}</div></div>`:''}
+    ${o.map?`<a href="${o.map}" target="_blank" class="btn sm o" style="text-decoration:none;display:inline-flex;margin-bottom:12px;">📍 Ver Maps</a>`:''}
 
-        function cambiarTab(tab, btn) {
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            btn.classList.add('active');
-            if (tab === 'josemiguel') cargarObrasSelect();
-            if (tab === 'consulta') cargarContratosSelect();
-        }
+    <!-- EDITOR CONTRATO -->
+    <div style="margin-top:4px;">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:${isAbog?'var(--Pc)':'var(--ws)'};margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+        📝 CONTRATO ${isAbog?'— <span style="color:var(--Pc)">⚖️ Puedes editar y revisar</span>':'— Solo lectura para supervisión'}
+      </div>
+      <div class="editor-contrato">
+        <div class="editor-toolbar no-print">
+          ${puedoEditar?`
+          <button class="et-btn" onclick="fmtCt(${ct.id},'bold')"><b>N</b></button>
+          <button class="et-btn" onclick="fmtCt(${ct.id},'addLine')">+ Línea</button>
+          <button class="et-btn" onclick="guardarTexto(${ct.id})">💾 Guardar cambios</button>
+          `:''}
+          <button class="et-btn" onclick="imprimirContrato(${ct.id})">🖨️ Imprimir</button>
+          ${isAdmin?`<button class="et-btn" onclick="mEj(${ct.id})">▶ Marcar Ejecución</button>`:''}
+        </div>
+        <textarea class="contrato-editor" id="ed-${ct.id}" ${puedoEditar?'':'readonly'}
+          onchange="ctTextos[${ct.id}]=this.value">${textoContrato}</textarea>
+        <div class="editor-status">${isAbog?'⚖️ Steffi puede editar este contrato antes de imprimir':'📄 Lectura'} · ${ct.fec||'—'}</div>
+      </div>
+    </div>
+  </div>`;
+}
 
-        function calcularFechaConclusion() {
-            const inicio = new Date(document.getElementById('fechaInicio').value);
-            const dias = parseInt(document.getElementById('tiempoEjecucion').value) || 0;
-            const conclusion = new Date(inicio.getTime() + dias * 24 * 60 * 60 * 1000);
-            document.getElementById('fechaConclusion').value = conclusion.toISOString().split('T')[0];
-        }
+let ctTextos={};
+function generarTextoBase(ct,o){
+  // Calcular monto en Bs (aprox USD * 6.96)
+  const montoUSD = o.monto||0;
+  const montoBs = Math.round(montoUSD * 6.96);
+  const numToLetras = (n) => {
+    // Simplificado para rangos comunes
+    const miles = Math.floor(n/1000);
+    const resto = n % 1000;
+    if(miles>0 && resto>0) return `${miles} mil ${resto}`;
+    if(miles>0) return `${miles} mil`;
+    return `${n}`;
+  };
+  const montoLetras = numToLetras(montoBs) + ' bolivianos';
 
-        function agregarModulo() {
-            const container = document.querySelector('.modulos-container');
-            const div = document.createElement('div');
-            div.className = 'modulo-item';
-            div.innerHTML = '<input type="checkbox"><input type="text" placeholder="Módulo"><input type="text" placeholder="Desc"><button class="btn-danger" type="button" onclick="this.parentElement.remove()">✕</button>';
-            container.appendChild(div);
-        }
+  const mods = (o.mods||[]).map((m,i)=>`M${String(i+1).padStart(2,'0')}. ${m}.`).join('\n');
 
-        function guardarObra(e) {
-            e.preventDefault();
-            const modulos = Array.from(document.querySelectorAll('.modulo-item')).map(m => ({
-                activo: m.querySelector('input[type="checkbox"]').checked,
-                nombre: m.querySelectorAll('input[type="text"]')[0].value,
-                desc: m.querySelectorAll('input[type="text"]')[1].value
-            }));
+  return CONTRATO_MODELO
+    .replace('{CODIGO_OBRA}', o.cod||'___')
+    .replace('{NOMBRE_CONTRATISTA}', ct.nom||'___').replace('{NOMBRE_CONTRATISTA}', ct.nom||'___')
+    .replace('{CI_CONTRATISTA}', ct.ci_n||'___').replace('{CI_CONTRATISTA}', ct.ci_n||'___')
+    .replace('{DIRECCION_CONTRATISTA}', ct.dir||'___')
+    .replace('{NOMBRE_OBRA}', o.nom||'___')
+    .replace('{SUPERFICIE}', o.sup||'___')
+    .replace('{UBICACION_OBRA}', o.map ? o.nom+', Santa Cruz' : '___')
+    .replace('{MODULOS}', mods)
+    .replace('{DIAS}', o.di||'___')
+    .replace('{FECHA_INICIO}', o.fi||'___')
+    .replace('{FECHA_FIN}', calcFechaFinTexto(o.fi, o.di))
+    .replace('{MONTO_BS}', montoBs.toLocaleString('es-BO'))
+    .replace('{MONTO_LETRAS}', montoLetras)
+    .replace('{CONDICIONES}', ct.cond||'Sin condiciones especiales.');
+}
+function calcFechaFinTexto(fi, dias){
+  if(!fi||!dias) return '___';
+  const d=new Date(fi); d.setDate(d.getDate()+parseInt(dias));
+  return d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+}
 
-            const obra = {
-                id: Date.now(),
-                nombre: document.getElementById('nombreObra').value,
-                codigo: document.getElementById('codigoObra').value,
-                superficie: parseFloat(document.getElementById('superficie').value),
-                precio: parseFloat(document.getElementById('precio').value),
-                tiempoEjecucion: parseInt(document.getElementById('tiempoEjecucion').value),
-                fechaInicio: document.getElementById('fechaInicio').value,
-                fechaConclusion: document.getElementById('fechaConclusion').value,
-                notas: document.getElementById('notasFatima').value,
-                modulos: modulos
-            };
+function guardarTexto(ctId){
+  const ta=document.getElementById('ed-'+ctId);if(!ta)return;
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  ct.texto_contrato=ta.value;
+  if(!ct.est_contrato) ct.est_contrato='revisado';
+  sbGuardarContrato(ct);
+  log(`Contrato #${ctId} guardado por ${CU.n}`);
+  alert('✅ Cambios guardados.');
+  renderContratos();
+}
+function marcarRevisado(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  if(!ct.est_contrato||ct.est_contrato==='generado') ct.est_contrato='revisado';
+}
+function aprobarContrato(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const ta=document.getElementById('ed-'+ctId);
+  if(ta) ct.texto_contrato=ta.value;
+  ct.est_contrato='aprobado';
+  ct.aprobado_por=CU.n;
+  ct.aprobado_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  sbGuardarContrato(ct);
+  sbLog(CU.n,`Contrato aprobado #${ctId}`);
+  log(`✅ Contrato #${ctId} APROBADO por ${CU.n}`);
+  alert(`✅ Contrato aprobado por ${CU.n}.\nYa puede imprimirse y firmarse.`);
+  renderContratos();
+}
 
-            obras.push(obra);
-            mostrarMensaje('✅ Obra guardada', 'success');
-            document.getElementById('fatima').querySelector('form').reset();
-        }
+function fmtCt(id,action){
+  const ta=document.getElementById('ed-'+id);if(!ta)return;
+  if(action==='addLine'){ta.value+='\n';ta.focus();}
+}
 
-        function cargarObrasSelect() {
-            const select = document.getElementById('obraSelect');
-            select.innerHTML = '<option value="">-- Selecciona --</option>';
-            obras.forEach(obra => {
-                const option = document.createElement('option');
-                option.value = JSON.stringify(obra);
-                option.textContent = `${obra.nombre} (${obra.superficie}m²)`;
-                select.appendChild(option);
-            });
-        }
+function imprimirContrato(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const o=gO(ct.oid);
+  const texto=ct.texto_contrato||generarTextoBase(ct,o);
+  // Convertir texto plano a HTML con secciones formateadas
+  const lineas=texto.split('\n');
+  let htmlLineas=lineas.map(l=>{
+    if(l.startsWith('CONTRATO DE PRESTACIÓN')) return `<h1>${l}</h1>`;
+    if(l.startsWith('CÓDIGO:')) return `<p class="codigo">${l}</p>`;
+    if(/^CLÁUSULA/.test(l)) return `<p class="clausula">${l}</p>`;
+    if(l.startsWith('CONTRATISTA') && l.includes('CONTRATANTE')) return `<p class="firmas">${l}</p>`;
+    if(l.trim()==='') return '<br>';
+    return `<p>${l}</p>`;
+  }).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Contrato — ${ct.nom}</title>
+  <style>
+    @page{size:216mm 330mm;margin:25mm 20mm 25mm 25mm;}
+    *{box-sizing:border-box;}
+    body{font-family:Arial,sans-serif;font-size:10pt;line-height:1.6;color:#000;margin:0;padding:0;}
+    h1{font-size:13pt;font-weight:bold;text-align:center;text-transform:uppercase;margin:0 0 4px 0;letter-spacing:1px;}
+    .codigo{text-align:center;font-size:9pt;color:#333;margin:0 0 18px 0;}
+    p{margin:0 0 6px 0;text-align:justify;}
+    .clausula{font-weight:bold;margin-top:14px;margin-bottom:4px;text-transform:uppercase;}
+    .firmas{margin-top:40px;font-weight:bold;}
+    .firma-bloque{display:flex;justify-content:space-between;margin-top:60px;}
+    .firma-col{text-align:center;width:45%;}
+    .firma-linea{border-top:1px solid #000;padding-top:6px;font-size:9pt;}
+    .header-doc{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;}
+    .header-doc img{height:40px;}
+    .header-empresa{font-size:8pt;color:#555;margin-top:4px;}
+    br{display:block;margin:3px 0;}
+    @media print{body{-webkit-print-color-adjust:exact;}}
+  </style>
 
-        function guardarContratista(e) {
-            e.preventDefault();
-            const obraStr = document.getElementById('obraSelect').value;
-            if (!obraStr) { mostrarMensaje('❌ Selecciona obra', 'error'); return; }
-            const obra = JSON.parse(obraStr);
-            
-            const contrato = {
-                id: Date.now(),
-                ci: document.getElementById('ci').value,
-                nombre: document.getElementById('nombreContratista').value || 'Contratista',
-                telefono: document.getElementById('telefonoContratista').value,
-                direccion: document.getElementById('direccionContratista').value,
-                condiciones: document.getElementById('condicionesEspeciales').value,
-                obra: obra,
-                estado: 'generado',
-                fechaGeneracion: new Date().toLocaleDateString('es-ES')
-            };
+</head><body>
+  <div class="header-doc">
+    <div style="font-size:16pt;font-weight:900;letter-spacing:3px;color:#000;">GEAT</div>
+    <div class="header-empresa">GAMBARTE ARQUITECTURA S.R.L. — Construcción y Consultoría</div>
+  </div>
+  ${htmlLineas}
+  <div class="firma-bloque">
+    <div class="firma-col">
+      <div class="firma-linea">
+        <strong>${ct.nom||'CONTRATISTA'}</strong><br>
+        C.I. ${ct.ci_n||'___'}<br>
+        Contratista
+      </div>
+    </div>
+    <div class="firma-col">
+      <div class="firma-linea">
+        <strong>JOSÉ MIGUEL GAMBARTE VIDAURRE</strong><br>
+        C.I. 7714413 SC<br>
+        GAMBARTE ARQUITECTURA S.R.L.
+      </div>
+    </div>
+  </div>
+  <script>window.onload=function(){window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+  log(`Contrato #${ctId} impreso por ${CU.n}`);
+}
 
-            contratos.push(contrato);
-            mostrarMensaje('✅ Contrato generado', 'success');
-        }
+function togOCC(id){document.getElementById('occ-'+id)?.classList.toggle('open');}
 
-        function cargarContratosSelect() {
-            const select = document.getElementById('contratoSelect');
-            select.innerHTML = '<option value="">-- Selecciona --</option>';
-            contratos.forEach(c => {
-                const option = document.createElement('option');
-                option.value = JSON.stringify(c);
-                option.textContent = `${c.nombre} - ${c.obra.nombre}`;
-                select.appendChild(option);
-            });
-        }
+function sFirm(cid,inp){
+  if(!inp.files[0])return;
+  const ct=contratos.find(x=>x.id===cid);if(!ct)return;
+  ct.firm=inp.files[0].name;ct.est='apto_para_obra';
+  ct.fec=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  // Guardar preview del archivo
+  const reader=new FileReader();
+  reader.onload=e=>{ct.firm_dataurl=e.target.result;};
+  reader.readAsDataURL(inp.files[0]);
+  sbGuardarContrato(ct);
+  sbLog(CU.n,`Contrato firmado subido #${cid}`);
+  log(`Firmado #${cid}: ${ct.firm} → APTO`);
+  alert(`✅ CONTRATISTA APTO PARA INICIAR OBRA
+${ct.firm}`);
+  renderContratos();uStats();
+}
 
-        function cargarContrato() {
-            const valor = document.getElementById('contratoSelect').value;
-            if (!valor) { document.getElementById('vistasContratos').style.display = 'none'; return; }
+function verContratoFirmado(cid){
+  const ct=contratos.find(x=>x.id===cid);if(!ct)return;
+  if(!ct.firm_dataurl){alert('Archivo: '+ct.firm+'\nPara verlo, ábrilo desde el dispositivo donde fue subido.');return;}
+  const win=window.open('','_blank');
+  win.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="'+ct.firm_dataurl+'" style="max-width:100%;max-height:100vh;"></body></html>');
+  win.document.close();
+}
+function mEj(id){
+  const ct=contratos.find(x=>x.id===id);if(!ct)return;
+  if(ct.est!=='apto_para_obra'){alert('⚠️ Solo APTOS pueden pasar a ejecución.');return;}
+  ct.est='en_ejecucion';log(`#${id} → EN EJECUCIÓN`);renderContratos();uStats();
+}
 
-            const contrato = JSON.parse(valor);
-            document.getElementById('vistasContratos').style.display = 'block';
+function simDl(f,t){if(!f)alert(`⚠️ Sin ${t} cargado.`);else alert(`📥 Descargando: ${f}`);}
 
-            const html = `<h3>CONTRATO PRESTACIÓN SERVICIOS</h3><p><strong>Obra:</strong> ${contrato.obra.nombre}</p><p><strong>Código:</strong> ${contrato.obra.codigo}</p><p><strong>Contratista:</strong> ${contrato.nombre}</p><p><strong>C.I.:</strong> ${contrato.ci}</p><p><strong>Teléfono:</strong> ${contrato.telefono}</p><p><strong>Dirección:</strong> ${contrato.direccion}</p><p><strong>Superficie:</strong> ${contrato.obra.superficie} m²</p><p><strong>Precio USD/m²:</strong> $${contrato.obra.precio}</p><p><strong>Monto Total:</strong> $${(contrato.obra.superficie * contrato.obra.precio).toFixed(2)}</p><p><strong>Módulos:</strong> ${contrato.obra.modulos.filter(m => m.activo).map(m => m.nombre).join(', ')}</p>${contrato.condiciones ? `<p><strong>Condiciones:</strong> ${contrato.condiciones}</p>` : ''}<p style="margin-top: 1.5rem;"><strong>Garantía:</strong> 1 año | <strong>Retención:</strong> 5%</p>`;
-            document.getElementById('contractoGenerado').innerHTML = html;
-        }
+// ══════════════════════════════════════════════════
+// PENDIENTES APROBACIÓN
+// ══════════════════════════════════════════════════
+function renderPendAPrb(){
+  const c=document.getElementById('pend-aprob');if(!c)return;
+  if(CU.r!=='admin'){c.innerHTML='';return;}
+  const pend=obras.filter(o=>!o.aprobada&&o.cp);
+  if(!pend.length){c.innerHTML='';return;}
+  c.innerHTML=pend.map(o=>`<div class="apb">
+    <div class="apb-l"><div class="apb-ico">⏳</div>
+    <div class="apb-txt"><h4>Pendiente: ${o.nom}</h4><p>${o.cod} · ${o.sup}m² · Contrato: ${o.cp}</p></div></div>
+    <div class="apb-r">
+      <button class="btn y sm" onclick="aprobOb(${o.id})">✅ APROBAR</button>
+      <button class="btn rb sm" onclick="rzOb(${o.id})">✕ Rechazar</button>
+    </div>
+  </div>`).join('');
+}
+function rzOb(id){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  if(!confirm(`¿Rechazar "${o.nom}"?`))return;
+  o.est='rechazada';log(`❌ Rechazada: ${o.nom}`);renderContratos();renderObras();
+}
 
-        function descargarContrato() {
-            const valor = document.getElementById('contratoSelect').value;
-            if (!valor) return;
-            const contrato = JSON.parse(valor);
-            const element = document.getElementById('contractoGenerado');
-            const opt = { margin: 10, filename: `Contrato_${contrato.nombre}.pdf`, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
-            window.html2pdf().set(opt).from(element).save();
-            mostrarMensaje('✅ Descargando...', 'success');
-        }
+// ══════════════════════════════════════════════════
+// SUPERVISIÓN — selector + paquete imprimible
+// ══════════════════════════════════════════════════
+function renderSup(){
+  const sel=document.getElementById('sup-selector');
+  const cont=document.getElementById('sup-content');
+  if(!sel||!cont) return;
+  const activas=obras.filter(o=>o.aprobada);
+  if(!activas.length){
+    sel.innerHTML='';
+    cont.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras aprobadas aún.</p>';
+    return;
+  }
+  // Selector de obra
+  sel.innerHTML=`<div class="g g2">
+    <div class="f"><label>Seleccionar Obra</label>
+      <select id="sup-sel-obra" onchange="renderSupObra(this.value)">
+        <option value="">— Elegir obra —</option>
+        ${activas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('')}
+      </select>
+    </div>
+  </div>`;
+  cont.innerHTML='<p style="color:var(--ws);font-size:12px;">Seleccioná una obra para ver el paquete completo.</p>';
+}
 
-        function descargarResumenSupervisor() {
-            const valor = document.getElementById('contratoSelect').value;
-            if (!valor) return;
-            const contrato = JSON.parse(valor);
-            
-            const html = `<h2 style="text-align: center; color: #f59e0b; margin-bottom: 1.5rem;">RESUMEN SUPERVISOR</h2><p><strong>Obra:</strong> ${contrato.obra.nombre}</p><p><strong>Código:</strong> ${contrato.obra.codigo}</p><p><strong>Contratista:</strong> ${contrato.nombre}</p><p><strong>Teléfono:</strong> ••••${contrato.telefono.slice(-4)}</p><p><strong>Superficie:</strong> ${contrato.obra.superficie} m²</p><p><strong>Monto Total:</strong> $${(contrato.obra.superficie * contrato.obra.precio).toFixed(2)}</p><p><strong>Estado:</strong> ${contrato.estado === 'generado' ? 'Generado' : 'Pendiente'}</p><p style="margin-top: 2rem; font-size: 11px; color: #999; text-align: center;">SIN CI, SIN UBICACIÓN, SIN ACUERDOS CONFIDENCIALES</p>`;
-            
-            const element = document.createElement('div');
-            element.innerHTML = html;
-            element.style.padding = '2rem';
-            const opt = { margin: 10, filename: `Resumen_${contrato.nombre}.pdf`, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
-            window.html2pdf().set(opt).from(element).save();
-            mostrarMensaje('✅ Descargando resumen...', 'success');
-        }
+function renderSupObra(oid){
+  const c=document.getElementById('sup-content');if(!c)return;
+  if(!oid){c.innerHTML='';return;}
+  const o=obras.find(x=>x.id==oid);if(!o)return;
+  const ct=contratos.find(x=>x.oid==oid&&x.est==='en_ejecucion')||contratos.find(x=>x.oid==oid);
+  const mods=(o.mods||[]).map((m,i)=>`M${String(i+1).padStart(2,'0')}. ${m}`).join('\n');
 
-        function mostrarMensaje(texto, tipo) {
-            const msg = document.getElementById('mensaje');
-            msg.textContent = texto;
-            msg.className = `msg show ${tipo}`;
-            setTimeout(() => msg.classList.remove('show'), 4000);
-        }
-    </script>
+  c.innerHTML=`
+    <div class="card" id="sup-paquete">
+      <div class="ct" style="justify-content:space-between;">
+        <span>📦 PAQUETE DE SUPERVISIÓN — ${o.nom}</span>
+        <button class="btn y sm" onclick="imprimirSupervision()">🖨️ Imprimir todo</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Datos de Obra</div>
+          <div class="sup-dato">Obra: <b>${o.nom}</b></div>
+          <div class="sup-dato">Código: <b>${o.cod}</b></div>
+          <div class="sup-dato">Superficie: <b>${o.sup}m²</b></div>
+          <div class="sup-dato">Cuadrilla: <b>${o.cuad} personas</b></div>
+          <div class="sup-dato">Inicio: <b>${o.fi||'—'}</b></div>
+          <div class="sup-dato">Días: <b>${o.di||'—'}</b></div>
+          <div class="sup-dato">Fin estimado: <b>${calcFechaFinTexto(o.fi,o.di)}</b></div>
+          <div class="sup-dato" style="margin-top:8px;">
+            <a href="${o.map}" target="_blank" style="color:var(--am);font-weight:700;">📍 Abrir ubicación en Maps</a>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Contratista</div>
+          ${ct?`
+          <div class="sup-dato">Nombre: <b>${ct.nom}</b></div>
+          <div class="sup-dato">Teléfono: <b>${ct.tel||'—'}</b></div>
+          <div class="sup-dato">C.I.: <b>${ct.ci_n||'—'}</b></div>
+          <div class="sup-dato">Dirección: <b>${ct.dir||'—'}</b></div>
+          <div class="sup-dato" style="margin-top:8px;">Estado contrato: <b>${ct.est_contrato==='aprobado'?'✅ Aprobado':'⏳ En proceso'}</b></div>
+          `
+          :'<div class="sup-dato" style="color:var(--ws);">Sin contratista asignado aún.</div>'}
+        </div>
+      </div>
+
+      ${ct&&ct.cond?`
+      <div style="margin-bottom:16px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Condiciones Especiales de Obra</div>
+        <div style="background:var(--p2);border-radius:3px;padding:10px 14px;font-size:12px;line-height:1.7;">${ct.cond}</div>
+      </div>`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+        <div style="background:var(--Gbg);border:1px solid var(--G);border-radius:4px;padding:12px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:6px;">Forma de Pago</div>
+          <div style="font-size:11px;line-height:1.8;">
+            <div>1er pago: <b style="color:var(--Gc);">30% al inicio</b></div>
+            <div>2do pago: <b style="color:var(--Gc);">40% al 50% de avance</b></div>
+            <div>3er pago: <b style="color:var(--Gc);">30% a la entrega</b></div>
+            <div style="margin-top:6px;font-size:10px;color:var(--ws);">Pagos quincenales según avance aprobado por supervisor</div>
+          </div>
+        </div>
+        <div style="background:var(--Zbg);border:1px solid var(--Z);border-radius:4px;padding:12px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:6px;">Obligaciones en Campo</div>
+          <div style="font-size:11px;line-height:1.8;">
+            <div>✓ Limpieza diaria del área</div>
+            <div>✓ Reporte semanal de avance</div>
+            <div>✓ Especialistas para M05,M06,M07,M10,M19</div>
+            <div>✓ SOAT-C de todo el personal</div>
+            <div>✓ No divulgar info de la obra</div>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--Rbg);border:1px solid var(--R);border-radius:4px;padding:12px;margin-bottom:16px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--Rc);margin-bottom:6px;">⚠️ Penalidades (cláusula 21)</div>
+        <div style="font-size:11px;line-height:1.8;">
+          <div>• Retraso injustificado: multa por día de atraso</div>
+          <div>• SOAT-C no presentado en 3 días: Bs 50/día de multa</div>
+          <div>• Hurto o robo: rescisión inmediata + acciones penales</div>
+          <div>• Modificaciones no autorizadas: reclamación en 10 días hábiles</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Módulos a Ejecutar (${o.mods?.length||0})</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;">
+          ${(o.mods||[]).map((m,i)=>`<div style="background:var(--p2);border:1px solid var(--bd);border-radius:3px;padding:5px 9px;font-size:11px;">
+            <b style="color:var(--am);">M${String(i+1).padStart(2,'0')}</b> ${m}
+          </div>`).join('')}
+        </div>
+      </div>
+
+
+    </div>`;
+}
+
+function imprimirSupervision(){
+  const el=document.getElementById('sup-paquete');if(!el)return;
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Supervisión GEAT</title>
+  <style>
+    body{font-family:Arial,sans-serif;font-size:10pt;padding:30px;color:#000;}
+    h2{font-size:14pt;margin-bottom:6px;}
+    .sec{margin-bottom:20px;}
+    .sec h3{font-size:10pt;text-transform:uppercase;letter-spacing:1px;color:#555;border-bottom:1px solid #ccc;margin-bottom:8px;padding-bottom:3px;}
+    .dato{margin-bottom:3px;font-size:10pt;}
+    .dato b{color:#000;}
+    .mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:6px;}
+    .mod{border:1px solid #ccc;padding:3px 6px;font-size:9pt;}
+    .mod b{color:#c2a000;}
+    pre{font-family:'Courier New',monospace;font-size:8pt;line-height:1.5;white-space:pre-wrap;border:1px solid #ccc;padding:10px;}
+    @media print{button{display:none;}}
+  </style>
+
+</head><body>
+  ${el.innerText?'':''}
+  </body></html>`);
+  // Mejor approach: reconstruir HTML limpio para impresión
+  const o=obras.find(x=>x.id==document.getElementById('sup-sel-obra').value);
+  const ct=o?contratos.find(x=>x.oid==o.id&&x.est==='en_ejecucion')||contratos.find(x=>x.oid==o.id):null;
+  if(!o){win.close();return;}
+  win.document.body.innerHTML=`
+    <h2>PAQUETE DE SUPERVISIÓN — ${o.nom}</h2>
+    <p style="color:#666;font-size:9pt;">GEAT Construcción y Consultoría · Generado: ${new Date().toLocaleDateString('es-BO')}</p>
+    <hr>
+    <div class="sec"><h3>Datos de Obra</h3>
+      <div class="dato">Obra: <b>${o.nom}</b></div>
+      <div class="dato">Código: <b>${o.cod}</b></div>
+      <div class="dato">Superficie: <b>${o.sup}m²</b></div>
+      <div class="dato">Cuadrilla: <b>${o.cuad} personas</b></div>
+      <div class="dato">Inicio: <b>${o.fi||'—'}</b> · Plazo: <b>${o.di} días</b> · Fin estimado: <b>${calcFechaFinTexto(o.fi,o.di)}</b></div>
+      <div class="dato">Ubicación Maps: <b>${o.map}</b></div>
+    </div>
+    ${ct?`<div class="sec"><h3>Contratista</h3>
+      <div class="dato">Nombre: <b>${ct.nom}</b></div>
+      <div class="dato">Teléfono: <b>${ct.tel||'—'}</b></div>
+      <div class="dato">C.I.: <b>${ct.ci_n||'—'}</b></div>
+      <div class="dato">Dirección: <b>${ct.dir||'—'}</b></div>
+    </div>
+    ${ct.cond?`<div class="sec"><h3>Condiciones Especiales</h3><p>${ct.cond}</p></div>`:''}`:'<p>Sin contratista asignado.</p>'}
+    <div class="sec"><h3>Módulos a Ejecutar</h3>
+      <div class="mod-grid">
+        ${(o.mods||[]).map((m,i)=>`<div class="mod"><b>M${String(i+1).padStart(2,'0')}</b> ${m}</div>`).join('')}
+      </div>
+    </div>
+    <div class="sec"><h3>Forma de Pago</h3>
+      <div class="dato">• <b>30%</b> anticipo al inicio de obra</div>
+      <div class="dato">• <b>40%</b> al 50% de avance verificado por supervisor</div>
+      <div class="dato">• <b>30%</b> restante a la entrega final</div>
+      <div class="dato" style="margin-top:4px;color:#555;font-size:8pt;">Pagos quincenales según avance aprobado por supervisor de obra.</div>
+    </div>
+    <div class="sec"><h3>Obligaciones del Contratista en Campo</h3>
+      <div class="dato">✓ Mantener limpieza diaria del área de trabajo</div>
+      <div class="dato">✓ Reportar avances semanalmente al supervisor</div>
+      <div class="dato">✓ Especialistas para: M05 Sanitaria, M06 Eléctrica, M07 Hidráulica, M10 Estructuras, M19 Pintura</div>
+      <div class="dato">✓ Presentar SOAT-C de todo el personal (máx. 3 días desde primer pago)</div>
+      <div class="dato">✓ No divulgar información técnica ni comercial de la obra</div>
+    </div>
+    <div class="sec" style="border:1px solid #ccc;padding:8px;background:#fff8f8;">
+      <h3 style="color:#c00;">Penalidades</h3>
+      <div class="dato">• Retraso injustificado: multa por cada día de atraso</div>
+      <div class="dato">• SOAT-C no presentado a tiempo: Bs. 50/día de multa</div>
+      <div class="dato">• Hurto o robo: rescisión inmediata sin indemnización + acción penal</div>
+    </div>
+    ${ct&&ct.texto_contrato?`<div class="sec"><h3>Contrato de Referencia</h3><pre>${ct.texto_contrato}</pre></div>`:''}
+    <br><br>
+    <div style="display:flex;justify-content:space-between;margin-top:50px;">
+      <div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Arq. Raí</strong><br>Supervisor de Obra</div></div>
+      <div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Fátima</strong><br>Responsable Administrativa</div></div>
+    </div>
+  `;
+  win.document.close();win.focus();win.print();
+  log(`Paquete supervisión impreso: ${o.nom} por ${CU.n}`);
+}
+
+// ══════════════════════════════════════════════════
+// ADMIN — vista ejecutiva
+// ══════════════════════════════════════════════════
+function renderAdmin(){
+  // Tabla maestra por obra
+  const tb=document.getElementById('a-tb');
+  if(tb){
+    tb.innerHTML=obras.map(o=>{
+      const ct=contratos.find(c=>c.oid===o.id);
+      const docs=ct?[ct.ci,ct.ag,ct.lz].filter(Boolean).length:0;
+      const estContrato=ct?.est_contrato||'—';
+      const estLabel={generado:'🟡 Generado',revisado:'🔵 Revisado',aprobado:'✅ Aprobado'}[estContrato]||estContrato;
+      return `<tr>
+        <td>${o.nom}<br><span style="font-size:9px;color:var(--ws);">${o.cod}</span></td>
+        <td>${ct?ct.nom:'<span style="color:var(--ws);">Sin asignar</span>'}</td>
+        <td>${ct?.tel||'—'}</td>
+        <td>${docs}/3 docs ${ct?.firm?'+ ✅ firmado':''}</td>
+        <td>${estLabel}</td>
+        <td>${EL[ct?.est]||'<span style="color:var(--ws);">—</span>'}</td>
+        <td style="color:var(--am);font-weight:700;">${o.aprobada?'$'+o.monto.toFixed(2):'<span style="color:var(--ws);">Pend. aprob.</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Pendientes mi aprobación
+  const ap=document.getElementById('adm-pend-apro');
+  if(ap){
+    const pend=obras.filter(o=>!o.aprobada&&o.cp);
+    ap.innerHTML=pend.length
+      ? pend.map(o=>`<div class="apb" style="margin-bottom:8px;">
+          <div class="apb-l"><div class="apb-ico">⏳</div>
+          <div class="apb-txt"><h4>${o.nom}</h4><p>${o.cod} · ${o.sup}m² · Contrato prop: ${o.cp}</p></div></div>
+          <div class="apb-r">
+            <button class="btn y sm" onclick="aprobOb(${o.id})">✅ Aprobar</button>
+            <button class="btn rb sm" onclick="rzOb(${o.id})">✕</button>
+          </div></div>`).join('')
+      : '<p style="color:var(--ws);font-size:12px;">Sin pendientes.</p>';
+  }
+
+  // Pendientes revisión legal
+  const leg=document.getElementById('adm-pend-legal');
+  if(leg){
+    const pleg=contratos.filter(c=>!c.est_contrato||c.est_contrato==='generado');
+    leg.innerHTML=pleg.length
+      ? pleg.map(c=>{const o=gO(c.oid); return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--p2);border:1px solid var(--bd);border-radius:3px;margin-bottom:6px;">
+          <div><b>${c.nom}</b> <span style="font-size:11px;color:var(--ws);">→ ${o.nom||'?'}</span></div>
+          <span style="font-size:10px;color:var(--Ac);">⏳ Sin revisar por Steffi</span>
+        </div>`}).join('')
+      : '<p style="color:var(--ws);font-size:12px;">Sin contratos pendientes.</p>';
+  }
+
+  // Contratos propietarios (confidencial)
+  const props=document.getElementById('adm-props');
+  if(props){
+    props.innerHTML=obras.map(o=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--p2);border:1px solid var(--bd);border-radius:3px;margin-bottom:6px;">
+      <div><b>${o.nom}</b> <span style="font-size:11px;color:var(--ws);">${o.cod}</span></div>
+      ${o.cp
+        ? `<button class="btn g2b sm" onclick="simDl('${o.cp}','Contrato Propietario')">📋 ${o.cp}</button>`
+        : '<span style="font-size:10px;color:var(--Rc);">⚠️ Sin contrato propietario</span>'}
+    </div>`).join('');
+  }
+
+  // Log auditoría
+  const al=document.getElementById('a-log');
+  if(al)al.innerHTML=logs_.slice().reverse().map(l=>`<div>● ${l}</div>`).join('');
+}
+
+function uStats(){
+  const tot=obras.length,apt=contratos.filter(c=>c.est==='apto_para_obra').length;
+  const ej=contratos.filter(c=>c.est==='en_ejecucion').length;
+  const mon='$'+obras.filter(o=>o.aprobada).reduce((s,o)=>s+o.monto,0).toLocaleString('en-US',{minimumFractionDigits:0});
+  [['k-tot',tot],['k-apt',apt],['k-ej',ej],['k-mon',mon],
+   ['a-tot',contratos.length],['a-apt',apt],['a-mon',mon],['a-obr',tot]]
+  .forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.textContent=v;});
+  // Monto en Bs
+  const montoUSD=obras.filter(o=>o.aprobada).reduce((s,o)=>s+o.monto,0);
+  const montoBs=Math.round(montoUSD*6.96);
+  const elBs=document.getElementById('a-mon-bs');
+  if(elBs) elBs.textContent='Bs '+montoBs.toLocaleString('es-BO');
+  renderAdmin();
+}
+
+// ══════════════════════════════════════════════════
+// OVERLAYS
+// ══════════════════════════════════════════════════
+function aOv(n){document.getElementById('ov-'+n).classList.add('on');}
+function cOv(n){document.getElementById('ov-'+n).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)cOv(o.id.replace('ov-',''));}));
+
+function log(m){
+  const h=new Date().toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit',hour12:false});
+  logs_.push(`[${h}] ${m}`);
+  if(CU) sbLog(CU.n, m).catch(()=>{});
+}
+</script>
 </body>
 </html>
