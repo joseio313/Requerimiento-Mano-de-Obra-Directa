@@ -64,6 +64,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* MAIN */
 .main{padding:22px 16px;max-width:1160px;margin:0 auto;}
+#contratos-por-obra,#sup-content,#sup-selector,#pend-aprob{width:100%;box-sizing:border-box;}
+.obra-contrato-card,.occ-card{width:100%;box-sizing:border-box;margin-left:0;margin-right:0;}
+#panel-contratos .ph,#panel-sup .ph{margin-bottom:18px;}
 .panel{display:none;animation:fadeIn .2s ease;}
 .panel.on{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -209,7 +212,7 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 .occ-sub{font-size:10px;color:var(--wd);margin-top:2px;}
 .occ-arrow{color:var(--am);transition:transform .2s;}
 .occ-card.open .occ-arrow{transform:rotate(180deg);}
-.occ-body{display:none;padding:16px;}
+.occ-body{display:none;padding:14px;box-sizing:border-box;}
 .occ-card.open .occ-body{display:block;}
 
 /* EDITOR CONTRATO */
@@ -525,9 +528,9 @@ async function sbLog(usuario, accion) {
 
       <!-- ACTIVAR PROCESO DE CONTRATACIÓN -->
       <div class="card" id="card-activar-proceso" style="display:none;border-color:var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
-        <div class="ct" style="color:var(--am);">🚀 ACTIVAR PROCESO DE CONTRATACIÓN</div>
+        <div class="ct" style="color:var(--am);">🔍 ACTIVAR PROCESO DE BÚSQUEDA DE CONTRATISTA</div>
         <div class="al al-z" style="margin-bottom:14px;">
-          Seleccioná un contratista ya guardado para activar su proceso de ejecución en obra.
+          Activa publicación, filtrado de candidatos y bot de Messenger para esta obra.
           Solo disponible cuando el contratista tiene estado <b>APTO PARA OBRA</b>.
         </div>
         <div class="f" style="margin-bottom:12px;">
@@ -538,7 +541,7 @@ async function sbLog(usuario, accion) {
         </div>
         <div id="prev-activar" style="margin-bottom:12px;"></div>
         <div class="brow">
-          <button class="btn y" onclick="activarProceso()" style="font-size:13px;padding:11px 22px;">▶ ACTIVAR PROCESO DE CONTRATACIÓN</button>
+          <button class="btn y" onclick="activarProceso()" style="font-size:13px;padding:11px 22px;">🔍 ACTIVAR PROCESO DE BÚSQUEDA</button>
         </div>
       </div>
       </div>
@@ -567,7 +570,7 @@ async function sbLog(usuario, accion) {
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
     <div class="panel" id="panel-sup">
       <div class="ph"><h2>🏗️ SUPERVISIÓN DE OBRA</h2><p>Seleccioná una obra para ver su paquete completo e imprimir</p></div>
-      <div id="sup-selector" style="margin-bottom:16px;"></div>
+      <div id="sup-selector" style="margin-bottom:12px;"></div>
       <div id="sup-content"></div>
     </div>
 
@@ -1225,17 +1228,18 @@ function prevActivarCt(){
 }
 function activarProceso(){
   const id=parseInt(document.getElementById('sel-activar-ct').value);
-  if(!id){alert('⚠️ Seleccioná un contratista.');return;}
+  if(!id){alert('Selecciona un contratista.');return;}
   const ct=contratos.find(x=>x.id===id);if(!ct)return;
-  if(ct.est!=='apto_para_obra'){alert('⚠️ Solo contratistas APTOS pueden activarse.');return;}
+  if(ct.est!=='apto_para_obra'){alert('Solo contratistas APTOS pueden activar la busqueda.');return;}
   const o=gO(ct.oid);
-  if(!confirm(`▶ ACTIVAR PROCESO DE CONTRATACIÓN\n\nContratista: ${ct.nom}\nObra: ${o.nom||'—'}\n\nEl contratista pasará a estado EN EJECUCIÓN.`))return;
-  ct.est='en_ejecucion';
+  if(!confirm('ACTIVAR PROCESO DE BUSQUEDA\nContratista: '+ct.nom+'\nObra: '+(o.nom||'?')+'\n\nSe activara: publicacion, filtro y bot Messenger.'))return;
+  ct.est='en_ejecucion';ct.busqueda_activa=true;
+  ct.busqueda_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
   sbGuardarContrato(ct);
-  sbLog(CU.n,`Proceso activado: ${ct.nom} → ${o.nom}`);
-  log(`▶ Proceso activado: ${ct.nom} → EN EJECUCIÓN`);
+  sbLog(CU.n,'Busqueda activada: '+ct.nom+' Obra: '+(o.nom||''));
+  log('Proceso de busqueda activado: '+ct.nom);
   renderContratos();renderCardActivar();uStats();
-  alert(`✅ Proceso activado.\n${ct.nom} está EN EJECUCIÓN en obra ${o.nom||''}.`);
+  alert('Proceso de busqueda ACTIVADO\n\nContratista: '+ct.nom+'\nObra: '+(o.nom||'')+'\n\nPublicacion, filtrado y bot Messenger en curso.');
 }
 
 // ══════════════════════════════════════════════════
@@ -1334,7 +1338,7 @@ function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
           <button class="et-btn" onclick="guardarTexto(${ct.id})">💾 Guardar cambios</button>
           `:''}
           <button class="et-btn" onclick="imprimirContrato(${ct.id})">🖨️ Imprimir</button>
-          <!-- botón mEj movido al panel contratista -->
+          
         </div>
         <textarea class="contrato-editor" id="ed-${ct.id}" ${puedoEditar?'':'readonly'}
           onchange="ctTextos[${ct.id}]=this.value">${textoContrato}</textarea>
