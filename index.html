@@ -64,13 +64,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 
 /* MAIN */
 .main{padding:22px 16px;max-width:1160px;margin:0 auto;}
-#contratos-por-obra,#sup-content,#sup-selector,#pend-aprob{width:100%;box-sizing:border-box;}
+#contratos-por-obra,#sup-content,#sup-selector,#pend-aprob{width:100%;box-sizing:border-box;min-height:0;}
 .obra-contrato-card,.occ-card{width:100%;box-sizing:border-box;margin-left:0;margin-right:0;}
-#panel-contratos .ph,#panel-sup .ph{margin-bottom:18px;}
+#panel-contratos .ph,#panel-sup .ph{margin-bottom:14px;}
 .panel{display:none;animation:fadeIn .2s ease;}
 .panel.on{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-.ph{margin-bottom:20px;}
+.ph{margin-bottom:14px;}
 .ph h2{font-size:18px;font-weight:800;color:var(--am);letter-spacing:2px;margin-bottom:3px;}
 .ph p{color:var(--ws);font-size:11px;}
 
@@ -118,6 +118,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ua:hover{border-color:var(--am);}
 .ua.ok{border-color:var(--G);border-style:solid;background:var(--Gbg);}
 .ua input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+/* Fix móvil: asegurar área táctil correcta */
+.ua{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.ub{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+@media(max-width:768px){
+  .ua{padding:20px 14px;min-height:80px;}
+  .ub{padding:18px 8px;min-height:80px;}
+  .ua input,.ub input{width:100%;height:100%;font-size:16px;}
+}
 
 /* MÓDULOS */
 .mg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;}
@@ -173,7 +181,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .perfil-info .rol{font-size:11px;color:var(--ws);}
 
 /* KPI */
-.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px;}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px;}
 .kc{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;text-align:center;}
 .kv{font-size:24px;font-weight:900;margin-bottom:2px;}
 .kl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);}
@@ -419,8 +427,8 @@ async function sbLog(usuario, accion) {
       <div class="card">
         <div class="ct">📄 Contrato con Propietario <span style="color:var(--Rc)">*Obligatorio para aprobación</span></div>
         <div class="al al-z" style="margin-bottom:12px;">Documento confidencial — solo Josemiguel. Sin esto la obra no puede aprobarse.</div>
-        <div class="ua" id="box-cp" onclick="document.getElementById('inp-cp').click()">
-          <input type="file" id="inp-cp" accept=".pdf,.jpg,.jpeg,.png" onchange="hCP(this)" style="display:none">
+        <div class="ua" id="box-cp" onclick="document.getElementById('inp-cp').click()" style="position:relative;">
+          <input type="file" id="inp-cp" accept=".pdf,.jpg,.jpeg,.png,image/*" capture="environment" onchange="hCP(this)" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:16px;">
           <div style="font-size:24px;margin-bottom:6px;">📋</div>
           <div style="font-size:12px;font-weight:700;margin-bottom:2px;">Subir Contrato Firmado con Propietario</div>
           <div style="font-size:10px;color:var(--ws);">PDF, JPG, PNG</div>
@@ -479,9 +487,9 @@ async function sbLog(usuario, accion) {
       <div class="card">
         <div class="ct">Documentos del Contratista</div>
         <div class="u3">
-          <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="hUD('ci',this)"></div>
-          <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="hUD('ag',this)"></div>
-          <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="hUD('lz',this)"></div>
+          <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ci',this)"></div>
+          <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ag',this)"></div>
+          <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('lz',this)"></div>
         </div>
       </div>
 
@@ -561,17 +569,17 @@ async function sbLog(usuario, accion) {
       </div>
 
       <!-- Pendientes aprobación -->
-      <div id="pend-aprob"></div>
+      <div id="pend-aprob" style="min-height:0;"></div>
 
       <!-- CONTRATOS POR OBRA -->
-      <div id="contratos-por-obra"></div>
+      <div id="contratos-por-obra" style="min-height:0;"></div>
     </div>
 
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
     <div class="panel" id="panel-sup">
       <div class="ph"><h2>🏗️ SUPERVISIÓN DE OBRA</h2><p>Seleccioná una obra para ver su paquete completo e imprimir</p></div>
       <div id="sup-selector" style="margin-bottom:12px;"></div>
-      <div id="sup-content"></div>
+      <div id="sup-content" style="min-height:0;"></div>
     </div>
 
     <!-- ═══ PANEL: ADMIN ═══ -->
@@ -600,13 +608,13 @@ async function sbLog(usuario, accion) {
       <!-- Obras pendientes de mi aprobación -->
       <div class="card">
         <div class="ct">⚡ Requieren mi aprobación</div>
-        <div id="adm-pend-apro"></div>
+        <div id="adm-pend-apro" style="min-height:0;"></div>
       </div>
 
       <!-- Contratos pendientes de aprobación legal -->
       <div class="card">
         <div class="ct">⚖️ Contratos pendientes revisión Steffi</div>
-        <div id="adm-pend-legal"></div>
+        <div id="adm-pend-legal" style="min-height:0;"></div>
       </div>
 
       <!-- Tabla maestra con documentos -->
@@ -624,7 +632,7 @@ async function sbLog(usuario, accion) {
       <!-- Documentos confidenciales -->
       <div class="card">
         <div class="ct">🔒 Contratos con Propietarios (confidencial)</div>
-        <div id="adm-props"></div>
+        <div id="adm-props" style="min-height:0;"></div>
       </div>
 
       <!-- Auditoría -->
