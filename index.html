@@ -913,7 +913,29 @@ function abrirAprobaciones(){
 // ══════════════════════════════════════════════════
 let cpFile=null,mc=20;
 
-function hCP(i){if(!i.files[0])return;cpFile=i.files[0].name;document.getElementById('box-cp').classList.add('ok');document.getElementById('st-cp').textContent='✓ '+cpFile;}
+function hCP(i){
+  if(!i.files[0])return;
+  cpFile=i.files[0].name;
+  document.getElementById('box-cp').classList.add('ok');
+  document.getElementById('st-cp').textContent='✓ '+cpFile;
+  // Auto-rellenar nombre y código desde el nombre del archivo
+  const fn=cpFile.replace(/\.[^.]+$/,'').replace(/_FIRMADO|_firmado/gi,'').replace(/_/g,' ').trim();
+  const nomEl=document.getElementById('o-nom');
+  const codEl=document.getElementById('o-cod');
+  if(!nomEl.value && fn){
+    // Nombre de obra desde nombre de archivo (ej: Prop_CECILIA_MONTERO → CECILIA-MONTERO)
+    const partes=fn.replace(/^Prop\s*/i,'').trim().toUpperCase().replace(/\s+/g,'-');
+    nomEl.value=partes;
+    // Código automático: iniciales + año + secuencia
+    const initials=partes.split('-').map(p=>p[0]||'').join('').slice(0,2);
+    const yr=new Date().getFullYear();
+    const seq=String(obras.length+1).padStart(3,'0');
+    if(!codEl.value) codEl.value=`${initials}-${yr}-${seq}`;
+    cO(); // disparar cálculos automáticos
+  }
+  // Mostrar aviso de campos listos para completar
+  document.getElementById('st-cp').textContent='✓ '+cpFile+' — Completá los datos de la obra abajo';
+}
 
 function initMods(){
   const c=document.getElementById('mg-cont');c.innerHTML='';mc=20;
@@ -925,8 +947,11 @@ function addMod(){mc++;document.getElementById('mg-cont').appendChild(mkM(mc,'')
 function cO(){
   const s=parseFloat(document.getElementById('o-sup').value)||0,p=parseFloat(document.getElementById('o-pre').value)||75;
   if(!s)return;
-  document.getElementById('c-cua').value=Math.max(4,Math.ceil(s/100*4))+' personas';
-  document.getElementById('c-mon').value='$'+(s*p).toFixed(2);
+  const cuad=Math.max(4,Math.ceil(s/100*4));
+  const montoUSD=s*p;
+  const montoBs=Math.round(montoUSD*6.96);
+  document.getElementById('c-cua').value=cuad+' personas';
+  document.getElementById('c-mon').value='$'+montoUSD.toFixed(2)+' USD  /  Bs '+montoBs.toLocaleString('es-BO');
   document.getElementById('c-moo').value=Math.max(5,Math.ceil(s/10))+' módulos';
 }
 function cFF(){
