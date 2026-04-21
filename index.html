@@ -515,12 +515,32 @@ async function sbLog(usuario, accion) {
           <span id="chk-tel" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Teléfono</span>
           <span id="chk-obra" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Obra asignada</span>
         </div>
-        <div class="al al-z" style="margin-bottom:12px;">Al marcar como cargado, el contrato se genera automáticamente y pasa al área de Contratos para revisión de Steffi (abogada).</div>
+        <div class="al al-z" style="margin-bottom:12px;">Al guardar, el contrato se genera automáticamente y pasa al área de Contratos para revisión de Steffi (abogada).</div>
         <div class="brow">
-          <button class="btn y" onclick="gCont()" id="btn-cargar" style="font-size:13px;padding:11px 22px;">✅ MARCAR COMO CARGADO</button>
+          <button class="btn y" onclick="gCont()" id="btn-cargar" style="font-size:13px;padding:11px 22px;">💾 GUARDAR CONTRATISTA</button>
           <button class="btn o" onclick="lCont()">🔄 Limpiar</button>
         </div>
         <div id="msg-ct" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- ACTIVAR PROCESO DE CONTRATACIÓN -->
+      <div class="card" id="card-activar-proceso" style="display:none;border-color:var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
+        <div class="ct" style="color:var(--am);">🚀 ACTIVAR PROCESO DE CONTRATACIÓN</div>
+        <div class="al al-z" style="margin-bottom:14px;">
+          Seleccioná un contratista ya guardado para activar su proceso de ejecución en obra.
+          Solo disponible cuando el contratista tiene estado <b>APTO PARA OBRA</b>.
+        </div>
+        <div class="f" style="margin-bottom:12px;">
+          <label>Seleccionar Contratista</label>
+          <select id="sel-activar-ct" onchange="prevActivarCt()">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div id="prev-activar" style="margin-bottom:12px;"></div>
+        <div class="brow">
+          <button class="btn y" onclick="activarProceso()" style="font-size:13px;padding:11px 22px;">▶ ACTIVAR PROCESO DE CONTRATACIÓN</button>
+        </div>
+      </div>
       </div>
     </div>
 
@@ -867,6 +887,7 @@ function goPanel(id){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   const p=document.getElementById('panel-'+id);if(p)p.classList.add('on');
   const n=document.getElementById('nb-'+id);if(n)n.classList.add('on');
+  if(id==='contratista'){renderCardActivar();}
   if(id==='contratos'){
     const isSup=CU.r==='supervisor';
     document.getElementById('sup-av').style.display=isSup?'block':'none';
@@ -989,8 +1010,14 @@ function renderObras(){
   c.innerHTML=obras.map(o=>{
     const cls=o.aprobada?'ob-a':o.cp?'ob-p':'ob-r';
     const lb=o.aprobada?'✅ Activa':o.cp?'⏳ Pend. aprobación':'⚠️ Sin contrato';
-    return `<div class="obra-card" onclick="aObra(${o.id})">
-      <div class="oc-top"><div class="oc-nom">${o.nom}</div><div class="obadge ${cls}">${lb}</div></div>
+    const isA=CU&&CU.r==='admin';
+    return `<div class="obra-card" onclick="aObra(${o.id})" style="position:relative;">
+      <div class="oc-top"><div class="oc-nom">${o.nom}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="obadge ${cls}">${lb}</div>
+          ${isA?`<button class="btn rb sm" onclick="event.stopPropagation();eliminarObra(${o.id})" title="Eliminar obra" style="padding:2px 7px;font-size:10px;">🗑</button>`:''}
+        </div>
+      </div>
       <div class="oc-inf"><span>📋 ${o.cod}</span><span>📐 ${o.sup}m²</span><span>👥 ${o.cuad} pers.</span>
       <span>🧱 ${o.mods?.length||0} mód.</span>
       <span>${o.cp?'📋 Prop. ✓':'⚠️ Sin contrato prop.'}</span></div>
@@ -1164,7 +1191,7 @@ function gCont(){
   sbGuardarContrato(newCt);
   sbLog(CU.n,`Contratista registrado: ${nom}`);
   log(`Contratista "${nom}" registrado → Obra #${oid}`);
-  renderContratos();uStats();
+  renderContratos();renderCardActivar();uStats();
   document.getElementById('msg-ct').innerHTML=`<div class="al al-g">✅ <b>${nom}</b> guardado. El contrato pre-generado está en el área de Contratos para que Steffi lo revise.</div>`;
   lCont();
 }
@@ -1173,6 +1200,42 @@ function lCont(){
   document.getElementById('ct-o').value='';document.getElementById('o-prev').style.display='none';
   upD={ci:null,ag:null,lz:null};
   ['ci','ag','lz'].forEach(t=>{document.getElementById('b'+t).classList.remove('ok');document.getElementById('s-'+t).textContent='';});
+}
+function renderCardActivar(){
+  // Mostrar card solo para admin, con contratistas aptos
+  const card=document.getElementById('card-activar-proceso');
+  if(!card)return;
+  const isA=CU&&CU.r==='admin';
+  card.style.display=isA?'block':'none';
+  if(!isA)return;
+  const sel=document.getElementById('sel-activar-ct');
+  if(!sel)return;
+  const aptos=contratos.filter(c=>c.est==='apto_para_obra');
+  sel.innerHTML='<option value="">— Seleccionar contratista apto —</option>'+
+    aptos.map(c=>{const o=gO(c.oid);return `<option value="${c.id}">${c.nom} → ${o.nom||'?'}</option>`;}).join('');
+  if(!aptos.length) card.style.display='none';
+}
+function prevActivarCt(){
+  const id=parseInt(document.getElementById('sel-activar-ct').value);
+  const pv=document.getElementById('prev-activar');
+  if(!id){pv.innerHTML='';return;}
+  const ct=contratos.find(x=>x.id===id);
+  const o=ct?gO(ct.oid):{};
+  pv.innerHTML=ct?`<div class="al al-g">👷 ${ct.nom} · 📋 ${o.nom||'—'} · ${o.sup||'—'}m² · Firmado: ${ct.firm||'—'}</div>`:'';
+}
+function activarProceso(){
+  const id=parseInt(document.getElementById('sel-activar-ct').value);
+  if(!id){alert('⚠️ Seleccioná un contratista.');return;}
+  const ct=contratos.find(x=>x.id===id);if(!ct)return;
+  if(ct.est!=='apto_para_obra'){alert('⚠️ Solo contratistas APTOS pueden activarse.');return;}
+  const o=gO(ct.oid);
+  if(!confirm(`▶ ACTIVAR PROCESO DE CONTRATACIÓN\n\nContratista: ${ct.nom}\nObra: ${o.nom||'—'}\n\nEl contratista pasará a estado EN EJECUCIÓN.`))return;
+  ct.est='en_ejecucion';
+  sbGuardarContrato(ct);
+  sbLog(CU.n,`Proceso activado: ${ct.nom} → ${o.nom}`);
+  log(`▶ Proceso activado: ${ct.nom} → EN EJECUCIÓN`);
+  renderContratos();renderCardActivar();uStats();
+  alert(`✅ Proceso activado.\n${ct.nom} está EN EJECUCIÓN en obra ${o.nom||''}.`);
 }
 
 // ══════════════════════════════════════════════════
@@ -1225,7 +1288,10 @@ function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
         <span style="font-weight:700;font-size:13px;">${isSup?'Contratista #'+ct.id:ct.nom}</span>
         ${!isSup?`<span style="font-size:11px;color:var(--wd);margin-left:8px;">${ct.tel||''}</span>`:''}
       </div>
-      ${EL[ct.est]||''}
+      <div style="display:flex;align-items:center;gap:6px;">
+        ${EL[ct.est]||''}
+        ${isAdmin?`<button class="btn rb sm" onclick="eliminarContratista(${ct.id})" title="Eliminar contratista" style="padding:2px 7px;font-size:10px;">🗑</button>`:''}
+      </div>
     </div>
 
     ${!isSup?`
@@ -1268,7 +1334,7 @@ function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
           <button class="et-btn" onclick="guardarTexto(${ct.id})">💾 Guardar cambios</button>
           `:''}
           <button class="et-btn" onclick="imprimirContrato(${ct.id})">🖨️ Imprimir</button>
-          ${isAdmin?`<button class="et-btn" onclick="mEj(${ct.id})">▶ Marcar Ejecución</button>`:''}
+          <!-- botón mEj movido al panel contratista -->
         </div>
         <textarea class="contrato-editor" id="ed-${ct.id}" ${puedoEditar?'':'readonly'}
           onchange="ctTextos[${ct.id}]=this.value">${textoContrato}</textarea>
@@ -1469,6 +1535,27 @@ function rzOb(id){
   if(!confirm(`¿Rechazar "${o.nom}"?`))return;
   o.est='rechazada';log(`❌ Rechazada: ${o.nom}`);renderContratos();renderObras();
 }
+function eliminarObra(id){
+  if(CU.r!=='admin'){alert('⛔ Solo el administrador puede eliminar.');return;}
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  if(!confirm(`⚠️ ¿ELIMINAR la obra "${o.nom}"?\n\nEsto eliminará también los contratistas asignados.\nEsta acción no se puede deshacer.`))return;
+  obras=obras.filter(x=>x.id!==id);
+  contratos=contratos.filter(x=>x.oid!==id);
+  // Eliminar de Supabase
+  sb.from('rec_obras').delete().eq('id',id).then(()=>{});
+  sb.from('rec_contratos').delete().eq('obra_id',id).then(()=>{});
+  log(`🗑 Obra "${o.nom}" eliminada por ${CU.n}`);
+  renderObras();renderOS();renderContratos();uStats();
+}
+function eliminarContratista(ctId){
+  if(CU.r!=='admin'){alert('⛔ Solo el administrador puede eliminar.');return;}
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  if(!confirm(`⚠️ ¿ELIMINAR el contratista "${ct.nom}"?\n\nEsta acción no se puede deshacer.`))return;
+  contratos=contratos.filter(x=>x.id!==ctId);
+  sb.from('rec_contratos').delete().eq('id',ctId).then(()=>{});
+  log(`🗑 Contratista "${ct.nom}" eliminado por ${CU.n}`);
+  renderContratos();uStats();
+}
 
 // ══════════════════════════════════════════════════
 // SUPERVISIÓN — selector + paquete imprimible
@@ -1587,14 +1674,19 @@ function renderSupObra(oid){
 
 function imprimirSupervision(){
   const el=document.getElementById('sup-paquete');if(!el)return;
+  const tam=confirm('Tamano de impresion: OK=Oficio  Cancelar=Carta')?'oficio':'carta';
+  const pageSize=tam==='oficio'?'216mm 330mm':'216mm 279mm';
+  const fontSize=tam==='oficio'?'11pt':'10.5pt';
+  const margin=tam==='oficio'?'22mm 18mm 22mm 22mm':'18mm 16mm 18mm 18mm';
   const win=window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html><head><title>Supervisión GEAT</title>
   <style>
-    body{font-family:Arial,sans-serif;font-size:10pt;padding:30px;color:#000;}
-    h2{font-size:14pt;margin-bottom:6px;}
-    .sec{margin-bottom:20px;}
-    .sec h3{font-size:10pt;text-transform:uppercase;letter-spacing:1px;color:#555;border-bottom:1px solid #ccc;margin-bottom:8px;padding-bottom:3px;}
-    .dato{margin-bottom:3px;font-size:10pt;}
+    @page{size:${pageSize};margin:${margin};}
+    body{font-family:Arial,sans-serif;font-size:${fontSize};padding:0;color:#000;}
+    h2{font-size:13pt;margin-bottom:5px;}
+    .sec{margin-bottom:18px;}
+    .sec h3{font-size:10pt;text-transform:uppercase;letter-spacing:1px;color:#555;border-bottom:1px solid #ccc;margin-bottom:7px;padding-bottom:3px;}
+    .dato{margin-bottom:3px;font-size:${fontSize};}
     .dato b{color:#000;}
     .mod-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:6px;}
     .mod{border:1px solid #ccc;padding:3px 6px;font-size:9pt;}
