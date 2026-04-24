@@ -789,35 +789,8 @@ CONTRATISTA                              CONTRATANTE
 C.I. {CI_CONTRATISTA}                   José Miguel Gambarte Vidaurre
 `
 
-let obras=[
-  {id:1,nom:'CECILIA-MONTERO',cod:'CC-2026-001',sup:94.79,pre:75,map:'https://maps.google.com/maps?q=-17.783,63.182',
-   cuad:4,monto:7109.25,mn:10,est:'activa',fi:'2026-04-14',di:45,not:'Terreno esquinero, buen acceso',
-   cp:'Prop_CECILIA_FIRMADO.pdf',aprobada:true,mods:MDEF.slice(0,10),
-   contrato_firmado_contratista:null},
-  {id:2,nom:'PROYECTO-NUEVO',cod:'PN-2026-002',sup:56.67,pre:75,map:'https://maps.google.com/maps?q=-17.790,63.190',
-   cuad:4,monto:4250.25,mn:8,est:'activa',fi:'2026-04-20',di:35,not:'',
-   cp:'Prop_NUEVO_FIRMADO.pdf',aprobada:true,mods:MDEF.slice(0,8),
-   contrato_firmado_contratista:'Morales_CECILIA_FIRMADO.pdf'},
-  {id:3,nom:'REFORMA-CENTRO',cod:'RC-2026-003',sup:126,pre:75,map:'https://maps.google.com/maps?q=-17.780,63.175',
-   cuad:5,monto:9450,mn:12,est:'pendiente',fi:'2026-05-01',di:60,not:'Requiere permiso municipal',
-   cp:'Prop_REFORMA_FIRMADO.pdf',aprobada:false,mods:MDEF.slice(0,12),
-   contrato_firmado_contratista:null}
-];
-
-let contratos=[
-  {id:101,nom:'Juan Carlos Morales',tel:'71234567',dir:'Villa Primero de Mayo, Calle 5',ci_n:'14789456',
-   oid:2,ci:'Morales_CI.pdf',ag:'Morales_Agua.pdf',lz:'Morales_Luz.pdf',
-   cond:'Hormigón armado, ladrillo cerámico | 7am-5pm | Cuadrilla 8-10',
-   est:'apto_para_obra',firm:'Morales_FIRMADO.pdf',fec:'14 Abril 2026',
-   texto_contrato:null},
-  {id:102,nom:'Carlos Pérez López',tel:'76543210',dir:'Plan Tres Mil',ci_n:'98765432',
-   oid:1,ci:'Perez_CI.pdf',ag:'Perez_Agua.pdf',lz:'Perez_Luz.pdf',
-   cond:'Acero galvanizado, vidrio templado | 8am-4pm | Cuadrilla 6-8',
-   est:'generado',firm:null,fec:'14 Abril 2026',texto_contrato:null,est_contrato:'revisado'},
-  {id:103,nom:'Roberto Silva García',tel:'78901234',dir:'Barrio Nuevo Oriente',ci_n:null,
-   oid:3,ci:null,ag:null,lz:null,cond:null,
-   est:'busqueda',firm:null,fec:null,texto_contrato:null,est_contrato:'generado'}
-];
+let obras=[];
+let contratos=[];
 
 let logs_=[];
 
@@ -1185,7 +1158,9 @@ function pvO(){
 function gCont(){
   const nom=document.getElementById('ct-n').value.trim();
   const oid=parseInt(document.getElementById('ct-o').value);
+  const ci=document.getElementById('ct-ci').value.trim();
   if(!nom||!oid){alert('⚠️ Nombre y Obra son obligatorios.');return;}
+  if(ci&&contratos.find(c=>c.ci_n===ci&&c.oid===oid)){alert('⚠️ Ya existe un contratista con ese C.I. en esta obra.');return;}
   const o=obras.find(x=>x.id===oid);
   // Generar texto contrato pre-llenado desde modelo real
   const ctObj={nom,ci_n:document.getElementById('ct-ci').value.trim(),
@@ -1376,7 +1351,8 @@ function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div>
         <span style="font-weight:700;font-size:13px;">${isSup?'Contratista #'+ct.id:ct.nom}</span>
-        ${!isSup?`<span style="font-size:11px;color:var(--wd);margin-left:8px;">${ct.tel||''}</span>`:''}
+        ${!isSup&&ct.tel?`<span style="font-size:11px;color:var(--wd);margin-left:8px;">${ct.tel}</span>
+        <a href="https://wa.me/591${ct.tel}" target="_blank" style="margin-left:6px;background:#25d366;color:#000;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;text-decoration:none;white-space:nowrap;">💬 WA</a>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:6px;">
         ${EL[ct.est]||''}
@@ -1602,22 +1578,32 @@ function verContratoFirmado(cid){
   win.document.close();
 }
 
-function simDl(f,t){if(!f)alert(`⚠️ Sin ${t} cargado.`);else alert(`📥 Descargando: ${f}`);}
+async function simDl(f,t){
+  if(!f){alert(`⚠️ Sin ${t} cargado.`);return;}
+  try{
+    const {data,error}=await sb.storage.from('rec-archivos').createSignedUrl(f,120);
+    if(error)throw error;
+    const a=document.createElement('a');a.href=data.signedUrl;a.download=f.split('/').pop();a.click();
+  }catch(e){alert('⚠️ No se pudo descargar: '+e.message);}
+}
 
 // ══════════════════════════════════════════════════
 // PENDIENTES APROBACIÓN
 // ══════════════════════════════════════════════════
-function subirCP(oId,campo,inp){
+async function subirCP(oId,campo,inp){
   if(!inp.files[0])return;
   const o=obras.find(x=>x.id===oId);if(!o)return;
-  o[campo]=inp.files[0].name;
-  if(campo==='cp_esc'){
-    const r=new FileReader();r.onload=e=>{o.cp_esc_dataurl=e.target.result;};r.readAsDataURL(inp.files[0]);
-  }
-  sbGuardarObra(o);
-  log(`Contrato prop. (${campo==='cp'?'digital':'escaneado'}) subido en "${o.nom}": ${inp.files[0].name}`);
-  renderContratos();renderObras();renderPendAPrb();
-  alert(`✅ ${campo==='cp'?'Archivo digital':'Escaneo'} del contrato con propietario cargado.\n${inp.files[0].name}`);
+  const archivo=inp.files[0];
+  const path=`obras/${oId}/${campo}_${Date.now()}_${archivo.name}`;
+  try{
+    const {error}=await sb.storage.from('rec-archivos').upload(path,archivo,{upsert:true});
+    if(error)throw error;
+    o[campo]=path;
+    sbGuardarObra(o);
+    log(`Contrato prop. (${campo==='cp'?'digital':'escaneado'}) subido en "${o.nom}": ${archivo.name}`);
+    renderContratos();renderObras();renderPendAPrb();
+    alert(`✅ ${campo==='cp'?'Archivo digital':'Escaneo'} cargado correctamente.\n${archivo.name}`);
+  }catch(e){alert('❌ Error al subir: '+e.message);}
 }
 
 function renderPendAPrb(){
