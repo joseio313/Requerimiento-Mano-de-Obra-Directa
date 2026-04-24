@@ -570,17 +570,23 @@ async function sbLog(usuario, accion) {
       <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — acceso de lectura a condiciones de campo.</div>
 
       <div class="kpi" id="kpi-sect">
-        <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">3</div><div class="kl">Obras</div></div>
-        <div class="kc"><div class="kv" id="k-apt" style="color:var(--Gc);">1</div><div class="kl">Aptos</div></div>
-        <div class="kc"><div class="kv" id="k-ej" style="color:var(--Zc);">0</div><div class="kl">En Ejecución</div></div>
-        <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">$20,809</div><div class="kl">Monto Total</div></div>
+        <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
+        <div class="kc"><div class="kv" id="k-apt" style="color:var(--Gc);">—</div><div class="kl">Aptos</div></div>
+        <div class="kc"><div class="kv" id="k-ej" style="color:var(--Zc);">—</div><div class="kl">En Ejecución</div></div>
+        <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto Total</div></div>
       </div>
 
       <!-- Pendientes aprobación -->
       <div id="pend-aprob" style="min-height:0;"></div>
 
       <!-- CONTRATOS POR OBRA -->
-      <div id="contratos-por-obra" style="min-height:0;"></div>
+      <div id="contratos-por-obra" style="min-height:0;">
+        <div style="text-align:center;padding:40px 20px;color:var(--ws);">
+          <div style="font-size:32px;margin-bottom:12px;">📋</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Sin obras registradas</div>
+          <div style="font-size:11px;">Vaya a <b style="color:var(--am);">📝 Obras</b> para cargar la primera obra.</div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
@@ -1295,6 +1301,14 @@ function renderContratos(){
 
   // Agrupar contratos por obra
   const obrasSorted=[...obras].sort((a,b)=>b.aprobada-a.aprobada);
+  if(!obrasSorted.length){
+    c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--ws);">
+      <div style="font-size:32px;margin-bottom:12px;">📋</div>
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Sin obras registradas</div>
+      <div style="font-size:11px;">Vaya a <b style="color:var(--am);">📝 Obras</b> para cargar la primera obra.</div>
+    </div>`;
+    return;
+  }
   c.innerHTML=obrasSorted.map(o=>{
     const cts=contratos.filter(ct=>ct.oid===o.id);
     const ct=cts[0]||null; // principal contratista
