@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEAT - Reclutamiento Mano de Obra</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #4f46e5; --success: #10b981; --gray-100: #f3f4f6; --gray-200: #e5e7eb; --gray-700: #374151; --gray-900: #111827; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-100); color: var(--gray-900); }
+        header { background: linear-gradient(135deg, var(--primary), #4338ca); color: white; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+        .nav-tabs { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .nav-btn { padding: 0.75rem 1.5rem; border: none; background: white; color: var(--gray-700); cursor: pointer; border-radius: 8px; font-weight: 600; transition: all 0.3s; }
+        .nav-btn.active { background: var(--primary); color: white; }
+        .section { display: none; } .section.active { display: block; }
+        .form-container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: 600; margin-bottom: 0.5rem; color: var(--gray-700); }
+        input, textarea, select { padding: 0.75rem; border: 1px solid var(--gray-200); border-radius: 8px; font-family: inherit; font-size: 1rem; }
+        input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: #4338ca; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-block { width: 100%; }
+        .message { padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
+        .message.show { display: block; }
+        .message.success { background: #d1fae5; color: #065f46; }
+        .message.error { background: #fee2e2; color: #991b1b; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .nav-tabs { flex-direction: column; } .nav-btn { width: 100%; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🏗️ GEAT - Reclutamiento Mano de Obra Directa</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <div id="mensaje" class="message"></div>
+
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="cambiarTab('fatima')">📝 Fátima - Cargar Obra</button>
+            <button class="nav-btn" onclick="cambiarTab('josemiguel')">👥 Josemiguel - Datos Contratista</button>
+            <button class="nav-btn" onclick="cambiarTab('consulta')">📄 Consulta Contrato</button>
+        </div>
+
+        <!-- PANEL FÁTIMA -->
+        <section id="fatima" class="section active">
+            <div class="form-container">
+                <h2 style="margin-bottom: 2rem; color: var(--primary);">Cargar Nueva Obra</h2>
+                <form id="formObra" onsubmit="guardarObra(event)">
+                    <h3 style="margin: 1.5rem 0 1rem 0; font-size: 1.1rem;">Datos de la Obra</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre de la Obra *</label>
+                            <input type="text" id="nombreObra" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Código de Obra</label>
+                            <input type="text" id="codigoObra">
+                        </div>
+                        <div class="form-group">
+                            <label>Cantidad m² *</label>
+                            <input type="number" id="superficie" required step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Precio por m² (USD) *</label>
+                            <input type="number" id="precio" required step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación / Google Maps</label>
+                            <input type="url" id="ubicacion">
+                        </div>
+                        <div class="form-group">
+                            <label>Días de Ejecución</label>
+                            <input type="number" id="tiempoEjecucion" placeholder="Ej: 90" oninput="calcularFechaConclusion()">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Inicio *</label>
+                            <input type="date" id="fechaInicio" required oninput="calcularFechaConclusion()">
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Conclusión (auto)</label>
+                            <input type="date" id="fechaConclusion" readonly style="background:#f3f4f6;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem;">
+                        ✅ Guardar Obra
+                    </button>
+                </form>
+            </div>
+
+            <div class="form-container" style="margin-top: 1.5rem;">
+                <h3 style="margin-bottom: 1rem; color: var(--primary);">📋 Obras Registradas</h3>
+                <div id="listaObras"><p style="color:#6b7280;">Cargando...</p></div>
+            </div>
+        </section>
+
+        <!-- PANEL JOSEMIGUEL -->
+        <section id="josemiguel" class="section">
+            <div class="form-container">
+                <h2 style="margin-bottom: 2rem; color: var(--primary);">Datos del Contratista</h2>
+                <form id="formContratista" onsubmit="guardarContratista(event)">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label>Selecciona Obra *</label>
+                        <select id="obraSelect" required onchange="onObraSeleccionada(this.value)">
+                            <option value="">-- Selecciona --</option>
+                        </select>
+                    </div>
+
+                    <div id="infoObra" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:0.75rem;">
+                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Superficie</p><p id="infoSuperficie" style="font-weight:700;color:var(--primary);"></p></div>
+                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Monto Total (USD)</p><p id="infoMonto" style="font-weight:700;color:#059669;font-size:1.1rem;"></p></div>
+                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Fecha Inicio</p><p id="infoFechaInicio" style="font-weight:600;"></p></div>
+                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Fecha Conclusión</p><p id="infoFechaConclusion" style="font-weight:600;"></p></div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 1.5rem 0 1rem 0;">Datos Personales Contratista</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nombre *</label>
+                            <input type="text" id="nombreContratista" required>
+                        </div>
+                        <div class="form-group">
+                            <label>C.I. *</label>
+                            <input type="text" id="ciContratista" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Celular *</label>
+                            <input type="tel" id="telefonoContratista" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Número de Trabajadores *</label>
+                            <input type="number" id="numTrabajadores" required min="8">
+                        </div>
+                    </div>
+
+                    <h3 style="margin: 1.5rem 0 1rem 0;">Documentos</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Google Maps (Domicilio)</label>
+                            <input type="url" id="mapsDomicilio">
+                        </div>
+                        <div class="form-group">
+                            <label>Foto C.I.</label>
+                            <input type="file" id="fotoCi" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>Foto Aviso Agua/Luz</label>
+                            <input type="file" id="fotoRecibo" accept="image/*">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block" style="margin-top: 2rem;">
+                        ✅ Generar Contrato
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- PANEL CONSULTA -->
+        <section id="consulta" class="section">
+            <div class="form-container">
+                <h2 style="margin-bottom: 2rem; color: var(--primary);">📄 Contratos</h2>
+                
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label>Selecciona Contrato</label>
+                    <select id="contratoSelect" onchange="cargarContrato()">
+                        <option value="">-- Selecciona --</option>
+                    </select>
+                </div>
+
+                <div id="vistaContrato" style="display: none;">
+                    <div style="background: #f0f9ff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                        <div id="previewContrato" style="background: white; padding: 2rem; border-radius: 8px; max-height: 500px; overflow-y: auto; border: 1px solid var(--gray-200); font-size: 0.9rem; line-height: 1.6;"></div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                        <button class="btn btn-primary" onclick="descargarPDF()">📥 Descargar PDF</button>
+                    </div>
+
+                    <h3 style="margin-bottom: 1rem;">Contrato Firmado</h3>
+                    <div class="form-group">
+                        <input type="file" id="contratoFirmado" accept=".pdf">
+                    </div>
+                    <button class="btn btn-success btn-block" onclick="subirFirmado()">✅ Subir Firmado</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://jsacnpgpnvoslrpurfxc.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_7WkrAMUvM7uJdPC3_m5-ew_VkV9drdJ';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let obras = [];
+        let contratos = [];
+        let obrasData = [];
+
+        function calcularFechaConclusion() {
+            const inicio = document.getElementById('fechaInicio').value;
+            const dias = parseInt(document.getElementById('tiempoEjecucion').value);
+            if (inicio && dias) {
+                const fecha = new Date(inicio);
+                fecha.setDate(fecha.getDate() + dias);
+                document.getElementById('fechaConclusion').value = fecha.toISOString().split('T')[0];
+            }
+        }
+
+        function cambiarTab(tab) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'josemiguel') cargarObrasSelect();
+            if (tab === 'consulta') cargarContratosSelect();
+        }
+
+        async function guardarObra(e) {
+            e.preventDefault();
+            const obra = {
+                nombreObra: document.getElementById('nombreObra').value,
+                codigoObra: document.getElementById('codigoObra').value,
+                superficie: parseFloat(document.getElementById('superficie').value),
+                precio: parseFloat(document.getElementById('precio').value),
+                ubicacion: document.getElementById('ubicacion').value,
+                tiempoEjecucion: document.getElementById('tiempoEjecucion').value,
+                fechaInicio: document.getElementById('fechaInicio').value,
+                estado: 'activa'
+            };
+
+            try {
+                const { data, error } = await supabase.from('obras').insert([obra]);
+                if (error) throw error;
+                mostrarMensaje('✅ Obra guardada', 'success');
+                document.getElementById('formObra').reset();
+                obras.push(obra);
+            } catch (err) {
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
+            }
+        }
+
+        async function cargarObrasSelect() {
+            const select = document.getElementById('obraSelect');
+            select.innerHTML = '<option value="">-- Selecciona --</option>';
+            try {
+                const { data } = await supabase.from('obras').select('*');
+                obrasData = data || [];
+                data?.forEach(obra => {
+                    const option = document.createElement('option');
+                    option.value = obra.id;
+                    option.textContent = obra.nombreObra;
+                    select.appendChild(option);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function onObraSeleccionada(obraId) {
+            const obra = obrasData.find(o => String(o.id) === String(obraId));
+            const infoDiv = document.getElementById('infoObra');
+            if (!obra) { infoDiv.style.display = 'none'; return; }
+            const monto = (obra.superficie * obra.precio).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+            document.getElementById('infoSuperficie').textContent = obra.superficie + ' m²';
+            document.getElementById('infoMonto').textContent = '$ ' + monto;
+            document.getElementById('infoFechaInicio').textContent = obra.fechaInicio || '—';
+            document.getElementById('infoFechaConclusion').textContent = obra.fechaConclusion || (obra.tiempoEjecucion ? obra.tiempoEjecucion + ' días' : '—');
+            infoDiv.style.display = 'block';
+        }
+
+        async function cargarListaObras() {
+            const div = document.getElementById('listaObras');
+            try {
+                const { data } = await supabase.from('obras').select('*');
+                if (!data || data.length === 0) { div.innerHTML = '<p style="color:#6b7280;">No hay obras registradas.</p>'; return; }
+                div.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+                    <thead><tr style="background:#f3f4f6;">
+                        <th style="padding:0.5rem;text-align:left;">Obra</th>
+                        <th style="padding:0.5rem;text-align:left;">Código</th>
+                        <th style="padding:0.5rem;text-align:right;">m²</th>
+                        <th style="padding:0.5rem;text-align:right;">Monto USD</th>
+                        <th style="padding:0.5rem;text-align:left;">Inicio</th>
+                        <th style="padding:0.5rem;text-align:left;">Conclusión</th>
+                    </tr></thead>
+                    <tbody>${data.map((o,i) => `<tr style="background:${i%2===0?'white':'#f9fafb'};">
+                        <td style="padding:0.5rem;font-weight:600;">${o.nombreObra}</td>
+                        <td style="padding:0.5rem;color:#6b7280;">${o.codigoObra||'—'}</td>
+                        <td style="padding:0.5rem;text-align:right;">${o.superficie}</td>
+                        <td style="padding:0.5rem;text-align:right;font-weight:700;color:#059669;">$ ${(o.superficie*o.precio).toLocaleString('en-US',{minimumFractionDigits:2})}</td>
+                        <td style="padding:0.5rem;">${o.fechaInicio||'—'}</td>
+                        <td style="padding:0.5rem;">${o.fechaConclusion||'—'}</td>
+                    </tr>`).join('')}</tbody>
+                </table>`;
+            } catch (err) { div.innerHTML = '<p style="color:#dc2626;">Error al cargar obras.</p>'; }
+        }
+
+        async function guardarContratista(e) {
+            e.preventDefault();
+
+            const obraId = document.getElementById('obraSelect').value;
+            const obraSeleccionada = obrasData.find(o => String(o.id) === String(obraId));
+
+            const contrato = {
+                nombreContratista: document.getElementById('nombreContratista').value,
+                ciContratista: document.getElementById('ciContratista').value,
+                telefonoContratista: document.getElementById('telefonoContratista').value,
+                numTrabajadores: document.getElementById('numTrabajadores').value,
+                mapsDomicilio: document.getElementById('mapsDomicilio').value,
+                estado: 'generado',
+                obraId: obraId,
+                nombreObra: obraSeleccionada?.nombreObra || '',
+                superficieObra: obraSeleccionada?.superficie || 0,
+                montoContrato: obraSeleccionada ? (obraSeleccionada.superficie * obraSeleccionada.precio) : 0,
+                fechaInicioObra: obraSeleccionada?.fechaInicio || '',
+                fechaConclusionObra: obraSeleccionada?.fechaConclusion || ''
+            };
+
+            try {
+                const { data, error } = await supabase.from('contratos').insert([contrato]);
+                if (error) throw error;
+                
+                contratos.push(contrato);
+                mostrarMensaje('✅ Contrato generado', 'success');
+                generarContratoHTML(contrato);
+                document.getElementById('formContratista').reset();
+            } catch (err) {
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
+            }
+        }
+
+        function generarContratoHTML(contrato) {
+            const monto = contrato.montoContrato ? '$ ' + contrato.montoContrato.toLocaleString('en-US', {minimumFractionDigits:2}) : '—';
+            const html = `
+                <div style="text-align:center;margin-bottom:1.5rem;">
+                    <h2 style="font-size:1.1rem;letter-spacing:2px;">CONTRATO DE PRESTACIÓN DE SERVICIOS</h2>
+                    <p style="color:#6b7280;font-size:0.85rem;">GEAT — Reclutamiento Mano de Obra Directa</p>
+                </div>
+                <hr style="margin-bottom:1.5rem;">
+                <h4 style="color:#4f46e5;margin-bottom:0.75rem;">DATOS DE LA OBRA</h4>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem;font-size:0.88rem;">
+                    <tr style="background:#f3f4f6;"><td style="padding:0.5rem 0.75rem;font-weight:600;">Obra</td><td style="padding:0.5rem 0.75rem;">${contrato.nombreObra||'—'}</td></tr>
+                    <tr><td style="padding:0.5rem 0.75rem;font-weight:600;">Superficie</td><td style="padding:0.5rem 0.75rem;">${contrato.superficieObra ? contrato.superficieObra+' m²' : '—'}</td></tr>
+                    <tr style="background:#f3f4f6;"><td style="padding:0.5rem 0.75rem;font-weight:600;">Monto Total</td><td style="padding:0.5rem 0.75rem;font-weight:700;color:#059669;">${monto}</td></tr>
+                    <tr><td style="padding:0.5rem 0.75rem;font-weight:600;">Fecha Inicio</td><td style="padding:0.5rem 0.75rem;">${contrato.fechaInicioObra||'—'}</td></tr>
+                    <tr style="background:#f3f4f6;"><td style="padding:0.5rem 0.75rem;font-weight:600;">Fecha Conclusión</td><td style="padding:0.5rem 0.75rem;">${contrato.fechaConclusionObra||'—'}</td></tr>
+                </table>
+                <h4 style="color:#4f46e5;margin-bottom:0.75rem;">DATOS DEL CONTRATISTA</h4>
+                <table style="width:100%;border-collapse:collapse;margin-bottom:1.5rem;font-size:0.88rem;">
+                    <tr style="background:#f3f4f6;"><td style="padding:0.5rem 0.75rem;font-weight:600;">Nombre</td><td style="padding:0.5rem 0.75rem;">${contrato.nombreContratista}</td></tr>
+                    <tr><td style="padding:0.5rem 0.75rem;font-weight:600;">C.I.</td><td style="padding:0.5rem 0.75rem;">${contrato.ciContratista}</td></tr>
+                    <tr style="background:#f3f4f6;"><td style="padding:0.5rem 0.75rem;font-weight:600;">Celular</td><td style="padding:0.5rem 0.75rem;">${contrato.telefonoContratista}</td></tr>
+                    <tr><td style="padding:0.5rem 0.75rem;font-weight:600;">N° Trabajadores</td><td style="padding:0.5rem 0.75rem;">${contrato.numTrabajadores}</td></tr>
+                </table>
+                <p style="font-size:0.85rem;margin-bottom:1rem;">El CONTRATISTA se compromete a ejecutar los trabajos de la obra señalada conforme a las especificaciones técnicas y planos provistos por GEAT.</p>
+                <p style="font-size:0.85rem;margin-bottom:2rem;"><strong>Condiciones:</strong> Garantía 1 año | Retención 5% | Pagos Quincenales</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;text-align:center;">
+                    <div><p style="border-top:1px solid #374151;padding-top:0.5rem;">${contrato.nombreContratista}</p><p style="font-size:0.75rem;color:#6b7280;">CONTRATISTA</p></div>
+                    <div><p style="border-top:1px solid #374151;padding-top:0.5rem;">JOSÉ MIGUEL GAMBARTE</p><p style="font-size:0.75rem;color:#6b7280;">CONTRATANTE — GEAT</p></div>
+                </div>
+                <p style="text-align:right;margin-top:1.5rem;font-size:0.8rem;color:#6b7280;">Fecha: ${new Date().toLocaleDateString('es-BO')}</p>
+            `;
+            
+            document.getElementById('vistaContrato').style.display = 'block';
+            document.getElementById('previewContrato').innerHTML = html;
+            
+            guardarContratoHTML(contrato, html);
+        }
+
+        async function guardarContratoHTML(contrato, html) {
+            try {
+                await supabase.from('contratos').update({ html_contrato: html }).eq('ciContratista', contrato.ciContratista);
+            } catch (err) { console.error(err); }
+        }
+
+        async function cargarContratosSelect() {
+            const select = document.getElementById('contratoSelect');
+            select.innerHTML = '<option value="">-- Selecciona --</option>';
+            try {
+                const { data } = await supabase.from('contratos').select('*');
+                data?.forEach(contrato => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify(contrato);
+                    option.textContent = `${contrato.nombreContratista} - ${contrato.ciContratista}`;
+                    select.appendChild(option);
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function cargarContrato() {
+            const valor = document.getElementById('contratoSelect').value;
+            if (valor) {
+                const contrato = JSON.parse(valor);
+                document.getElementById('vistaContrato').style.display = 'block';
+                document.getElementById('previewContrato').innerHTML = contrato.html_contrato || 'Sin contrato';
+            }
+        }
+
+        function descargarPDF() {
+            const html = document.getElementById('previewContrato').innerHTML;
+            const element = document.createElement('div');
+            element.innerHTML = html;
+            const opt = { margin: 10, filename: 'CONTRATO_GEAT.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' } };
+            window.html2pdf().set(opt).from(element).save();
+            mostrarMensaje('✅ Descargando PDF', 'success');
+        }
+
+        async function subirFirmado() {
+            const archivo = document.getElementById('contratoFirmado').files[0];
+            if (!archivo) {
+                mostrarMensaje('❌ Selecciona PDF', 'error');
+                return;
+            }
+            try {
+                const { data, error } = await supabase.storage.from('contratos').upload(`firmado_${Date.now()}.pdf`, archivo);
+                if (error) throw error;
+                mostrarMensaje('✅ Contrato firmado subido', 'success');
+                document.getElementById('contratoFirmado').value = '';
+            } catch (err) {
+                mostrarMensaje('❌ Error: ' + err.message, 'error');
+            }
+        }
+
+        function mostrarMensaje(texto, tipo) {
+            const msg = document.getElementById('mensaje');
+            msg.textContent = texto;
+            msg.className = `message show ${tipo}`;
+            setTimeout(() => msg.classList.remove('show'), 3000);
+        }
+
+        window.addEventListener('load', () => {
+            cargarObrasSelect();
+            cargarListaObras();
+        });
+    </script>
+</body>
+</html>
