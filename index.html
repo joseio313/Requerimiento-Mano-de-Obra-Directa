@@ -1323,38 +1323,44 @@ function renderContratos(){
         <span class="occ-arrow">▼</span>
       </div>
       <div class="occ-body">
-        <!-- Contrato con Propietario -->
+        <!-- Contratos con Propietario -->
         <div class="cp-upload">
-          <div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:6px;">📄 Contrato Digital (PDF/DOC)</div>
+          <!-- Espacio 1: Archivo digital -->
+          <div style="background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:12px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📄 Contrato con Propietario — Archivo</div>
             ${o.cp
-              ?`<div class="al al-g" style="margin:0;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                  <span>✅ ${o.cp}</span>
-                  ${isAdmin?`<label style="cursor:pointer;color:var(--Ac);font-size:10px;white-space:nowrap;">✎ Reemplazar<input type="file" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none"></label>`:``}
+              ?`<div style="font-size:11px;color:var(--Gc);margin-bottom:8px;word-break:break-all;">✅ ${o.cp}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn g2b sm" onclick="simDl('${o.cp}','Contrato Propietario')">⬇ Descargar</button>
+                  ${isAdmin?`<label class="btn o sm" style="cursor:pointer;">✎ Reemplazar<input type="file" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none"></label>`:``}
                 </div>`
-              :isAdmin?`<div class="ua" onclick="document.getElementById('cpa-${o.id}').click()" style="padding:12px;text-align:center;">
-                  <input type="file" id="cpa-${o.id}" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none">
-                  <div style="font-size:20px;margin-bottom:4px;">📋</div>
-                  <div style="font-size:10px;font-weight:700;">Subir archivo digital</div>
-                  <div style="font-size:9px;color:var(--ws);">PDF, DOC</div>
-                </div>`
-              :`<div style="font-size:11px;color:var(--ws);padding:8px;">⚠️ Sin archivo digital</div>`
+              :isAdmin
+                ?`<div class="ua" onclick="document.getElementById('cpa-${o.id}').click()" style="padding:14px;text-align:center;">
+                    <input type="file" id="cpa-${o.id}" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none">
+                    <div style="font-size:22px;margin-bottom:5px;">📋</div>
+                    <div style="font-size:10px;font-weight:700;">Subir archivo</div>
+                    <div style="font-size:9px;color:var(--ws);">PDF, DOC, DOCX</div>
+                  </div>`
+                :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin archivo cargado</div>`
             }
           </div>
-          <div>
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:6px;">📸 Contrato Escaneado (foto)</div>
+          <!-- Espacio 2: Escaneado / foto -->
+          <div style="background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:12px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📸 Contrato con Propietario — Escaneado</div>
             ${o.cp_esc
-              ?`<div class="al al-g" style="margin:0;font-size:11px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                  <span>✅ ${o.cp_esc}</span>
-                  ${isAdmin?`<label style="cursor:pointer;color:var(--Ac);font-size:10px;white-space:nowrap;">✎ Reemplazar<input type="file" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none"></label>`:``}
+              ?`<div style="font-size:11px;color:var(--Gc);margin-bottom:8px;word-break:break-all;">✅ ${o.cp_esc}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn g2b sm" onclick="simDl('${o.cp_esc}','Contrato Escaneado')">⬇ Descargar</button>
+                  ${isAdmin?`<label class="btn o sm" style="cursor:pointer;">✎ Reemplazar<input type="file" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none"></label>`:``}
                 </div>`
-              :isAdmin?`<div class="ua" onclick="document.getElementById('cpe-${o.id}').click()" style="padding:12px;text-align:center;">
-                  <input type="file" id="cpe-${o.id}" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none">
-                  <div style="font-size:20px;margin-bottom:4px;">📸</div>
-                  <div style="font-size:10px;font-weight:700;">Subir foto / escaneo</div>
-                  <div style="font-size:9px;color:var(--ws);">JPG, PNG</div>
-                </div>`
-              :`<div style="font-size:11px;color:var(--ws);padding:8px;">⚠️ Sin escaneo</div>`
+              :isAdmin
+                ?`<div class="ua" onclick="document.getElementById('cpe-${o.id}').click()" style="padding:14px;text-align:center;">
+                    <input type="file" id="cpe-${o.id}" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none">
+                    <div style="font-size:22px;margin-bottom:5px;">📸</div>
+                    <div style="font-size:10px;font-weight:700;">Subir foto / escaneo</div>
+                    <div style="font-size:9px;color:var(--ws);">JPG, PNG</div>
+                  </div>`
+                :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin escaneo cargado</div>`
             }
           </div>
         </div>
