@@ -887,6 +887,7 @@ function tryLogin(){
   buildNav(); initMods(); renderOS(); renderObras(); renderContratos(); renderSup(); renderAdmin();
   goPanel(panelInicial());
   log(`Sesión iniciada: ${u.n}`);
+  sbCargarDatos();
 }
 function logout(){
   CU=null;pinBuf='';
