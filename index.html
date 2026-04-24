@@ -1258,6 +1258,40 @@ function activarProceso(){
   document.body.appendChild(div);
 }
 
+function activarProcesoDirecto(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const o=gO(ct.oid);
+  if(!o.aprobada){alert('⚠️ La obra "'+o.nom+'" aún no fue aprobada. Aprobá la obra primero en el panel de pendientes.');return;}
+  if(!confirm('¿ACTIVAR BÚSQUEDA para '+ct.nom+'?\nObra: '+(o.nom||'?')+'\n\nEl estado cambiará a EN BÚSQUEDA.'))return;
+  ct.est='busqueda';ct.busqueda_activa=true;
+  ct.busqueda_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  sbGuardarContrato(ct);
+  sbLog(CU.n,'Búsqueda activada: '+ct.nom+' → '+o.nom);
+  log('🔍 Búsqueda activada: '+ct.nom);
+  renderContratos();renderCardActivar();uStats();
+  const msg=encodeURIComponent(
+    '🏗️ *GEAT — BÚSQUEDA DE CONTRATISTA*\n\n'+
+    '📋 Obra: *'+o.nom+'* ('+o.cod+')\n'+
+    '📐 Superficie: '+o.sup+' m²\n'+
+    '💰 Monto: $'+(o.monto||0).toFixed(2)+' USD\n'+
+    '📅 Inicio: '+(o.fi||'—')+' · '+(o.di||'—')+' días\n\n'+
+    '👷 Contratista: '+ct.nom+'\n'+
+    '📞 '+ct.tel+'\n\n'+
+    '_Activado: '+ct.busqueda_fecha+'_'
+  );
+  const div=document.createElement('div');
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  div.innerHTML=`<div style="background:var(--p1);border:1px solid var(--am);border-top:3px solid var(--am);border-radius:8px;padding:24px;max-width:460px;width:100%;">
+    <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--am);margin-bottom:14px;">🔍 PROCESO DE BÚSQUEDA ACTIVADO</div>
+    <div class="al al-g" style="margin-bottom:12px;font-size:12px;"><b>${ct.nom}</b> → <b>${o.nom}</b><br><span style="font-size:10px;">Estado: 🟣 EN BÚSQUEDA · ${ct.busqueda_fecha}</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="https://wa.me/?text=${msg}" target="_blank" class="btn y" style="text-decoration:none;">💬 Compartir por WhatsApp</a>
+      <button class="btn o" onclick="this.closest('div[style*=fixed]').remove()">Cerrar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+}
+
 function mEj(id){
   const ct=contratos.find(x=>x.id===id);if(!ct)return;
   if(ct.est!=='apto_para_obra'&&ct.est!=='busqueda'){alert('⚠️ Solo APTOS o EN BÚSQUEDA pueden confirmar inicio.');return;}
@@ -1387,6 +1421,11 @@ function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
       <div style="background:var(--p2);border-radius:3px;padding:9px 12px;font-size:11px;line-height:1.7;">${ct.cond}</div></div>`:''}
     ${o.map?`<a href="${o.map}" target="_blank" class="btn sm o" style="text-decoration:none;display:inline-flex;margin-bottom:12px;">📍 Ver Maps</a>`:''}
 
+    ${isAdmin&&ct.est==='apto_para_obra'?`
+    <div class="al al-g" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+      <span>🟢 Apto — listo para activar búsqueda</span>
+      <button class="btn y sm" onclick="activarProcesoDirecto(${ct.id})">🔍 ACTIVAR BÚSQUEDA</button>
+    </div>`:''}
     ${(isAdmin||isAbog)&&ct.est==='busqueda'?`
     <div class="al al-p" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
       <span>🟣 En búsqueda activa${ct.busqueda_fecha?' · '+ct.busqueda_fecha:''}</span>
@@ -1553,21 +1592,22 @@ function imprimirContrato(ctId){
 
 function togOCC(id){document.getElementById('occ-'+id)?.classList.toggle('open');}
 
-function sFirm(cid,inp){
+async function sFirm(cid,inp){
   if(!inp.files[0])return;
   const ct=contratos.find(x=>x.id===cid);if(!ct)return;
-  ct.firm=inp.files[0].name;ct.est='apto_para_obra';
-  ct.fec=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  // Guardar preview del archivo
-  const reader=new FileReader();
-  reader.onload=e=>{ct.firm_dataurl=e.target.result;};
-  reader.readAsDataURL(inp.files[0]);
-  sbGuardarContrato(ct);
-  sbLog(CU.n,`Contrato firmado subido #${cid}`);
-  log(`Firmado #${cid}: ${ct.firm} → APTO`);
-  alert(`✅ CONTRATISTA APTO PARA INICIAR OBRA
-${ct.firm}`);
-  renderContratos();uStats();
+  const archivo=inp.files[0];
+  const path=`contratos/${cid}/firmado_${Date.now()}_${archivo.name}`;
+  try{
+    const {error}=await sb.storage.from('rec-archivos').upload(path,archivo,{upsert:true});
+    if(error)throw error;
+    ct.firm=path;ct.est='apto_para_obra';
+    ct.fec=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+    sbGuardarContrato(ct);
+    sbLog(CU.n,`Contrato firmado subido #${cid}`);
+    log(`Firmado #${cid}: ${archivo.name} → APTO`);
+    alert(`✅ CONTRATISTA APTO PARA INICIAR OBRA\n${archivo.name}`);
+    renderContratos();renderCardActivar();uStats();
+  }catch(e){alert('❌ Error al subir firmado: '+e.message);}
 }
 
 function verContratoFirmado(cid){
