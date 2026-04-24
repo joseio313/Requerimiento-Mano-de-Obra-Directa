@@ -55,6 +55,15 @@
         tr:hover td { background: var(--p2); }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
         .badge-green { background: rgba(16,185,129,.15); color: #10b981; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 999; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: var(--p1); border: 1px solid var(--bd); border-top: 3px solid var(--primary); border-radius: 8px; padding: 1.5rem; max-width: 480px; width: 90%; }
+        .modal h3 { font-size: 12px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--primary); margin-bottom: 1rem; }
+        .modal-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--p3); font-size: 12px; }
+        .modal-row:last-of-type { border-bottom: none; }
+        .modal-row span:first-child { color: var(--ws); }
+        .modal-row span:last-child { color: var(--w); font-weight: 600; }
+        .modal-btns { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
         @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .nav-tabs { flex-direction: column; } }
     </style>
 </head>
@@ -139,12 +148,14 @@
                         </select>
                     </div>
 
-                    <div id="infoObra" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:1rem; margin-bottom:1.5rem;">
-                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:0.75rem;">
-                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Superficie</p><p id="infoSuperficie" style="font-weight:700;color:var(--primary);"></p></div>
-                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Monto Total (USD)</p><p id="infoMonto" style="font-weight:700;color:#059669;font-size:1.1rem;"></p></div>
-                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Fecha Inicio</p><p id="infoFechaInicio" style="font-weight:600;"></p></div>
-                            <div><p style="font-size:0.75rem;color:#6b7280;margin-bottom:2px;">Fecha Conclusión</p><p id="infoFechaConclusion" style="font-weight:600;"></p></div>
+                    <div id="infoObra" class="info-box" style="display:none;">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;">
+                            <div><p style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Superficie</p><p id="infoSuperficie" style="font-weight:700;color:var(--primary);font-size:15px;"></p></div>
+                            <div><p style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Monto Total USD</p><p id="infoMonto" style="font-weight:700;color:#10b981;font-size:15px;"></p></div>
+                            <div><p style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Módulos Est.</p><p id="infoModulos" style="font-weight:700;color:var(--wd);font-size:15px;"></p></div>
+                            <div><p style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Cuadrilla Min.</p><p id="infoCuadrilla" style="font-weight:700;color:var(--wd);font-size:15px;"></p></div>
+                            <div><p style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Fecha Inicio</p><p id="infoFechaInicio" style="font-weight:600;color:var(--wd);"></p></div>
+                            <div><p style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px;">Fecha Conclusión</p><p id="infoFechaConclusion" style="font-weight:600;color:var(--wd);"></p></div>
                         </div>
                     </div>
 
@@ -221,6 +232,18 @@
             </div>
         </section>
 
+        <!-- MODAL CONFIRMACIÓN -->
+        <div class="modal-overlay" id="modalOverlay">
+            <div class="modal">
+                <h3 id="modalTitulo">Confirmar</h3>
+                <div id="modalCuerpo"></div>
+                <div class="modal-btns">
+                    <button class="btn btn-primary" id="modalConfirmar" style="flex:1;">✅ Confirmar</button>
+                    <button class="btn" style="flex:1;border:1px solid var(--bd);color:var(--ws);" onclick="cerrarModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- PANEL RESUMEN -->
         <section id="resumen" class="section">
             <div class="form-container">
@@ -259,6 +282,15 @@
             if (tab === 'resumen') cargarResumen();
         }
 
+        let pendienteObra = null;
+        let pendienteContrato = null;
+
+        function cerrarModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            pendienteObra = null;
+            pendienteContrato = null;
+        }
+
         async function guardarObra(e) {
             e.preventDefault();
             const obra = {
@@ -272,12 +304,29 @@
                 estado: 'activa'
             };
 
+            const monto = (obra.superficie * obra.precio).toLocaleString('en-US', {minimumFractionDigits:2});
+            pendienteObra = obra;
+            document.getElementById('modalTitulo').textContent = 'Confirmar Obra';
+            document.getElementById('modalCuerpo').innerHTML = `
+                <div class="modal-row"><span>Nombre</span><span>${obra.nombreObra}</span></div>
+                <div class="modal-row"><span>Código</span><span>${obra.codigoObra||'—'}</span></div>
+                <div class="modal-row"><span>Superficie</span><span>${obra.superficie} m²</span></div>
+                <div class="modal-row"><span>Monto Total</span><span style="color:#10b981;">$ ${monto}</span></div>
+                <div class="modal-row"><span>Fecha Inicio</span><span>${obra.fechaInicio}</span></div>
+                <div class="modal-row"><span>Fecha Conclusión</span><span>${obra.fechaConclusion||'—'}</span></div>`;
+            document.getElementById('modalConfirmar').onclick = confirmarObra;
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        async function confirmarObra() {
+            cerrarModal();
             try {
-                const { data, error } = await supabase.from('obras').insert([obra]);
+                const { error } = await supabase.from('obras').insert([pendienteObra]);
                 if (error) throw error;
                 mostrarMensaje('✅ Obra guardada', 'success');
                 document.getElementById('formObra').reset();
-                obras.push(obra);
+                document.getElementById('fechaConclusion').value = '';
+                cargarListaObras();
             } catch (err) {
                 mostrarMensaje('❌ Error: ' + err.message, 'error');
             }
@@ -303,8 +352,12 @@
             const infoDiv = document.getElementById('infoObra');
             if (!obra) { infoDiv.style.display = 'none'; return; }
             const monto = (obra.superficie * obra.precio).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+            const modulos = Math.ceil(obra.superficie / 90);
+            const cuadrilla = modulos * 8;
             document.getElementById('infoSuperficie').textContent = obra.superficie + ' m²';
             document.getElementById('infoMonto').textContent = '$ ' + monto;
+            document.getElementById('infoModulos').textContent = modulos;
+            document.getElementById('infoCuadrilla').textContent = cuadrilla + ' trabajadores';
             document.getElementById('infoFechaInicio').textContent = obra.fechaInicio || '—';
             document.getElementById('infoFechaConclusion').textContent = obra.fechaConclusion || (obra.tiempoEjecucion ? obra.tiempoEjecucion + ' días' : '—');
             infoDiv.style.display = 'block';
@@ -365,14 +418,30 @@
                 fechaConclusionObra: obraSeleccionada?.fechaConclusion || ''
             };
 
+            const monto = contrato.montoContrato ? '$ ' + contrato.montoContrato.toLocaleString('en-US', {minimumFractionDigits:2}) : '—';
+            pendienteContrato = contrato;
+            document.getElementById('modalTitulo').textContent = 'Confirmar Contrato';
+            document.getElementById('modalCuerpo').innerHTML = `
+                <div class="modal-row"><span>Obra</span><span>${contrato.nombreObra||'—'}</span></div>
+                <div class="modal-row"><span>Monto</span><span style="color:#10b981;">${monto}</span></div>
+                <div class="modal-row"><span>Contratista</span><span>${contrato.nombreContratista}</span></div>
+                <div class="modal-row"><span>C.I.</span><span>${contrato.ciContratista}</span></div>
+                <div class="modal-row"><span>Celular</span><span>${contrato.telefonoContratista}</span></div>
+                <div class="modal-row"><span>Trabajadores</span><span>${contrato.numTrabajadores}</span></div>`;
+            document.getElementById('modalConfirmar').onclick = confirmarContrato;
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        async function confirmarContrato() {
+            cerrarModal();
             try {
-                const { data, error } = await supabase.from('contratos').insert([contrato]);
+                const { error } = await supabase.from('contratos').insert([pendienteContrato]);
                 if (error) throw error;
-                
-                contratos.push(contrato);
+                contratos.push(pendienteContrato);
                 mostrarMensaje('✅ Contrato generado', 'success');
-                generarContratoHTML(contrato);
+                generarContratoHTML(pendienteContrato);
                 document.getElementById('formContratista').reset();
+                document.getElementById('infoObra').style.display = 'none';
             } catch (err) {
                 mostrarMensaje('❌ Error: ' + err.message, 'error');
             }
