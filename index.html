@@ -791,8 +791,52 @@ C.I. {CI_CONTRATISTA}                   José Miguel Gambarte Vidaurre
 
 let obras=[];
 let contratos=[];
-
 let logs_=[];
+
+const BUCKET='rec-archivos';
+
+function buildStoragePath(folder,id,campo,filename){
+  return `${folder}/${id}/${campo}_${Date.now()}_${filename}`;
+}
+
+function mostrarModalBusqueda(ct,o){
+  document.querySelectorAll('.modal-busqueda').forEach(m=>m.remove());
+  const msg=encodeURIComponent(
+    '🏗️ *GEAT — BÚSQUEDA DE CONTRATISTA*\n\n'+
+    '📋 Obra: *'+o.nom+'* ('+o.cod+')\n'+
+    '📐 Superficie: '+o.sup+' m²\n'+
+    '💰 Monto: $'+(o.monto||0).toFixed(2)+' USD\n'+
+    '📅 Inicio: '+(o.fi||'—')+' · '+(o.di||'—')+' días\n\n'+
+    '👷 Contratista: '+ct.nom+'\n'+
+    '📞 '+ct.tel+'\n\n'+
+    '_Activado: '+ct.busqueda_fecha+'_'
+  );
+  const div=document.createElement('div');
+  div.className='modal-busqueda';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  div.innerHTML=`<div style="background:var(--p1);border:1px solid var(--am);border-top:3px solid var(--am);border-radius:8px;padding:24px;max-width:460px;width:100%;">
+    <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--am);margin-bottom:14px;">🔍 PROCESO DE BÚSQUEDA ACTIVADO</div>
+    <div class="al al-g" style="margin-bottom:12px;font-size:12px;"><b>${ct.nom}</b> → <b>${o.nom}</b><br><span style="font-size:10px;">Estado: 🟣 EN BÚSQUEDA · ${ct.busqueda_fecha}</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="https://wa.me/?text=${msg}" target="_blank" class="btn y" style="text-decoration:none;">💬 Compartir por WhatsApp</a>
+      <button class="btn o" onclick="this.closest('.modal-busqueda').remove()">Cerrar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(div);
+}
+
+function _activarBusquedaCore(ct){
+  const o=gO(ct.oid);
+  if(!o.aprobada){alert('⚠️ La obra "'+o.nom+'" aún no fue aprobada. Aprobá la obra primero.');return;}
+  if(!confirm('¿ACTIVAR BÚSQUEDA para '+ct.nom+'?\nObra: '+(o.nom||'?')+'\n\nEl estado cambiará a EN BÚSQUEDA.'))return;
+  ct.est='busqueda';ct.busqueda_activa=true;
+  ct.busqueda_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  sbGuardarContrato(ct);
+  sbLog(CU.n,'Búsqueda activada: '+ct.nom+' → '+o.nom);
+  log('🔍 Búsqueda activada: '+ct.nom);
+  renderContratos();renderCardActivar();uStats();
+  mostrarModalBusqueda(ct,o);
+}
 
 // ══════════════════════════════════════════════════
 // USUARIOS CON PIN
@@ -1162,8 +1206,7 @@ function gCont(){
   if(!nom||!oid){alert('⚠️ Nombre y Obra son obligatorios.');return;}
   if(ci&&contratos.find(c=>c.ci_n===ci&&c.oid===oid)){alert('⚠️ Ya existe un contratista con ese C.I. en esta obra.');return;}
   const o=obras.find(x=>x.id===oid);
-  // Generar texto contrato pre-llenado desde modelo real
-  const ctObj={nom,ci_n:document.getElementById('ct-ci').value.trim(),
+  const ctObj={nom,ci_n:ci,
     tel:document.getElementById('ct-t').value.trim(),
     dir:document.getElementById('ct-d').value.trim(),
     cond:document.getElementById('ct-co').value.trim()};
@@ -1215,81 +1258,12 @@ function activarProceso(){
   if(!id){alert('Selecciona un contratista.');return;}
   const ct=contratos.find(x=>x.id===id);if(!ct)return;
   if(ct.est!=='apto_para_obra'){alert('Solo contratistas con estado APTO pueden activar la búsqueda.');return;}
-  const o=gO(ct.oid);
-  if(!o.aprobada){alert('⚠️ La obra "'+o.nom+'" aún no fue aprobada por Josemiguel. Aprobá la obra primero.');return;}
-  if(!confirm('¿ACTIVAR BÚSQUEDA para '+ct.nom+'?\nObra: '+(o.nom||'?')+'\n\nEl estado cambiará a EN BÚSQUEDA.'))return;
-  ct.est='busqueda';ct.busqueda_activa=true;
-  ct.busqueda_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  sbGuardarContrato(ct);
-  sbLog(CU.n,'Búsqueda activada: '+ct.nom+' → '+o.nom);
-  log('🔍 Búsqueda activada: '+ct.nom);
-  renderContratos();renderCardActivar();uStats();
-  // Modal con link WhatsApp
-  const msg=encodeURIComponent(
-    '🏗️ *GEAT — BÚSQUEDA DE CONTRATISTA*\n\n'+
-    '📋 Obra: *'+o.nom+'* ('+o.cod+')\n'+
-    '📐 Superficie: '+o.sup+' m²\n'+
-    '👥 Cuadrilla estimada: '+o.cuad+' personas\n'+
-    '💰 Monto: $'+(o.monto||0).toFixed(2)+' USD\n'+
-    '📅 Inicio: '+(o.fi||'—')+' · '+(o.di||'—')+' días\n\n'+
-    '👷 Contratista propuesto: '+ct.nom+'\n'+
-    '📞 '+ct.tel+'\n\n'+
-    '_Proceso activado: '+ct.busqueda_fecha+'_'
-  );
-  const waUrl='https://wa.me/?text='+msg;
-  const div=document.createElement('div');
-  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  div.innerHTML=`
-    <div style="background:var(--p1);border:1px solid var(--am);border-top:3px solid var(--am);border-radius:8px;padding:24px;max-width:460px;width:100%;">
-      <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--am);margin-bottom:14px;">🔍 PROCESO DE BÚSQUEDA ACTIVADO</div>
-      <div class="al al-g" style="margin-bottom:12px;font-size:12px;">
-        <b>${ct.nom}</b> → <b>${o.nom}</b><br>
-        <span style="font-size:10px;">Estado: 🟣 EN BÚSQUEDA · ${ct.busqueda_fecha}</span>
-      </div>
-      <p style="font-size:11px;color:var(--wd);line-height:1.6;margin-bottom:16px;">
-        El contratista está en estado <b style="color:var(--Pc)">EN BÚSQUEDA</b>.<br>
-        Cuando se confirme el inicio real de obra, cambia a <b>EN EJECUCIÓN</b> desde el panel <b>Contratos</b>.
-      </p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <a href="${waUrl}" target="_blank" class="btn y" style="text-decoration:none;">💬 Compartir por WhatsApp</a>
-        <button class="btn o" onclick="this.closest('div[style*=fixed]').remove()">Cerrar</button>
-      </div>
-    </div>`;
-  document.body.appendChild(div);
+  _activarBusquedaCore(ct);
 }
 
 function activarProcesoDirecto(ctId){
   const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  const o=gO(ct.oid);
-  if(!o.aprobada){alert('⚠️ La obra "'+o.nom+'" aún no fue aprobada. Aprobá la obra primero en el panel de pendientes.');return;}
-  if(!confirm('¿ACTIVAR BÚSQUEDA para '+ct.nom+'?\nObra: '+(o.nom||'?')+'\n\nEl estado cambiará a EN BÚSQUEDA.'))return;
-  ct.est='busqueda';ct.busqueda_activa=true;
-  ct.busqueda_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  sbGuardarContrato(ct);
-  sbLog(CU.n,'Búsqueda activada: '+ct.nom+' → '+o.nom);
-  log('🔍 Búsqueda activada: '+ct.nom);
-  renderContratos();renderCardActivar();uStats();
-  const msg=encodeURIComponent(
-    '🏗️ *GEAT — BÚSQUEDA DE CONTRATISTA*\n\n'+
-    '📋 Obra: *'+o.nom+'* ('+o.cod+')\n'+
-    '📐 Superficie: '+o.sup+' m²\n'+
-    '💰 Monto: $'+(o.monto||0).toFixed(2)+' USD\n'+
-    '📅 Inicio: '+(o.fi||'—')+' · '+(o.di||'—')+' días\n\n'+
-    '👷 Contratista: '+ct.nom+'\n'+
-    '📞 '+ct.tel+'\n\n'+
-    '_Activado: '+ct.busqueda_fecha+'_'
-  );
-  const div=document.createElement('div');
-  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  div.innerHTML=`<div style="background:var(--p1);border:1px solid var(--am);border-top:3px solid var(--am);border-radius:8px;padding:24px;max-width:460px;width:100%;">
-    <div style="font-size:11px;font-weight:800;letter-spacing:2px;color:var(--am);margin-bottom:14px;">🔍 PROCESO DE BÚSQUEDA ACTIVADO</div>
-    <div class="al al-g" style="margin-bottom:12px;font-size:12px;"><b>${ct.nom}</b> → <b>${o.nom}</b><br><span style="font-size:10px;">Estado: 🟣 EN BÚSQUEDA · ${ct.busqueda_fecha}</span></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <a href="https://wa.me/?text=${msg}" target="_blank" class="btn y" style="text-decoration:none;">💬 Compartir por WhatsApp</a>
-      <button class="btn o" onclick="this.closest('div[style*=fixed]').remove()">Cerrar</button>
-    </div>
-  </div>`;
-  document.body.appendChild(div);
+  _activarBusquedaCore(ct);
 }
 
 function mEj(id){
@@ -1596,9 +1570,9 @@ async function sFirm(cid,inp){
   if(!inp.files[0])return;
   const ct=contratos.find(x=>x.id===cid);if(!ct)return;
   const archivo=inp.files[0];
-  const path=`contratos/${cid}/firmado_${Date.now()}_${archivo.name}`;
+  const path=buildStoragePath('contratos',cid,'firmado',archivo.name);
   try{
-    const {error}=await sb.storage.from('rec-archivos').upload(path,archivo,{upsert:true});
+    const {error}=await sb.storage.from(BUCKET).upload(path,archivo,{upsert:true});
     if(error)throw error;
     ct.firm=path;ct.est='apto_para_obra';
     ct.fec=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
@@ -1621,9 +1595,10 @@ function verContratoFirmado(cid){
 async function simDl(f,t){
   if(!f){alert(`⚠️ Sin ${t} cargado.`);return;}
   try{
-    const {data,error}=await sb.storage.from('rec-archivos').createSignedUrl(f,120);
+    const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(f,120);
     if(error)throw error;
-    const a=document.createElement('a');a.href=data.signedUrl;a.download=f.split('/').pop();a.click();
+    const a=document.createElement('a');a.href=data.signedUrl;a.download=f.split('/').pop();
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
   }catch(e){alert('⚠️ No se pudo descargar: '+e.message);}
 }
 
@@ -1634,9 +1609,9 @@ async function subirCP(oId,campo,inp){
   if(!inp.files[0])return;
   const o=obras.find(x=>x.id===oId);if(!o)return;
   const archivo=inp.files[0];
-  const path=`obras/${oId}/${campo}_${Date.now()}_${archivo.name}`;
+  const path=buildStoragePath('obras',oId,campo,archivo.name);
   try{
-    const {error}=await sb.storage.from('rec-archivos').upload(path,archivo,{upsert:true});
+    const {error}=await sb.storage.from(BUCKET).upload(path,archivo,{upsert:true});
     if(error)throw error;
     o[campo]=path;
     sbGuardarObra(o);
