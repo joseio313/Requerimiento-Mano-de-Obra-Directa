@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -142,6 +142,34 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 /* CONTRATO PROPIETARIO EN CONTRATOS */
 .cp-upload{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--bd);}
 @media(max-width:720px){.cp-upload{grid-template-columns:1fr;}}
+
+/* SOLICITUD WIZARD */
+.sol-steps{display:flex;gap:0;margin-bottom:20px;overflow:hidden;border-radius:4px;}
+.sol-step{flex:1;padding:8px 6px;text-align:center;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;border-right:1px solid var(--bg);
+  transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sol-step:last-child{border-right:none;}
+.sol-step .ss-ico{font-size:14px;}
+.sol-step.done{background:var(--Gbg);color:var(--Gc);}
+.sol-step.active{background:var(--amd);color:var(--am);}
+.sol-step.pend{background:var(--p2);color:var(--ws);}
+.reg-card{background:var(--p1);border:1px solid var(--bd);border-radius:5px;
+  margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.reg-card:hover{border-color:var(--am);}
+.reg-hdr{background:var(--p2);padding:12px 16px;display:flex;
+  justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+.reg-hdr:hover{background:var(--p3);}
+.reg-titulo{font-weight:700;font-size:13px;}
+.reg-sub{font-size:10px;color:var(--wd);margin-top:2px;}
+.reg-body{display:none;padding:14px;border-top:1px solid var(--bd);}
+.reg-card.open .reg-body{display:block;}
+.reg-card.open .reg-arrow{transform:rotate(180deg);}
+.reg-arrow{color:var(--am);transition:transform .2s;font-size:12px;}
+.reg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.reg-dato{background:var(--p2);border-radius:3px;padding:8px 10px;}
+.reg-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:3px;}
+.reg-val{font-size:12px;font-weight:700;color:var(--w);}
+@media(max-width:720px){.reg-grid{grid-template-columns:1fr 1fr;}.sol-steps{flex-wrap:wrap;}}
 
 /* OBRAS CARDS */
 .obra-card{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:12px 14px;
@@ -565,9 +593,9 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CONTRATOS (por obra) ═══ -->
     <div class="panel" id="panel-contratos">
-      <div class="ph"><h2>📋 CONTRATOS</h2><p>Gestión por obra — revisión, edición e impresión</p></div>
+      <div class="ph"><h2>📋 SOLICITUDES DE REQUERIMIENTO</h2><p>Contratos, verificación de obra y asignación de mano de obra directa</p></div>
 
-      <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — acceso de lectura a condiciones de campo.</div>
+      <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — acceso de lectura.</div>
 
       <div class="kpi" id="kpi-sect">
         <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
@@ -576,17 +604,68 @@ async function sbLog(usuario, accion) {
         <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto Total</div></div>
       </div>
 
-      <!-- Pendientes aprobación -->
-      <div id="pend-aprob" style="min-height:0;"></div>
+      <!-- FORMULARIO NUEVA SOLICITUD -->
+      <div class="card" id="card-nueva-sol">
+        <div class="ct">✏️ NUEVA SOLICITUD / EDITAR</div>
+        <div class="f" style="margin-bottom:16px;">
+          <label>Obra</label>
+          <select id="sol-obra-sel" onchange="selObraForm(this.value)">
+            <option value="">— Seleccionar obra —</option>
+          </select>
+        </div>
 
-      <!-- CONTRATOS POR OBRA -->
-      <div id="contratos-por-obra" style="min-height:0;">
-        <div style="text-align:center;padding:40px 20px;color:var(--ws);">
-          <div style="font-size:32px;margin-bottom:12px;">📋</div>
-          <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Sin obras registradas</div>
-          <div style="font-size:11px;">Vaya a <b style="color:var(--am);">📝 Obras</b> para cargar la primera obra.</div>
+        <div id="sol-form-body" style="display:none;">
+
+          <!-- Indicador de progreso del proceso -->
+          <div class="sol-steps" id="sol-steps"></div>
+
+          <!-- Contratos propietario -->
+          <div class="ct" style="margin-top:4px;">📄 CONTRATO CON PROPIETARIO</div>
+          <div class="cp-upload" id="sol-cp-area"></div>
+
+          <!-- Datos de la obra -->
+          <div class="ct">📐 DATOS DE LA OBRA</div>
+          <div class="g g2" style="margin-bottom:14px;">
+            <div class="f"><label>Nombre Obra *</label><input id="sol-nom" oninput="calcSol()"></div>
+            <div class="f"><label>Código *</label><input id="sol-cod"></div>
+            <div class="f"><label>Superficie m² *</label><input type="number" id="sol-sup" oninput="calcSol()"></div>
+            <div class="f"><label>Precio USD/m²</label><input type="number" id="sol-pre" value="75" oninput="calcSol()"></div>
+            <div class="f"><label>Monto USD (auto)</label><input id="sol-mon" readonly></div>
+            <div class="f"><label>Cuadrilla (auto)</label><input id="sol-cua" readonly></div>
+            <div class="f"><label>Fecha Inicio</label><input type="date" id="sol-fi"></div>
+            <div class="f"><label>Días Ejecución</label><input type="number" id="sol-di"></div>
+            <div class="f full"><label>📍 Maps Link</label><input id="sol-map" placeholder="https://maps.google.com/..."></div>
+            <div class="f full"><label>Notas de Obra</label><textarea id="sol-not" style="min-height:48px;"></textarea></div>
+          </div>
+
+          <!-- Solicitud de requerimiento -->
+          <div class="ct">📝 SOLICITUD DE REQUERIMIENTO DE MANO DE OBRA</div>
+          <div class="g g2" style="margin-bottom:14px;">
+            <div class="f full"><label>Objeto del Contrato</label><textarea id="sol-obj" style="min-height:64px;"></textarea></div>
+            <div class="f full"><label>Inclusiones</label><textarea id="sol-inc" style="min-height:48px;"></textarea></div>
+            <div class="f full"><label>Exclusiones</label><textarea id="sol-exc" style="min-height:48px;"></textarea></div>
+            <div class="f full"><label>Condiciones de Trabajo</label><textarea id="sol-cond" style="min-height:48px;"></textarea></div>
+            <div class="f"><label>📅 Fecha Límite de Inicio</label><input type="date" id="sol-deadline"></div>
+            <div class="f full"><label>Observaciones</label><textarea id="sol-obs" style="min-height:48px;"></textarea></div>
+          </div>
+
+          <div class="brow">
+            <button class="btn y" onclick="guardarSolicitud()" style="font-size:13px;padding:10px 24px;">💾 GUARDAR SOLICITUD</button>
+            <button class="btn o" onclick="limpiarFormSol()">✕ Cancelar</button>
+          </div>
         </div>
       </div>
+
+      <!-- REGISTRO -->
+      <div style="display:flex;align-items:center;gap:12px;margin:22px 0 12px;">
+        <h2 style="font-size:14px;font-weight:800;color:var(--am);letter-spacing:2px;">📁 REGISTRO DE SOLICITUDES</h2>
+        <span style="font-size:10px;color:var(--ws);">Historial guardado — clic para expandir</span>
+      </div>
+      <div id="registro-sol"></div>
+
+      <!-- compatibilidad con funciones existentes -->
+      <div id="pend-aprob" style="display:none;"></div>
+      <div id="contratos-por-obra" style="display:none;"></div>
     </div>
 
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
@@ -1292,300 +1371,206 @@ const EL={apto_para_obra:`<span class="est e-apto">🟢 Apto</span>`,
   en_ejecucion:`<span class="est e-ej">🔵 En Ejecución</span>`};
 function gO(id){return obras.find(o=>o.id===id)||{};}
 
+// ══════════════════════════════════════════════════
+// SOLICITUDES — nuevo flujo de Contratos
+// ══════════════════════════════════════════════════
 function renderContratos(){
+  buildSolSelector();
+  renderRegistroSol();
   renderPendAPrb();
-  const c=document.getElementById('contratos-por-obra');if(!c)return;
-  const isSup=CU&&CU.r==='supervisor';
-  const isAbog=CU&&CU.r==='abogada';
-  const isAdmin=CU&&CU.r==='admin';
+}
 
-  // Agrupar contratos por obra
-  const obrasSorted=[...obras].sort((a,b)=>b.aprobada-a.aprobada);
-  if(!obrasSorted.length){
-    c.innerHTML=`<div style="text-align:center;padding:40px 20px;color:var(--ws);">
-      <div style="font-size:32px;margin-bottom:12px;">📋</div>
-      <div style="font-size:13px;font-weight:700;margin-bottom:6px;">Sin obras registradas</div>
-      <div style="font-size:11px;">Vaya a <b style="color:var(--am);">📝 Obras</b> para cargar la primera obra.</div>
-    </div>`;
-    return;
-  }
-  c.innerHTML=obrasSorted.map(o=>{
-    const cts=contratos.filter(ct=>ct.oid===o.id);
-    const ct=cts[0]||null; // principal contratista
-    const estadoObra=o.aprobada?'✅ Aprobada':'⏳ Pendiente';
+function buildSolSelector(){
+  const sel=document.getElementById('sol-obra-sel');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar obra —</option>'+
+    obras.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})${o.aprobada?' ✅':' ⏳'}</option>`).join('');
+  if(cur)sel.value=cur;
+}
 
-    return `<div class="obra-contrato-card occ-card" id="occ-${o.id}">
-      <div class="occ-hdr" onclick="togOCC(${o.id})">
-        <div>
-          <div class="occ-titulo">📁 ${o.nom} <span style="font-size:9px;color:var(--ws);font-weight:400;">· ${o.cod}</span></div>
-          <div class="occ-sub">${estadoObra} · ${o.sup}m² · ${cts.length} contratista(s) · ${o.contrato_firmado_contratista?'📄 Contrato firmado ✓':'📄 Sin contrato firmado'}</div>
-        </div>
-        <span class="occ-arrow">▼</span>
-      </div>
-      <div class="occ-body">
-        <!-- Contratos con Propietario -->
-        <div class="cp-upload">
-          <!-- Espacio 1: Archivo digital -->
-          <div style="background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:12px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📄 Contrato con Propietario — Archivo</div>
-            ${o.cp
-              ?`<div style="font-size:11px;color:var(--Gc);margin-bottom:8px;word-break:break-all;">✅ ${o.cp}</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <button class="btn g2b sm" onclick="simDl('${o.cp}','Contrato Propietario')">⬇ Descargar</button>
-                  ${isAdmin?`<label class="btn o sm" style="cursor:pointer;">✎ Reemplazar<input type="file" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none"></label>`:``}
-                </div>`
-              :isAdmin
-                ?`<div class="ua" onclick="document.getElementById('cpa-${o.id}').click()" style="padding:14px;text-align:center;">
-                    <input type="file" id="cpa-${o.id}" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none">
-                    <div style="font-size:22px;margin-bottom:5px;">📋</div>
-                    <div style="font-size:10px;font-weight:700;">Subir archivo</div>
-                    <div style="font-size:9px;color:var(--ws);">PDF, DOC, DOCX</div>
-                  </div>`
-                :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin archivo cargado</div>`
-            }
-          </div>
-          <!-- Espacio 2: Escaneado / foto -->
-          <div style="background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:12px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📸 Contrato con Propietario — Escaneado</div>
-            ${o.cp_esc
-              ?`<div style="font-size:11px;color:var(--Gc);margin-bottom:8px;word-break:break-all;">✅ ${o.cp_esc}</div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                  <button class="btn g2b sm" onclick="simDl('${o.cp_esc}','Contrato Escaneado')">⬇ Descargar</button>
-                  ${isAdmin?`<label class="btn o sm" style="cursor:pointer;">✎ Reemplazar<input type="file" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none"></label>`:``}
-                </div>`
-              :isAdmin
-                ?`<div class="ua" onclick="document.getElementById('cpe-${o.id}').click()" style="padding:14px;text-align:center;">
-                    <input type="file" id="cpe-${o.id}" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none">
-                    <div style="font-size:22px;margin-bottom:5px;">📸</div>
-                    <div style="font-size:10px;font-weight:700;">Subir foto / escaneo</div>
-                    <div style="font-size:9px;color:var(--ws);">JPG, PNG</div>
-                  </div>`
-                :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin escaneo cargado</div>`
-            }
-          </div>
-        </div>
-        ${!ct?`<div class="al al-p">Sin contratistas asignados a esta obra aún.</div>`:''}
-        ${cts.map(ct=>renderCtPorObra(ct,o,isSup,isAbog,isAdmin)).join('')}
-      </div>
-    </div>`;
+function selObraForm(idStr){
+  const body=document.getElementById('sol-form-body');
+  if(!idStr){body.style.display='none';return;}
+  const id=parseInt(idStr);
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  body.style.display='block';
+  // Llenar datos de la obra
+  document.getElementById('sol-nom').value=o.nom||'';
+  document.getElementById('sol-cod').value=o.cod||'';
+  document.getElementById('sol-sup').value=o.sup||'';
+  document.getElementById('sol-pre').value=o.pre||75;
+  document.getElementById('sol-fi').value=o.fi||'';
+  document.getElementById('sol-di').value=o.di||'';
+  document.getElementById('sol-map').value=o.map||'';
+  document.getElementById('sol-not').value=o.not||'';
+  document.getElementById('sol-obj').value=o.obj||'';
+  document.getElementById('sol-inc').value=o.inc||'';
+  document.getElementById('sol-exc').value=o.exc||'';
+  document.getElementById('sol-cond').value=contratos.find(c=>c.oid===id)?.cond||'';
+  document.getElementById('sol-obs').value='';
+  calcSol();
+  renderSolCP(o);
+  renderSolSteps(o);
+}
+
+function calcSol(){
+  const sup=parseFloat(document.getElementById('sol-sup').value)||0;
+  const pre=parseFloat(document.getElementById('sol-pre').value)||75;
+  document.getElementById('sol-mon').value='$'+(sup*pre).toFixed(2)+' USD';
+  document.getElementById('sol-cua').value=Math.max(4,Math.ceil(sup/100*4))+' personas';
+}
+
+function renderSolSteps(o){
+  const el=document.getElementById('sol-steps');if(!el)return;
+  const ct=contratos.find(c=>c.oid===o.id);
+  const steps=[
+    {ico:'📄',lbl:'Contrato subido',   done:!!(o.cp||o.cp_esc)},
+    {ico:'📐',lbl:'Solicitud completa', done:!!(o.obj&&o.sup)},
+    {ico:'✅',lbl:'Obra aprobada',      done:!!o.aprobada},
+    {ico:'👷',lbl:'Contratista asignado',done:!!ct},
+  ];
+  el.innerHTML=steps.map((s,i)=>{
+    const cls=s.done?'done':i===steps.findIndex(x=>!x.done)?'active':'pend';
+    return `<div class="sol-step ${cls}"><div class="ss-ico">${s.done?'✅':s.ico}</div>${s.lbl}</div>`;
   }).join('');
 }
 
-function renderCtPorObra(ct,o,isSup,isAbog,isAdmin){
-  const yaFirmado=!!ct.firm;
-  const puedoEditar=(isAdmin||isAbog)&&!yaFirmado;
-  const textoContrato=ct.texto_contrato||generarTextoBase(ct,o);
-  return `
-  <div style="border:1px solid var(--bd);border-radius:4px;padding:14px;margin-bottom:12px;background:var(--bg);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div>
-        <span style="font-weight:700;font-size:13px;">${isSup?'Contratista #'+ct.id:ct.nom}</span>
-        ${!isSup&&ct.tel?`<span style="font-size:11px;color:var(--wd);margin-left:8px;">${ct.tel}</span>
-        <a href="https://wa.me/591${ct.tel}" target="_blank" style="margin-left:6px;background:#25d366;color:#000;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;text-decoration:none;white-space:nowrap;">💬 WA</a>`:''}
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        ${EL[ct.est]||''}
-        ${isAdmin?`<button class="btn rb sm" onclick="eliminarContratista(${ct.id})" title="Eliminar contratista" style="padding:2px 7px;font-size:10px;">🗑</button>`:''}
-      </div>
-    </div>
-
-    ${!isSup?`
-    <div class="g g2" style="margin-bottom:12px;">
-      <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:5px;">Documentos</div>
+function renderSolCP(o){
+  const isAdmin=CU&&CU.r==='admin';
+  const isAbog=CU&&CU.r==='abogada';
+  const canUp=isAdmin||isAbog;
+  const area=document.getElementById('sol-cp-area');if(!area)return;
+  area.innerHTML=`
+  <div style="background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:12px;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📄 Archivo Digital (PDF/DOC)</div>
+    ${o.cp
+      ?`<div style="font-size:11px;color:var(--Gc);margin-bottom:8px;word-break:break-all;">✅ ${o.cp}</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn sm ${ct.ci?'g2b':'o'}" onclick="simDl('${ct.ci||''}','CI')">🪪 ${ct.ci?'✓ C.I.':'CI pend.'}</button>
-          <button class="btn sm ${ct.ag?'g2b':'o'}" onclick="simDl('${ct.ag||''}','Agua')">💧 ${ct.ag?'✓ Agua':'Agua pend.'}</button>
-          <button class="btn sm ${ct.lz?'g2b':'o'}" onclick="simDl('${ct.lz||''}','Luz')">⚡ ${ct.lz?'✓ Luz':'Luz pend.'}</button>
-        </div>
-      </div>
-      <div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:5px;">Contrato Firmado Escaneado</div>
-        ${ct.firm
-          ?`<div class="al al-g" style="margin:0;display:flex;align-items:center;justify-content:space-between;">
-              <span>✅ ${ct.firm}</span>
-              <button class="btn sm g2b" onclick="verContratoFirmado(${ct.id})" style="margin-left:8px;">👁 Ver</button>
-            </div>`
-          :`<div class="ua" onclick="document.getElementById('inf-${ct.id}').click()" style="padding:10px;">
-             <input type="file" id="inf-${ct.id}" accept=".pdf,.jpg,.jpeg,.png" onchange="sFirm(${ct.id},this)" style="display:none">
-             <div style="font-size:10px;font-weight:700;">📤 Subir firmado → cambia a APTO</div>
-           </div>`
-        }
-      </div>
-    </div>`:''}
-
-    ${ct.cond?`<div style="margin-bottom:12px;"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:5px;">Condiciones de Campo</div>
-      <div style="background:var(--p2);border-radius:3px;padding:9px 12px;font-size:11px;line-height:1.7;">${ct.cond}</div></div>`:''}
-    ${o.map?`<a href="${o.map}" target="_blank" class="btn sm o" style="text-decoration:none;display:inline-flex;margin-bottom:12px;">📍 Ver Maps</a>`:''}
-
-    ${isAdmin&&ct.est==='apto_para_obra'?`
-    <div class="al al-g" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <span>🟢 Apto — listo para activar búsqueda</span>
-      <button class="btn y sm" onclick="activarProcesoDirecto(${ct.id})">🔍 ACTIVAR BÚSQUEDA</button>
-    </div>`:''}
-    ${(isAdmin||isAbog)&&ct.est==='busqueda'?`
-    <div class="al al-p" style="margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-      <span>🟣 En búsqueda activa${ct.busqueda_fecha?' · '+ct.busqueda_fecha:''}</span>
-      <button class="btn y sm" onclick="mEj(${ct.id})">▶️ Confirmar Inicio → EN EJECUCIÓN</button>
-    </div>`:''}
-
-    <!-- EDITOR CONTRATO -->
-    <div style="margin-top:4px;">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:${isAbog?'var(--Pc)':'var(--ws)'};margin-bottom:8px;display:flex;align-items:center;gap:6px;">
-        📝 CONTRATO ${isAbog?'— <span style="color:var(--Pc)">⚖️ Puedes editar y revisar</span>':'— Solo lectura para supervisión'}
-      </div>
-      <div class="editor-contrato">
-        <div class="editor-toolbar no-print">
-          ${puedoEditar?`
-          <button class="et-btn" onclick="fmtCt(${ct.id},'bold')"><b>N</b></button>
-          <button class="et-btn" onclick="fmtCt(${ct.id},'addLine')">+ Línea</button>
-          <button class="et-btn" onclick="guardarTexto(${ct.id})">💾 Guardar cambios</button>
-          `:''}
-          <button class="et-btn" onclick="imprimirContrato(${ct.id})">🖨️ Imprimir</button>
-          
-        </div>
-        <textarea class="contrato-editor" id="ed-${ct.id}" ${puedoEditar?'':'readonly'}
-          onchange="ctTextos[${ct.id}]=this.value">${textoContrato}</textarea>
-        <div class="editor-status">${isAbog?'⚖️ Steffi puede editar este contrato antes de imprimir':'📄 Lectura'} · ${ct.fec||'—'}</div>
-      </div>
-    </div>
+          <button class="btn g2b sm" onclick="simDl('${o.cp}','Contrato Propietario')">⬇ Descargar</button>
+          ${canUp?`<label class="btn o sm" style="cursor:pointer;">✎ Reemplazar<input type="file" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none"></label>`:``}
+        </div>`
+      :canUp
+        ?`<div class="ua" onclick="document.getElementById('scp-dig-${o.id}').click()" style="padding:14px;text-align:center;">
+            <input type="file" id="scp-dig-${o.id}" accept=".pdf,.doc,.docx" onchange="subirCP(${o.id},'cp',this)" style="display:none">
+            <div style="font-size:22px;margin-bottom:5px;">📋</div>
+            <div style="font-size:10px;font-weight:700;">Subir archivo</div>
+            <div style="font-size:9px;color:var(--ws);">PDF, DOC, DOCX</div>
+          </div>`
+        :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin archivo cargado</div>`
+    }
+  </div>
+  <div style="background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:12px;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📸 Escaneado / Foto</div>
+    ${o.cp_esc
+      ?`<div style="font-size:11px;color:var(--Gc);margin-bottom:8px;word-break:break-all;">✅ ${o.cp_esc}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn g2b sm" onclick="simDl('${o.cp_esc}','Contrato Escaneado')">⬇ Descargar</button>
+          ${canUp?`<label class="btn o sm" style="cursor:pointer;">✎ Reemplazar<input type="file" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none"></label>`:``}
+        </div>`
+      :canUp
+        ?`<div class="ua" onclick="document.getElementById('scp-esc-${o.id}').click()" style="padding:14px;text-align:center;">
+            <input type="file" id="scp-esc-${o.id}" accept=".jpg,.jpeg,.png,image/*" capture="environment" onchange="subirCP(${o.id},'cp_esc',this)" style="display:none">
+            <div style="font-size:22px;margin-bottom:5px;">📸</div>
+            <div style="font-size:10px;font-weight:700;">Subir foto / escaneo</div>
+            <div style="font-size:9px;color:var(--ws);">JPG, PNG</div>
+          </div>`
+        :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin escaneo cargado</div>`
+    }
   </div>`;
 }
 
-let ctTextos={};
-function generarTextoBase(ct,o){
-  // Calcular monto en Bs (aprox USD * 6.96)
-  const montoUSD = o.monto||0;
-  const montoBs = Math.round(montoUSD * 6.96);
-  const numToLetras = (n) => {
-    // Simplificado para rangos comunes
-    const miles = Math.floor(n/1000);
-    const resto = n % 1000;
-    if(miles>0 && resto>0) return `${miles} mil ${resto}`;
-    if(miles>0) return `${miles} mil`;
-    return `${n}`;
-  };
-  const montoLetras = numToLetras(montoBs) + ' bolivianos';
-
-  const mods = (o.mods||[]).map((m,i)=>`M${String(i+1).padStart(2,'0')}. ${m}.`).join('\n');
-
-  return CONTRATO_MODELO
-    .replace('{CODIGO_OBRA}', o.cod||'___')
-    .replace('{NOMBRE_CONTRATISTA}', ct.nom||'___').replace('{NOMBRE_CONTRATISTA}', ct.nom||'___')
-    .replace('{CI_CONTRATISTA}', ct.ci_n||'___').replace('{CI_CONTRATISTA}', ct.ci_n||'___')
-    .replace('{DIRECCION_CONTRATISTA}', ct.dir||'___')
-    .replace('{NOMBRE_OBRA}', o.nom||'___')
-    .replace('{SUPERFICIE}', o.sup||'___')
-    .replace('{UBICACION_OBRA}', o.map ? o.nom+', Santa Cruz' : '___')
-    .replace('{MODULOS}', mods)
-    .replace('{DIAS}', o.di||'___')
-    .replace('{FECHA_INICIO}', o.fi||'___')
-    .replace('{FECHA_FIN}', calcFechaFinTexto(o.fi, o.di))
-    .replace('{MONTO_BS}', montoBs.toLocaleString('es-BO'))
-    .replace('{MONTO_LETRAS}', montoLetras)
-    .replace('{CONDICIONES}', ct.cond||'Sin condiciones especiales.');
-}
-function calcFechaFinTexto(fi, dias){
-  if(!fi||!dias) return '___';
-  const d=new Date(fi); d.setDate(d.getDate()+parseInt(dias));
-  return d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+async function guardarSolicitud(){
+  const idStr=document.getElementById('sol-obra-sel').value;
+  if(!idStr){alert('⚠️ Selecciona una obra.');return;}
+  const id=parseInt(idStr);
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  const nom=document.getElementById('sol-nom').value.trim();
+  const cod=document.getElementById('sol-cod').value.trim();
+  const sup=parseFloat(document.getElementById('sol-sup').value)||0;
+  if(!nom||!cod||!sup){alert('⚠️ Completa: Nombre, Código y Superficie.');return;}
+  o.nom=nom; o.cod=cod; o.sup=sup;
+  o.pre=parseFloat(document.getElementById('sol-pre').value)||75;
+  o.monto=o.sup*o.pre; o.cuad=Math.max(4,Math.ceil(o.sup/100*4));
+  o.fi=document.getElementById('sol-fi').value;
+  o.di=parseInt(document.getElementById('sol-di').value)||0;
+  o.map=document.getElementById('sol-map').value.trim();
+  o.not=document.getElementById('sol-not').value;
+  o.obj=document.getElementById('sol-obj').value;
+  o.inc=document.getElementById('sol-inc').value;
+  o.exc=document.getElementById('sol-exc').value;
+  const cond=document.getElementById('sol-cond').value;
+  const ct=contratos.find(c=>c.oid===id);
+  if(ct&&cond){ct.cond=cond;sbGuardarContrato(ct);}
+  await sbGuardarObra(o);
+  log(`Solicitud guardada: ${o.nom}`);
+  renderContratos();renderObras();uStats();
+  renderSolSteps(o);
+  alert(`✅ Solicitud "${o.nom}" guardada correctamente.`);
 }
 
-function guardarTexto(ctId){
-  const ta=document.getElementById('ed-'+ctId);if(!ta)return;
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  ct.texto_contrato=ta.value;
-  if(!ct.est_contrato) ct.est_contrato='revisado';
-  sbGuardarContrato(ct);
-  log(`Contrato #${ctId} guardado por ${CU.n}`);
-  alert('✅ Cambios guardados.');
-  renderContratos();
-}
-function marcarRevisado(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(!ct.est_contrato||ct.est_contrato==='generado') ct.est_contrato='revisado';
-}
-function aprobarContrato(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  const ta=document.getElementById('ed-'+ctId);
-  if(ta) ct.texto_contrato=ta.value;
-  ct.est_contrato='aprobado';
-  ct.aprobado_por=CU.n;
-  ct.aprobado_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  sbGuardarContrato(ct);
-  sbLog(CU.n,`Contrato aprobado #${ctId}`);
-  log(`✅ Contrato #${ctId} APROBADO por ${CU.n}`);
-  alert(`✅ Contrato aprobado por ${CU.n}.\nYa puede imprimirse y firmarse.`);
-  renderContratos();
+function limpiarFormSol(){
+  document.getElementById('sol-obra-sel').value='';
+  document.getElementById('sol-form-body').style.display='none';
 }
 
-function fmtCt(id,action){
-  const ta=document.getElementById('ed-'+id);if(!ta)return;
-  if(action==='addLine'){ta.value+='\n';ta.focus();}
-}
-
-function imprimirContrato(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  const o=gO(ct.oid);
-  const texto=ct.texto_contrato||generarTextoBase(ct,o);
-  // Convertir texto plano a HTML con secciones formateadas
-  const lineas=texto.split('\n');
-  let htmlLineas=lineas.map(l=>{
-    if(l.startsWith('CONTRATO DE PRESTACIÓN')) return `<h1>${l}</h1>`;
-    if(l.startsWith('CÓDIGO:')) return `<p class="codigo">${l}</p>`;
-    if(/^CLÁUSULA/.test(l)) return `<p class="clausula">${l}</p>`;
-    if(l.startsWith('CONTRATISTA') && l.includes('CONTRATANTE')) return `<p class="firmas">${l}</p>`;
-    if(l.trim()==='') return '<br>';
-    return `<p>${l}</p>`;
+function renderRegistroSol(){
+  const c=document.getElementById('registro-sol');if(!c)return;
+  if(!obras.length){
+    c.innerHTML=`<div style="text-align:center;padding:36px;color:var(--ws);">
+      <div style="font-size:28px;margin-bottom:10px;">📁</div>
+      <div style="font-weight:700;margin-bottom:4px;">Sin solicitudes aún</div>
+      <div style="font-size:11px;">Selecciona una obra arriba para crear la primera solicitud.</div></div>`;
+    return;
+  }
+  c.innerHTML=obras.map(o=>{
+    const ct=contratos.find(x=>x.oid===o.id);
+    const steps=[!!(o.cp||o.cp_esc),!!(o.obj&&o.sup),!!o.aprobada,!!ct];
+    const done=steps.filter(Boolean).length;
+    const pct=Math.round(done/steps.length*100);
+    const badgeCls=o.aprobada?'ob-a':o.cp||o.cp_esc?'ob-p':'ob-r';
+    const badgeLbl=o.aprobada?'✅ Aprobada':o.cp||o.cp_esc?'⏳ Pendiente':'⚠️ Sin contrato';
+    return `<div class="reg-card" id="reg-${o.id}">
+      <div class="reg-hdr" onclick="togReg(${o.id})">
+        <div style="flex:1;min-width:0;">
+          <div class="reg-titulo">📁 ${o.nom} <span class="obadge ${badgeCls}" style="margin-left:8px;">${badgeLbl}</span></div>
+          <div class="reg-sub">${o.cod} · ${o.sup}m² · $${o.monto?.toFixed(0)||0} USD · Progreso: ${pct}% (${done}/4)</div>
+          <div style="margin-top:5px;height:3px;background:var(--bd);border-radius:2px;">
+            <div style="height:3px;width:${pct}%;background:${pct===100?'var(--Gc)':'var(--am)'};border-radius:2px;transition:width .4s;"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-left:12px;">
+          <button class="btn o sm" onclick="event.stopPropagation();editarReg(${o.id})">✏️ Editar</button>
+          <span class="reg-arrow">▼</span>
+        </div>
+      </div>
+      <div class="reg-body">
+        <div class="reg-grid">
+          <div class="reg-dato"><div class="reg-lbl">Superficie</div><div class="reg-val">${o.sup} m²</div></div>
+          <div class="reg-dato"><div class="reg-lbl">Cuadrilla</div><div class="reg-val">${o.cuad} personas</div></div>
+          <div class="reg-dato"><div class="reg-lbl">Monto</div><div class="reg-val" style="color:var(--am);">$${o.monto?.toFixed(0)||0}</div></div>
+          <div class="reg-dato"><div class="reg-lbl">Inicio</div><div class="reg-val">${o.fi||'—'}</div></div>
+          <div class="reg-dato"><div class="reg-lbl">Días</div><div class="reg-val">${o.di||'—'}</div></div>
+          <div class="reg-dato"><div class="reg-lbl">Contratista</div><div class="reg-val">${ct?ct.nom:'Sin asignar'}</div></div>
+        </div>
+        ${o.obj?`<div style="margin-top:8px;font-size:11px;color:var(--wd);background:var(--p2);padding:10px;border-radius:3px;"><b style="color:var(--ws);">Objeto:</b> ${o.obj}</div>`:''}
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          ${o.cp?`<button class="btn g2b sm" onclick="simDl('${o.cp}','Contrato')">📄 Descargar Contrato</button>`:''}
+          ${o.cp_esc?`<button class="btn g2b sm" onclick="simDl('${o.cp_esc}','Escaneado')">📸 Descargar Escaneado</button>`:''}
+          ${ct?.tel?`<a href="https://wa.me/591${ct.tel}?text=${encodeURIComponent('📋 GEAT — Obra: '+o.nom+' ('+o.cod+')\n👷 Contratista: '+ct.nom+'\n📐 '+o.sup+'m² · $'+o.monto?.toFixed(0)+' USD')}" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;">💬 WA Resumen</a>`:''}
+        </div>
+      </div>
+    </div>`;
   }).join('');
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>Contrato — ${ct.nom}</title>
-  <style>
-    @page{size:216mm 330mm;margin:25mm 20mm 25mm 25mm;}
-    *{box-sizing:border-box;}
-    body{font-family:Arial,sans-serif;font-size:10pt;line-height:1.6;color:#000;margin:0;padding:0;}
-    h1{font-size:13pt;font-weight:bold;text-align:center;text-transform:uppercase;margin:0 0 4px 0;letter-spacing:1px;}
-    .codigo{text-align:center;font-size:9pt;color:#333;margin:0 0 18px 0;}
-    p{margin:0 0 6px 0;text-align:justify;}
-    .clausula{font-weight:bold;margin-top:14px;margin-bottom:4px;text-transform:uppercase;}
-    .firmas{margin-top:40px;font-weight:bold;}
-    .firma-bloque{display:flex;justify-content:space-between;margin-top:60px;}
-    .firma-col{text-align:center;width:45%;}
-    .firma-linea{border-top:1px solid #000;padding-top:6px;font-size:9pt;}
-    .header-doc{text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;}
-    .header-doc img{height:40px;}
-    .header-empresa{font-size:8pt;color:#555;margin-top:4px;}
-    br{display:block;margin:3px 0;}
-    @media print{body{-webkit-print-color-adjust:exact;}}
-  </style>
-
-</head><body>
-  <div class="header-doc">
-    <div style="font-size:16pt;font-weight:900;letter-spacing:3px;color:#000;">GEAT</div>
-    <div class="header-empresa">GAMBARTE ARQUITECTURA S.R.L. — Construcción y Consultoría</div>
-  </div>
-  ${htmlLineas}
-  <div class="firma-bloque">
-    <div class="firma-col">
-      <div class="firma-linea">
-        <strong>${ct.nom||'CONTRATISTA'}</strong><br>
-        C.I. ${ct.ci_n||'___'}<br>
-        Contratista
-      </div>
-    </div>
-    <div class="firma-col">
-      <div class="firma-linea">
-        <strong>JOSÉ MIGUEL GAMBARTE VIDAURRE</strong><br>
-        C.I. 7714413 SC<br>
-        GAMBARTE ARQUITECTURA S.R.L.
-      </div>
-    </div>
-  </div>
-  <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`);
-  win.document.close();
-  log(`Contrato #${ctId} impreso por ${CU.n}`);
 }
 
-function togOCC(id){document.getElementById('occ-'+id)?.classList.toggle('open');}
+function togReg(id){document.getElementById('reg-'+id)?.classList.toggle('open');}
+function editarReg(id){
+  const sel=document.getElementById('sol-obra-sel');
+  sel.value=id;selObraForm(String(id));
+  document.getElementById('card-nueva-sol').scrollIntoView({behavior:'smooth'});
+}
+
+
 
 async function sFirm(cid,inp){
   if(!inp.files[0])return;
