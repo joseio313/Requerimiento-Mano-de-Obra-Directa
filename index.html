@@ -17,7 +17,7 @@
   --N:#c2410c;--Nbg:rgba(194,65,12,.12);--Nc:#fb923c;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--w);min-height:100vh;font-size:14px;padding-bottom:0;margin:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--w);min-height:100vh;font-size:14px;}
 
 /* ════ LOGIN PIN ════ */
 #screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;
@@ -43,7 +43,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .pin-error{color:var(--Rc);font-size:11px;margin-top:10px;min-height:18px;}
 
 /* ════ APP SHELL ════ */
-#app{display:none;}
+#app{display:none;min-height:100vh;}
 .hdr{background:var(--p1);border-bottom:2px solid var(--am);height:52px;padding:0 16px;
   display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;}
 .hdr-l{display:flex;align-items:center;gap:9px;}
@@ -63,7 +63,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .nb.on{color:var(--am);border-bottom-color:var(--am);}
 
 /* MAIN */
-.main{padding:22px 16px 8px;max-width:1160px;margin:0 auto;}
+.main{padding:22px 16px;max-width:1160px;margin:0 auto;}
 #contratos-por-obra,#sup-content,#sup-selector,#pend-aprob{width:100%;box-sizing:border-box;min-height:0;}
 .obra-contrato-card,.occ-card{width:100%;box-sizing:border-box;margin-left:0;margin-right:0;}
 #panel-contratos .ph,#panel-sup .ph{margin-bottom:14px;}
@@ -631,14 +631,9 @@ async function sbLog(usuario, accion) {
           </div>
           <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:7px;padding:11px 18px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ NUEVA</button>
         </div>
-        <div id="kpi-sect" style="display:flex;gap:0;border-top:1px solid rgba(245,196,0,.2);padding-top:12px;">
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="k-tot">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Obras</div></div>
-          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Gc);" id="k-apt">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Aptos</div></div>
-          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Zc);" id="k-ej">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Ejecución</div></div>
-          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="k-mon">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Monto</div></div>
+        <!-- KPIs ocultos (IDs requeridos por JS) -->
+        <div id="kpi-sect" style="display:none;">
+          <span id="k-tot"></span><span id="k-apt"></span><span id="k-ej"></span><span id="k-mon"></span>
         </div>
       </div>
 
@@ -1052,7 +1047,7 @@ function goPanel(id){
   if(id==='contratos'){
     const isSup=CU.r==='supervisor';
     document.getElementById('sup-av').style.display=isSup?'block':'none';
-    document.getElementById('kpi-sect').style.display=isSup?'none':'flex';
+    // kpi-sect eliminado
     document.getElementById('card-nueva-sol').style.display='none';
     document.getElementById('sol-form-body').style.display='none';
     document.getElementById('sol-obra-sel').value='';
