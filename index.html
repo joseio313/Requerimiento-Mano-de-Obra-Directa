@@ -43,7 +43,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .pin-error{color:var(--Rc);font-size:11px;margin-top:10px;min-height:18px;}
 
 /* ════ APP SHELL ════ */
-#app{display:none;min-height:100vh;}
+#app{display:none;}
 .hdr{background:var(--p1);border-bottom:2px solid var(--am);height:52px;padding:0 16px;
   display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;}
 .hdr-l{display:flex;align-items:center;gap:9px;}
@@ -63,7 +63,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .nb.on{color:var(--am);border-bottom-color:var(--am);}
 
 /* MAIN */
-.main{padding:22px 16px;max-width:1160px;margin:0 auto;}
+.main{padding:16px;max-width:1160px;margin:0 auto;}
 #contratos-por-obra,#sup-content,#sup-selector,#pend-aprob{width:100%;box-sizing:border-box;min-height:0;}
 .obra-contrato-card,.occ-card{width:100%;box-sizing:border-box;margin-left:0;margin-right:0;}
 #panel-contratos .ph,#panel-sup .ph{margin-bottom:14px;}
@@ -623,17 +623,14 @@ async function sbLog(usuario, accion) {
       <!-- HERO HEADER -->
       <div style="background:linear-gradient(135deg,#1c1500,#2d2000);border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">📋</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
           <div>
             <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">GEAT · CONTRATOS</div>
             <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Contratos Propietario</div>
             <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi carga · Admin aprueba · Fátima completa</div>
           </div>
-          <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:9px;padding:14px 22px;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:7px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 12px rgba(245,196,0,.3);">
-            <span style="font-size:22px;line-height:1;">+</span> AGREGAR OBRA
-          </button>
+          <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:9px;padding:13px 22px;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 12px rgba(245,196,0,.3);">+ AGREGAR OBRA</button>
         </div>
-        <!-- KPIs ocultos — IDs requeridos por JS -->
         <div id="kpi-sect" style="display:none;">
           <span id="k-tot"></span><span id="k-apt"></span><span id="k-ej"></span><span id="k-mon"></span>
         </div>
