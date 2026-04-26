@@ -623,15 +623,17 @@ async function sbLog(usuario, accion) {
       <!-- HERO HEADER -->
       <div style="background:linear-gradient(135deg,#1c1500,#2d2000);border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">📋</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
           <div>
             <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">GEAT · CONTRATOS</div>
             <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Contratos Propietario</div>
             <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi carga · Admin aprueba · Fátima completa</div>
           </div>
-          <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:7px;padding:11px 18px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ NUEVA</button>
+          <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:9px;padding:14px 22px;font-size:14px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:7px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 12px rgba(245,196,0,.3);">
+            <span style="font-size:22px;line-height:1;">+</span> AGREGAR OBRA
+          </button>
         </div>
-        <!-- KPIs ocultos (IDs requeridos por JS) -->
+        <!-- KPIs ocultos — IDs requeridos por JS -->
         <div id="kpi-sect" style="display:none;">
           <span id="k-tot"></span><span id="k-apt"></span><span id="k-ej"></span><span id="k-mon"></span>
         </div>
@@ -1047,7 +1049,7 @@ function goPanel(id){
   if(id==='contratos'){
     const isSup=CU.r==='supervisor';
     document.getElementById('sup-av').style.display=isSup?'block':'none';
-    // kpi-sect eliminado
+    // kpi-sect oculto
     document.getElementById('card-nueva-sol').style.display='none';
     document.getElementById('sol-form-body').style.display='none';
     document.getElementById('sol-obra-sel').value='';
