@@ -460,7 +460,7 @@ async function sbLog(usuario, accion) {
       <button class="nk del" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v30-ABR</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v31-ABR</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -608,7 +608,6 @@ async function sbLog(usuario, accion) {
     <div class="panel" id="panel-contratos">
 
       <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
-      <div id="pend-aprob"></div>
 
       <!-- Barra compacta: KPIs + botón -->
       <div id="kpi-sect" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
@@ -620,6 +619,8 @@ async function sbLog(usuario, accion) {
         </div>
         <button class="btn y" style="font-size:11px;padding:8px 14px;white-space:nowrap;" onclick="toggleFormSol()">✏️ Editar</button>
       </div>
+
+      <div id="pend-aprob"></div>
 
       <!-- Lista de obras — primero -->
       <div id="registro-sol"></div>
