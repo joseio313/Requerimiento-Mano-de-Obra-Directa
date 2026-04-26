@@ -460,7 +460,7 @@ async function sbLog(usuario, accion) {
       <button class="nk del" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v29-ABR</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v30-ABR</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -607,50 +607,39 @@ async function sbLog(usuario, accion) {
     <!-- ═══ PANEL: CONTRATOS (por obra) ═══ -->
     <div class="panel" id="panel-contratos">
 
-      <div style="background:#c00;color:#fff;font-size:16px;font-weight:900;padding:14px;text-align:center;border-radius:6px;margin-bottom:12px;">🔴 PANEL ACTUALIZADO — VERSIÓN 29</div>
-
-      <!-- Aviso supervisor -->
       <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
-
-      <!-- Encabezado con color propio -->
-      <div style="background:linear-gradient(135deg,rgba(245,196,0,.12),var(--p1));border:1px solid var(--am);border-radius:6px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <div>
-          <div style="font-size:15px;font-weight:900;color:var(--am);letter-spacing:.5px;">📋 CONTRATOS DE OBRA</div>
-          <div style="font-size:10px;color:var(--ws);margin-top:2px;">Solicitudes y documentos por obra</div>
-        </div>
-        <button class="btn y" style="font-size:11px;padding:8px 16px;white-space:nowrap;" onclick="toggleFormSol()">✏️ Nueva / Editar</button>
-      </div>
-
-      <!-- KPIs -->
-      <div class="kpi" id="kpi-sect" style="margin-bottom:12px;">
-        <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
-        <div class="kc"><div class="kv" id="k-apt" style="color:var(--Gc);">—</div><div class="kl">Aptos</div></div>
-        <div class="kc"><div class="kv" id="k-ej" style="color:var(--Zc);">—</div><div class="kl">Ejecución</div></div>
-        <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto USD</div></div>
-      </div>
-
-      <!-- Aprobaciones pendientes (admin) -->
       <div id="pend-aprob"></div>
 
-      <!-- Formulario (cerrado por defecto) -->
-      <div class="card" id="card-nueva-sol" style="display:none;margin-bottom:14px;border-color:var(--am);">
+      <!-- Barra compacta: KPIs + botón -->
+      <div id="kpi-sect" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <div style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
+          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
+          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-apt" style="color:var(--Gc);">—</div><div class="kl">Aptos</div></div>
+          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-ej" style="color:var(--Zc);">—</div><div class="kl">Ejecución</div></div>
+          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto USD</div></div>
+        </div>
+        <button class="btn y" style="font-size:11px;padding:8px 14px;white-space:nowrap;" onclick="toggleFormSol()">✏️ Editar</button>
+      </div>
+
+      <!-- Lista de obras — primero -->
+      <div id="registro-sol"></div>
+
+      <!-- Formulario — oculto, aparece al hacer clic en Editar -->
+      <div class="card" id="card-nueva-sol" style="display:none;margin-top:14px;border-color:var(--am);">
         <div class="ct" style="justify-content:space-between;margin-bottom:10px;">
           <span>✏️ SOLICITUD / EDITAR</span>
           <button class="btn o" style="font-size:10px;padding:4px 10px;line-height:1;" onclick="limpiarFormSol()">✕ Cerrar</button>
         </div>
         <div class="f">
-          <label>Seleccionar obra</label>
+          <label>Obra</label>
           <select id="sol-obra-sel" onchange="selObraForm(this.value)">
-            <option value="">— Elegir obra para cargar datos —</option>
+            <option value="">— Seleccionar obra —</option>
           </select>
         </div>
-
         <div id="sol-form-body" style="display:none;">
           <div class="sol-steps" id="sol-steps" style="margin-top:12px;margin-bottom:4px;"></div>
-
           <div class="ct" style="margin-top:8px;">📄 CONTRATO CON PROPIETARIO</div>
           <div class="cp-upload" id="sol-cp-area"></div>
-
           <div class="ct">📐 DATOS DE LA OBRA</div>
           <div class="g g2" style="margin-bottom:14px;">
             <div class="f"><label>Nombre Obra *</label><input id="sol-nom" oninput="calcSol()"></div>
@@ -664,7 +653,6 @@ async function sbLog(usuario, accion) {
             <div class="f full"><label>📍 Maps Link</label><input id="sol-map" placeholder="https://maps.google.com/..."></div>
             <div class="f full"><label>Notas de Obra</label><textarea id="sol-not" style="min-height:48px;"></textarea></div>
           </div>
-
           <div class="ct">📝 SOLICITUD DE REQUERIMIENTO</div>
           <div class="g g2" style="margin-bottom:14px;">
             <div class="f full"><label>Objeto del Contrato</label><textarea id="sol-obj" style="min-height:64px;"></textarea></div>
@@ -674,16 +662,12 @@ async function sbLog(usuario, accion) {
             <div class="f"><label>📅 Fecha Límite</label><input type="date" id="sol-deadline"></div>
             <div class="f full"><label>Observaciones</label><textarea id="sol-obs" style="min-height:48px;"></textarea></div>
           </div>
-
           <div class="brow">
             <button class="btn y" onclick="guardarSolicitud()" style="font-size:13px;padding:10px 24px;">💾 GUARDAR</button>
             <button class="btn o" onclick="limpiarFormSol()">✕ Cancelar</button>
           </div>
         </div>
       </div>
-
-      <!-- Lista de obras -->
-      <div id="registro-sol"></div>
 
     </div>
 
