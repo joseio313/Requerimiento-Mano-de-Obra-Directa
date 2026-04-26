@@ -606,8 +606,7 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CONTRATOS (por obra) ═══ -->
     <div class="panel" id="panel-contratos">
-      <div class="ph"><h2>📋 CONTRATOS</h2><p>Estado de obras, contratos con propietarios y solicitudes de requerimiento</p></div>
-      <div style="background:var(--am);color:#000;padding:6px 12px;border-radius:3px;font-size:11px;font-weight:800;margin-bottom:12px;display:inline-block;">✓ VERSIÓN NUEVA CARGADA</div>
+      <div class="ph"><h2>📋 CONTRATOS</h2><p>Gestión de solicitudes de requerimiento y contratos con propietarios</p></div>
 
       <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
 
@@ -619,28 +618,16 @@ async function sbLog(usuario, accion) {
         <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto USD</div></div>
       </div>
 
-      <!-- Aprobaciones pendientes inline (admin) -->
+      <!-- Aprobaciones pendientes (admin) -->
       <div id="pend-aprob"></div>
 
-      <!-- Encabezado registro + botón -->
-      <div class="cont-header">
-        <div>
-          <h2>📁 REGISTRO DE OBRAS</h2>
-          <p>Clic en una obra para expandir y gestionar su contrato</p>
-        </div>
-        <button class="btn y" id="btn-nueva-sol" onclick="toggleFormSol()">✚ Nueva Solicitud</button>
-      </div>
-
-      <!-- Lista de obras -->
-      <div id="registro-sol"></div>
-
-      <!-- FORMULARIO — oculto por defecto -->
-      <div class="card" id="card-nueva-sol" style="display:none;margin-top:16px;">
+      <!-- FORMULARIO NUEVA SOLICITUD -->
+      <div class="card" id="card-nueva-sol">
         <div class="ct" style="justify-content:space-between;">
-          <span>✏️ NUEVA SOLICITUD / EDITAR</span>
-          <button class="btn o sm" onclick="toggleFormSol()">✕ Cerrar</button>
+          <span>✏️ SOLICITUD / EDITAR</span>
+          <span id="sol-obra-badge" style="font-size:10px;color:var(--ws);font-weight:400;text-transform:none;letter-spacing:0;">Seleccioná una obra para comenzar</span>
         </div>
-        <div class="f" style="margin-bottom:16px;">
+        <div class="f" style="margin-bottom:0;">
           <label>Obra</label>
           <select id="sol-obra-sel" onchange="selObraForm(this.value)">
             <option value="">— Seleccionar obra —</option>
@@ -649,7 +636,7 @@ async function sbLog(usuario, accion) {
 
         <div id="sol-form-body" style="display:none;">
           <!-- Indicador de progreso -->
-          <div class="sol-steps" id="sol-steps"></div>
+          <div class="sol-steps" id="sol-steps" style="margin-top:16px;"></div>
 
           <!-- Contratos propietario -->
           <div class="ct" style="margin-top:4px;">📄 CONTRATO CON PROPIETARIO</div>
@@ -683,10 +670,19 @@ async function sbLog(usuario, accion) {
 
           <div class="brow">
             <button class="btn y" onclick="guardarSolicitud()" style="font-size:13px;padding:10px 24px;">💾 GUARDAR SOLICITUD</button>
-            <button class="btn o" onclick="toggleFormSol()">✕ Cancelar</button>
+            <button class="btn o" onclick="limpiarFormSol()">✕ Cancelar</button>
           </div>
         </div>
       </div>
+
+      <!-- REGISTRO -->
+      <div class="cont-header">
+        <div>
+          <h2>📁 REGISTRO DE OBRAS</h2>
+          <p>Clic en una obra para expandir detalles y documentos</p>
+        </div>
+      </div>
+      <div id="registro-sol"></div>
     </div>
 
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
