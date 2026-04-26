@@ -460,7 +460,7 @@ async function sbLog(usuario, accion) {
       <button class="nk del" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v31-ABR</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v32-ABR</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -480,8 +480,11 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CARGAR OBRA ═══ -->
     <div class="panel" id="panel-obra">
-      <div class="ph"><h2>📝 CARGAR OBRA</h2><p>Nueva obra — el contrato con propietario se carga en el panel Contratos</p></div>
 
+      <!-- Obras pendientes de datos técnicos (para Fátima) -->
+      <div id="obras-pend-comp"></div>
+
+      <input type="hidden" id="obra-edit-id">
       <div class="card">
         <div class="ct">Datos Generales</div>
         <div class="g g2">
@@ -609,43 +612,67 @@ async function sbLog(usuario, accion) {
 
       <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
 
-      <!-- Barra compacta: KPIs + botón -->
-      <div id="kpi-sect" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-        <div style="display:flex;gap:10px;flex:1;flex-wrap:wrap;">
-          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
-          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-apt" style="color:var(--Gc);">—</div><div class="kl">Aptos</div></div>
-          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-ej" style="color:var(--Zc);">—</div><div class="kl">Ejecución</div></div>
-          <div class="kc" style="flex:1;min-width:60px;"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto USD</div></div>
+      <!-- HERO HEADER -->
+      <div style="background:linear-gradient(135deg,#1c1500,#2d2000);border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">📋</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
+          <div>
+            <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">GEAT · CONTRATOS</div>
+            <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Contratos Propietario</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi carga · Admin aprueba · Fátima completa</div>
+          </div>
+          <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:7px;padding:11px 18px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ NUEVA</button>
         </div>
-        <button class="btn y" style="font-size:11px;padding:8px 14px;white-space:nowrap;" onclick="toggleFormSol()">✏️ Editar</button>
+        <div id="kpi-sect" style="display:flex;gap:0;border-top:1px solid rgba(245,196,0,.2);padding-top:12px;">
+          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="k-tot">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Obras</div></div>
+          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
+          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Gc);" id="k-apt">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Aptos</div></div>
+          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
+          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Zc);" id="k-ej">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Ejecución</div></div>
+          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
+          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="k-mon">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Monto</div></div>
+        </div>
       </div>
 
+      <!-- Aprobaciones pendientes -->
       <div id="pend-aprob"></div>
 
-      <!-- Lista de obras — primero -->
+      <!-- Lista de obras -->
       <div id="registro-sol"></div>
 
-      <!-- Formulario — oculto, aparece al hacer clic en Editar -->
-      <div class="card" id="card-nueva-sol" style="display:none;margin-top:14px;border-color:var(--am);">
-        <div class="ct" style="justify-content:space-between;margin-bottom:10px;">
-          <span>✏️ SOLICITUD / EDITAR</span>
-          <button class="btn o" style="font-size:10px;padding:4px 10px;line-height:1;" onclick="limpiarFormSol()">✕ Cerrar</button>
+      <!-- FORMULARIO: nueva obra / editar (oculto por defecto) -->
+      <div class="card" id="card-nueva-sol" style="display:none;margin-top:14px;border:2px solid var(--am);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--am);">📋 Nueva Obra / Editar</div>
+          <button class="btn o" style="font-size:10px;padding:4px 10px;" onclick="limpiarFormSol()">✕ Cerrar</button>
         </div>
-        <div class="f">
-          <label>Obra</label>
-          <select id="sol-obra-sel" onchange="selObraForm(this.value)">
-            <option value="">— Seleccionar obra —</option>
+
+        <!-- Paso 1: Nombre + Código + botón crear -->
+        <div class="g g2" style="margin-bottom:10px;">
+          <div class="f"><label>Nombre Obra *</label><input id="sol-nom" placeholder="ej. CECILIA-MONTERO" oninput="calcSol()"></div>
+          <div class="f"><label>Código *</label><input id="sol-cod" placeholder="ej. CC-2026-001"></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
+          <select id="sol-obra-sel" onchange="selObraForm(this.value)" style="flex:1;background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:9px 10px;color:var(--wd);font-size:12px;">
+            <option value="">— O editar obra existente —</option>
           </select>
+          <button onclick="crearObraRapida()" style="background:var(--am);color:#000;border:none;border-radius:6px;padding:9px 16px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;">CREAR →</button>
         </div>
-        <div id="sol-form-body" style="display:none;">
-          <div class="sol-steps" id="sol-steps" style="margin-top:12px;margin-bottom:4px;"></div>
-          <div class="ct" style="margin-top:8px;">📄 CONTRATO CON PROPIETARIO</div>
-          <div class="cp-upload" id="sol-cp-area"></div>
-          <div class="ct">📐 DATOS DE LA OBRA</div>
+
+        <!-- Paso 2: Detalles (aparece al crear/seleccionar) -->
+        <div id="sol-form-body" style="display:none;border-top:1px solid var(--bd);padding-top:14px;margin-top:4px;">
+          <div class="sol-steps" id="sol-steps" style="margin-bottom:12px;"></div>
+
+          <!-- Contrato propietario — acción principal de Steffi -->
+          <div style="background:var(--p2);border:1px solid var(--am);border-radius:7px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);margin-bottom:10px;">📄 CONTRATO CON PROPIETARIO</div>
+            <div class="cp-upload" id="sol-cp-area"></div>
+          </div>
+
+          <!-- Datos técnicos — los completa Fátima -->
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:10px;">📐 Datos técnicos <span style="font-size:9px;font-weight:400;color:var(--ws);text-transform:none;">(Fátima completa en panel Obras)</span></div>
           <div class="g g2" style="margin-bottom:14px;">
-            <div class="f"><label>Nombre Obra *</label><input id="sol-nom" oninput="calcSol()"></div>
-            <div class="f"><label>Código *</label><input id="sol-cod"></div>
-            <div class="f"><label>Superficie m² *</label><input type="number" id="sol-sup" oninput="calcSol()"></div>
+            <div class="f"><label>Superficie m²</label><input type="number" id="sol-sup" oninput="calcSol()"></div>
             <div class="f"><label>Precio USD/m²</label><input type="number" id="sol-pre" value="75" oninput="calcSol()"></div>
             <div class="f"><label>Monto USD (auto)</label><input id="sol-mon" readonly></div>
             <div class="f"><label>Cuadrilla (auto)</label><input id="sol-cua" readonly></div>
@@ -654,9 +681,9 @@ async function sbLog(usuario, accion) {
             <div class="f full"><label>📍 Maps Link</label><input id="sol-map" placeholder="https://maps.google.com/..."></div>
             <div class="f full"><label>Notas de Obra</label><textarea id="sol-not" style="min-height:48px;"></textarea></div>
           </div>
-          <div class="ct">📝 SOLICITUD DE REQUERIMIENTO</div>
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:10px;">📝 Solicitud de Requerimiento</div>
           <div class="g g2" style="margin-bottom:14px;">
-            <div class="f full"><label>Objeto del Contrato</label><textarea id="sol-obj" style="min-height:64px;"></textarea></div>
+            <div class="f full"><label>Objeto del Contrato</label><textarea id="sol-obj" style="min-height:48px;"></textarea></div>
             <div class="f full"><label>Inclusiones</label><textarea id="sol-inc" style="min-height:48px;"></textarea></div>
             <div class="f full"><label>Exclusiones</label><textarea id="sol-exc" style="min-height:48px;"></textarea></div>
             <div class="f full"><label>Condiciones de Trabajo</label><textarea id="sol-cond" style="min-height:48px;"></textarea></div>
@@ -1018,12 +1045,13 @@ function goPanel(id){
   if(id==='contratos'){
     const isSup=CU.r==='supervisor';
     document.getElementById('sup-av').style.display=isSup?'block':'none';
-    document.getElementById('kpi-sect').style.display=isSup?'none':'grid';
+    document.getElementById('kpi-sect').style.display=isSup?'none':'flex';
     document.getElementById('card-nueva-sol').style.display='none';
     document.getElementById('sol-form-body').style.display='none';
     document.getElementById('sol-obra-sel').value='';
     renderContratos();
   }
+  if(id==='obra') renderObrasPendCompleto();
   if(id==='sup') renderSup();
 }
 
@@ -1105,19 +1133,30 @@ function gObra(){
   const obj=document.getElementById('o-obj').value;
   const inc=document.getElementById('o-inc').value;
   const exc=document.getElementById('o-exc').value;
+  const fi=document.getElementById('o-fi').value;
+  const di=parseInt(document.getElementById('o-di').value)||0;
+  const editId=parseInt(document.getElementById('obra-edit-id').value)||0;
+  if(editId){
+    const o=obras.find(x=>x.id===editId);
+    if(o){
+      Object.assign(o,{nom,cod,sup,pre,map:mp,cuad,monto:sup*pre,mn:mods.length,fi,di,not,obj,inc,exc,mods});
+      sbGuardarObra(o);
+      log(`Obra "${nom}" completada`);renderOS();renderObras();renderContratos();renderObrasPendCompleto();uStats();lObra();
+      alert(`✅ Datos técnicos de "${nom}" guardados.`);return;
+    }
+  }
   const o={id:Date.now(),nom,cod,sup,pre,map:mp,cuad,monto:sup*pre,mn:mods.length,
-    est:'pendiente',fi:document.getElementById('o-fi').value,
-    di:parseInt(document.getElementById('o-di').value)||0,
-    not,obj,inc,exc,cp:null,cp_esc:null,aprobada:false,mods,contrato_firmado_contratista:null};
+    est:'pendiente',fi,di,not,obj,inc,exc,cp:null,cp_esc:null,aprobada:false,mods,contrato_firmado_contratista:null};
   obras.push(o);
   sbGuardarObra(o);
   log(`Obra "${nom}" cargada`);renderOS();renderObras();uStats();lObra();
-  alert(`✅ Obra "${nom}" guardada.\n⏳ Pendiente aprobación — carga el contrato propietario en el panel Contratos.`);
+  alert(`✅ Obra "${nom}" guardada.\n⏳ Pendiente aprobación — Steffi carga el contrato en el panel Contratos.`);
 }
 function lObra(){
   ['o-nom','o-cod','o-sup','o-map','o-fi','o-di','o-not','o-obj','o-inc','o-exc'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('o-pre').value='75';document.getElementById('o-ff').value='';
   ['c-cua','c-mon','c-moo'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('obra-edit-id').value='';
   initMods();
 }
 
@@ -1495,7 +1534,7 @@ async function guardarSolicitud(){
   const nom=document.getElementById('sol-nom').value.trim();
   const cod=document.getElementById('sol-cod').value.trim();
   const sup=parseFloat(document.getElementById('sol-sup').value)||0;
-  if(!nom||!cod||!sup){alert('⚠️ Completa: Nombre, Código y Superficie.');return;}
+  if(!nom||!cod){alert('⚠️ Completa: Nombre y Código de la obra.');return;}
   o.nom=nom; o.cod=cod; o.sup=sup;
   o.pre=parseFloat(document.getElementById('sol-pre').value)||75;
   o.monto=o.sup*o.pre; o.cuad=Math.max(4,Math.ceil(o.sup/100*4));
@@ -1520,6 +1559,59 @@ function limpiarFormSol(){
   document.getElementById('sol-obra-sel').value='';
   document.getElementById('sol-form-body').style.display='none';
   document.getElementById('card-nueva-sol').style.display='none';
+}
+
+async function crearObraRapida(){
+  const nom=document.getElementById('sol-nom').value.trim();
+  const cod=document.getElementById('sol-cod').value.trim();
+  if(!nom||!cod){alert('⚠️ Ingresá Nombre y Código de la obra.');return;}
+  let o=obras.find(x=>x.cod.toLowerCase()===cod.toLowerCase());
+  if(!o){
+    o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,mn:0,
+      est:'pendiente',fi:'',di:0,not:'',obj:'',inc:'',exc:'',
+      cp:null,cp_esc:null,aprobada:false,mods:[],contrato_firmado_contratista:null};
+    obras.push(o);
+    await sbGuardarObra(o);
+    log(`Nueva obra: ${nom}`);
+    buildSolSelector();renderRegistroSol();renderObras();uStats();
+  }
+  document.getElementById('sol-obra-sel').value=String(o.id);
+  selObraForm(String(o.id));
+}
+
+function renderObrasPendCompleto(){
+  const c=document.getElementById('obras-pend-comp');if(!c)return;
+  const pend=obras.filter(o=>(o.cp||o.cp_esc)&&!o.sup);
+  if(!pend.length){c.innerHTML='';return;}
+  c.innerHTML=`<div style="background:linear-gradient(135deg,#1c1500,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:16px;">
+    <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--am);font-weight:700;margin-bottom:4px;">⚡ PARA COMPLETAR</div>
+    <div style="font-size:14px;font-weight:900;color:#fff;margin-bottom:12px;">Obras que necesitan tus datos</div>
+    ${pend.map(o=>`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(245,196,0,.25);border-radius:7px;padding:12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div>
+        <div style="font-weight:800;font-size:13px;color:#fff;">${o.nom}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:2px;">${o.cod} · Contrato cargado por Steffi ✓</div>
+      </div>
+      <button onclick="cargarObraEnForm(${o.id})" style="background:var(--am);color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;">COMPLETAR →</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+function cargarObraEnForm(id){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  document.getElementById('obra-edit-id').value=id;
+  document.getElementById('o-nom').value=o.nom||'';
+  document.getElementById('o-cod').value=o.cod||'';
+  document.getElementById('o-sup').value=o.sup||'';
+  document.getElementById('o-pre').value=o.pre||75;
+  document.getElementById('o-fi').value=o.fi||'';
+  document.getElementById('o-di').value=o.di||'';
+  document.getElementById('o-map').value=o.map||'';
+  document.getElementById('o-not').value=o.not||'';
+  document.getElementById('o-obj').value=o.obj||'';
+  document.getElementById('o-inc').value=o.inc||'';
+  document.getElementById('o-exc').value=o.exc||'';
+  cO();cFF();
+  document.querySelector('.card').scrollIntoView({behavior:'smooth'});
 }
 
 function renderRegistroSol(){
