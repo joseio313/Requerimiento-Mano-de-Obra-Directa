@@ -272,6 +272,18 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 .sup-obra{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;}
 .sup-obra h4{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--am);}
 .sup-dato{font-size:11px;color:var(--wd);margin-bottom:4px;}
+.sup-obras-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px;}
+.sup-obra-card{background:var(--p2);border:1px solid var(--bd);border-radius:5px;padding:13px;cursor:pointer;transition:all .2s;}
+.sup-obra-card:hover{border-color:var(--am);background:var(--p3);}
+.sup-obra-card .soc-nom{font-weight:700;font-size:12px;margin-bottom:4px;}
+.sup-obra-card .soc-inf{font-size:10px;color:var(--wd);}
+.sup-section{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:13px;margin-bottom:10px;}
+.sup-section-tit{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--ws);margin-bottom:8px;}
+.sup-mods-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:4px;}
+.sup-mod-item{background:var(--p3);border:1px solid var(--bd);border-radius:3px;padding:5px 9px;font-size:11px;}
+.cont-header{display:flex;align-items:center;justify-content:space-between;margin:18px 0 12px;}
+.cont-header h2{font-size:13px;font-weight:800;color:var(--am);letter-spacing:2px;}
+.cont-header p{font-size:10px;color:var(--ws);margin-top:2px;}
 .sup-dato b{color:var(--w);}
 .sup-mods{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px;}
 .sup-mod{background:var(--p3);border:1px solid var(--bd);border-radius:3px;padding:2px 7px;font-size:9px;color:var(--wd);}
@@ -593,20 +605,39 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CONTRATOS (por obra) ═══ -->
     <div class="panel" id="panel-contratos">
-      <div class="ph"><h2>📋 SOLICITUDES DE REQUERIMIENTO</h2><p>Contratos, verificación de obra y asignación de mano de obra directa</p></div>
+      <div class="ph"><h2>📋 CONTRATOS</h2><p>Estado de obras, contratos con propietarios y solicitudes de requerimiento</p></div>
 
-      <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — acceso de lectura.</div>
+      <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
 
+      <!-- KPIs -->
       <div class="kpi" id="kpi-sect">
         <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
         <div class="kc"><div class="kv" id="k-apt" style="color:var(--Gc);">—</div><div class="kl">Aptos</div></div>
         <div class="kc"><div class="kv" id="k-ej" style="color:var(--Zc);">—</div><div class="kl">En Ejecución</div></div>
-        <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto Total</div></div>
+        <div class="kc"><div class="kv" id="k-mon" style="color:var(--am);">—</div><div class="kl">Monto USD</div></div>
       </div>
 
-      <!-- FORMULARIO NUEVA SOLICITUD -->
-      <div class="card" id="card-nueva-sol">
-        <div class="ct">✏️ NUEVA SOLICITUD / EDITAR</div>
+      <!-- Aprobaciones pendientes inline (admin) -->
+      <div id="pend-aprob"></div>
+
+      <!-- Encabezado registro + botón -->
+      <div class="cont-header">
+        <div>
+          <h2>📁 REGISTRO DE OBRAS</h2>
+          <p>Clic en una obra para expandir y gestionar su contrato</p>
+        </div>
+        <button class="btn y" id="btn-nueva-sol" onclick="toggleFormSol()">✚ Nueva Solicitud</button>
+      </div>
+
+      <!-- Lista de obras -->
+      <div id="registro-sol"></div>
+
+      <!-- FORMULARIO — oculto por defecto -->
+      <div class="card" id="card-nueva-sol" style="display:none;margin-top:16px;">
+        <div class="ct" style="justify-content:space-between;">
+          <span>✏️ NUEVA SOLICITUD / EDITAR</span>
+          <button class="btn o sm" onclick="toggleFormSol()">✕ Cerrar</button>
+        </div>
         <div class="f" style="margin-bottom:16px;">
           <label>Obra</label>
           <select id="sol-obra-sel" onchange="selObraForm(this.value)">
@@ -615,8 +646,7 @@ async function sbLog(usuario, accion) {
         </div>
 
         <div id="sol-form-body" style="display:none;">
-
-          <!-- Indicador de progreso del proceso -->
+          <!-- Indicador de progreso -->
           <div class="sol-steps" id="sol-steps"></div>
 
           <!-- Contratos propietario -->
@@ -639,7 +669,7 @@ async function sbLog(usuario, accion) {
           </div>
 
           <!-- Solicitud de requerimiento -->
-          <div class="ct">📝 SOLICITUD DE REQUERIMIENTO DE MANO DE OBRA</div>
+          <div class="ct">📝 SOLICITUD DE REQUERIMIENTO</div>
           <div class="g g2" style="margin-bottom:14px;">
             <div class="f full"><label>Objeto del Contrato</label><textarea id="sol-obj" style="min-height:64px;"></textarea></div>
             <div class="f full"><label>Inclusiones</label><textarea id="sol-inc" style="min-height:48px;"></textarea></div>
@@ -651,27 +681,17 @@ async function sbLog(usuario, accion) {
 
           <div class="brow">
             <button class="btn y" onclick="guardarSolicitud()" style="font-size:13px;padding:10px 24px;">💾 GUARDAR SOLICITUD</button>
-            <button class="btn o" onclick="limpiarFormSol()">✕ Cancelar</button>
+            <button class="btn o" onclick="toggleFormSol()">✕ Cancelar</button>
           </div>
         </div>
       </div>
-
-      <!-- REGISTRO -->
-      <div style="display:flex;align-items:center;gap:12px;margin:22px 0 12px;">
-        <h2 style="font-size:14px;font-weight:800;color:var(--am);letter-spacing:2px;">📁 REGISTRO DE SOLICITUDES</h2>
-        <span style="font-size:10px;color:var(--ws);">Historial guardado — clic para expandir</span>
-      </div>
-      <div id="registro-sol"></div>
-
-      <!-- compatibilidad con funciones existentes -->
-      <div id="pend-aprob" style="display:none;"></div>
-      <div id="contratos-por-obra" style="display:none;"></div>
     </div>
 
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
     <div class="panel" id="panel-sup">
-      <div class="ph"><h2>🏗️ SUPERVISIÓN DE OBRA</h2><p>Seleccioná una obra para ver su paquete completo e imprimir</p></div>
-      <div id="sup-selector" style="margin-bottom:12px;"></div>
+      <div class="ph"><h2>🏗️ SUPERVISIÓN</h2><p>Estado de obras activas — seleccioná una para ver el paquete completo</p></div>
+      <div id="sup-overview"></div>
+      <div id="sup-selector"></div>
       <div id="sup-content" style="min-height:0;"></div>
     </div>
 
@@ -1565,9 +1585,27 @@ function renderRegistroSol(){
 
 function togReg(id){document.getElementById('reg-'+id)?.classList.toggle('open');}
 function editarReg(id){
+  const card=document.getElementById('card-nueva-sol');
+  card.style.display='block';
   const sel=document.getElementById('sol-obra-sel');
-  sel.value=id;selObraForm(String(id));
-  document.getElementById('card-nueva-sol').scrollIntoView({behavior:'smooth'});
+  sel.value=id; selObraForm(String(id));
+  card.scrollIntoView({behavior:'smooth'});
+}
+function toggleFormSol(){
+  const card=document.getElementById('card-nueva-sol');
+  const opening=card.style.display==='none';
+  card.style.display=opening?'block':'none';
+  if(opening) card.scrollIntoView({behavior:'smooth'});
+  else{
+    document.getElementById('sol-form-body').style.display='none';
+    document.getElementById('sol-obra-sel').value='';
+  }
+}
+function selSupObra(id){
+  const sel=document.getElementById('sup-sel-obra');
+  if(!sel)return;
+  sel.value=id; renderSupObra(id);
+  document.getElementById('sup-selector').scrollIntoView({behavior:'smooth'});
 }
 
 
@@ -1674,23 +1712,51 @@ function eliminarContratista(ctId){
 function renderSup(){
   const sel=document.getElementById('sup-selector');
   const cont=document.getElementById('sup-content');
+  const ov=document.getElementById('sup-overview');
   if(!sel||!cont) return;
   const activas=obras.filter(o=>o.aprobada);
+
+  // Tarjetas de resumen rápido
+  if(ov){
+    if(activas.length){
+      ov.innerHTML=`<div class="sup-obras-grid">${activas.map(o=>{
+        const ct=contratos.find(x=>x.oid===o.id&&x.est==='en_ejecucion')||contratos.find(x=>x.oid===o.id);
+        const estCls=ct?.est==='en_ejecucion'?'e-ej':ct?.est==='apto_para_obra'?'e-apto':'e-gen';
+        const estLbl=ct?.est==='en_ejecucion'?'En Ejecución':ct?.est==='apto_para_obra'?'Apto':'Pendiente';
+        return `<div class="sup-obra-card" onclick="selSupObra(${o.id})">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
+            <div class="soc-nom">${o.nom}</div>
+            <span class="est ${estCls}">${estLbl}</span>
+          </div>
+          <div class="soc-inf">${o.cod} · ${o.sup}m²</div>
+          <div class="soc-inf" style="margin-top:3px;">👷 ${ct?ct.nom:'Sin contratista'}</div>
+          ${o.fi?`<div class="soc-inf" style="margin-top:2px;">📅 ${o.fi} · ${o.di}d</div>`:''}
+        </div>`;
+      }).join('')}</div>`;
+    } else {
+      ov.innerHTML='';
+    }
+  }
+
   if(!activas.length){
     sel.innerHTML='';
-    cont.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras aprobadas aún.</p>';
+    cont.innerHTML=`<div style="text-align:center;padding:48px 24px;">
+      <div style="font-size:32px;margin-bottom:12px;">🏗️</div>
+      <div style="font-weight:700;margin-bottom:6px;">Sin obras aprobadas</div>
+      <div style="font-size:11px;color:var(--ws);">Las obras aparecen aquí una vez que el administrador las aprueba.</div>
+    </div>`;
     return;
   }
-  // Selector de obra
-  sel.innerHTML=`<div class="g g2">
-    <div class="f"><label>Seleccionar Obra</label>
+  sel.innerHTML=`<div class="card" style="margin-bottom:14px;">
+    <div class="ct">Ver paquete completo de una obra</div>
+    <div class="f">
       <select id="sup-sel-obra" onchange="renderSupObra(this.value)">
         <option value="">— Elegir obra —</option>
         ${activas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('')}
       </select>
     </div>
   </div>`;
-  cont.innerHTML='<p style="color:var(--ws);font-size:12px;">Seleccioná una obra para ver el paquete completo.</p>';
+  cont.innerHTML='';
 }
 
 function renderSupObra(oid){
@@ -1698,89 +1764,85 @@ function renderSupObra(oid){
   if(!oid){c.innerHTML='';return;}
   const o=obras.find(x=>x.id==oid);if(!o)return;
   const ct=contratos.find(x=>x.oid==oid&&x.est==='en_ejecucion')||contratos.find(x=>x.oid==oid);
-  const mods=(o.mods||[]).map((m,i)=>`M${String(i+1).padStart(2,'0')}. ${m}`).join('\n');
 
-  c.innerHTML=`
-    <div class="card" id="sup-paquete">
-      <div class="ct" style="justify-content:space-between;">
-        <span>📦 PAQUETE DE SUPERVISIÓN — ${o.nom}</span>
-        <button class="btn y sm" onclick="imprimirSupervision()">🖨️ Imprimir todo</button>
+  c.innerHTML=`<div id="sup-paquete">
+
+    <!-- Encabezado con botón imprimir -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div>
+        <div style="font-size:16px;font-weight:900;color:var(--am);">${o.nom}</div>
+        <div style="font-size:11px;color:var(--ws);">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
       </div>
+      <button class="btn y sm" onclick="imprimirSupervision()">🖨️ Imprimir paquete</button>
+    </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-        <div>
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Datos de Obra</div>
-          <div class="sup-dato">Obra: <b>${o.nom}</b></div>
-          <div class="sup-dato">Código: <b>${o.cod}</b></div>
-          <div class="sup-dato">Superficie: <b>${o.sup}m²</b></div>
-          <div class="sup-dato">Cuadrilla: <b>${o.cuad} personas</b></div>
-          <div class="sup-dato">Inicio: <b>${o.fi||'—'}</b></div>
-          <div class="sup-dato">Días: <b>${o.di||'—'}</b></div>
-          <div class="sup-dato">Fin estimado: <b>${calcFechaFinTexto(o.fi,o.di)}</b></div>
-          <div class="sup-dato" style="margin-top:8px;">
-            <a href="${o.map}" target="_blank" style="color:var(--am);font-weight:700;">📍 Abrir ubicación en Maps</a>
-          </div>
-        </div>
-        <div>
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Contratista</div>
-          ${ct?`
-          <div class="sup-dato">Nombre: <b>${ct.nom}</b></div>
-          <div class="sup-dato">Teléfono: <b>${ct.tel||'—'}</b></div>
-          <div class="sup-dato">C.I.: <b>${ct.ci_n||'—'}</b></div>
-          <div class="sup-dato">Dirección: <b>${ct.dir||'—'}</b></div>
-          <div class="sup-dato" style="margin-top:8px;">Estado contrato: <b>${ct.est_contrato==='aprobado'?'✅ Aprobado':'⏳ En proceso'}</b></div>
-          `
-          :'<div class="sup-dato" style="color:var(--ws);">Sin contratista asignado aún.</div>'}
+    <!-- Fila: Datos obra + Contratista -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div class="sup-section">
+        <div class="sup-section-tit">📐 Datos de Obra</div>
+        <div class="sup-dato">Inicio: <b>${o.fi||'—'}</b></div>
+        <div class="sup-dato">Plazo: <b>${o.di||'—'} días</b></div>
+        <div class="sup-dato">Fin est.: <b>${calcFechaFinTexto(o.fi,o.di)}</b></div>
+        <div style="margin-top:8px;">
+          <a href="${o.map}" target="_blank" class="btn g2b sm" style="text-decoration:none;">📍 Ver en Maps</a>
         </div>
       </div>
-
-      ${ct&&ct.cond?`
-      <div style="margin-bottom:16px;">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Condiciones Especiales de Obra</div>
-        <div style="background:var(--p2);border-radius:3px;padding:10px 14px;font-size:12px;line-height:1.7;">${ct.cond}</div>
-      </div>`:''}
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
-        <div style="background:var(--Gbg);border:1px solid var(--G);border-radius:4px;padding:12px;">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:6px;">Forma de Pago</div>
-          <div style="font-size:11px;line-height:1.8;">
-            <div>1er pago: <b style="color:var(--Gc);">30% al inicio</b></div>
-            <div>2do pago: <b style="color:var(--Gc);">40% al 50% de avance</b></div>
-            <div>3er pago: <b style="color:var(--Gc);">30% a la entrega</b></div>
-            <div style="margin-top:6px;font-size:10px;color:var(--ws);">Pagos quincenales según avance aprobado por supervisor</div>
-          </div>
-        </div>
-        <div style="background:var(--Zbg);border:1px solid var(--Z);border-radius:4px;padding:12px;">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:6px;">Obligaciones en Campo</div>
-          <div style="font-size:11px;line-height:1.8;">
-            <div>✓ Limpieza diaria del área</div>
-            <div>✓ Reporte semanal de avance</div>
-            <div>✓ Especialistas para M05,M06,M07,M10,M19</div>
-            <div>✓ SOAT-C de todo el personal</div>
-            <div>✓ No divulgar info de la obra</div>
-          </div>
-        </div>
+      <div class="sup-section">
+        <div class="sup-section-tit">👷 Contratista</div>
+        ${ct?`
+          <div class="sup-dato"><b>${ct.nom}</b></div>
+          <div class="sup-dato">📱 ${ct.tel||'—'}</div>
+          <div class="sup-dato">C.I. ${ct.ci_n||'—'}</div>
+          <div class="sup-dato" style="margin-top:6px;">${ct.est_contrato==='aprobado'?'<span class="est e-apto">✅ Contrato aprobado</span>':'<span class="est e-gen">⏳ En proceso</span>'}</div>
+          ${ct.tel?`<a href="https://wa.me/591${ct.tel}" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;margin-top:8px;display:inline-flex;">💬 WhatsApp</a>`:''}
+        `:'<div class="sup-dato" style="color:var(--ws);">Sin contratista asignado.</div>'}
       </div>
-      <div style="background:var(--Rbg);border:1px solid var(--R);border-radius:4px;padding:12px;margin-bottom:16px;">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--Rc);margin-bottom:6px;">⚠️ Penalidades (cláusula 21)</div>
-        <div style="font-size:11px;line-height:1.8;">
-          <div>• Retraso injustificado: multa por día de atraso</div>
-          <div>• SOAT-C no presentado en 3 días: Bs 50/día de multa</div>
-          <div>• Hurto o robo: rescisión inmediata + acciones penales</div>
-          <div>• Modificaciones no autorizadas: reclamación en 10 días hábiles</div>
-        </div>
+    </div>
+
+    ${ct?.cond?`<div class="sup-section" style="margin-bottom:10px;">
+      <div class="sup-section-tit">📋 Condiciones Especiales</div>
+      <div style="font-size:11px;line-height:1.7;color:var(--wd);">${ct.cond}</div>
+    </div>`:''}
+
+    <!-- Fila: Pagos + Obligaciones -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+      <div class="sup-section" style="border-color:var(--G);background:var(--Gbg);">
+        <div class="sup-section-tit" style="color:var(--Gc);">💰 Forma de Pago</div>
+        <div class="sup-dato">1er pago: <b style="color:var(--Gc);">30% al inicio</b></div>
+        <div class="sup-dato">2do pago: <b style="color:var(--Gc);">40% al 50% avance</b></div>
+        <div class="sup-dato">3er pago: <b style="color:var(--Gc);">30% a la entrega</b></div>
+        <div style="font-size:10px;color:var(--ws);margin-top:6px;">Quincenales según avance aprobado</div>
       </div>
-
-      <div style="margin-bottom:16px;">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;">Módulos a Ejecutar (${o.mods?.length||0})</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;">
-          ${(o.mods||[]).map((m,i)=>`<div style="background:var(--p2);border:1px solid var(--bd);border-radius:3px;padding:5px 9px;font-size:11px;">
-            <b style="color:var(--am);">M${String(i+1).padStart(2,'0')}</b> ${m}
-          </div>`).join('')}
-        </div>
+      <div class="sup-section" style="border-color:var(--Z);background:var(--Zbg);">
+        <div class="sup-section-tit" style="color:var(--Zc);">✅ Obligaciones en Campo</div>
+        <div class="sup-dato">✓ Limpieza diaria</div>
+        <div class="sup-dato">✓ Reporte semanal de avance</div>
+        <div class="sup-dato">✓ Especialistas M05,M06,M07,M10,M19</div>
+        <div class="sup-dato">✓ SOAT-C todo el personal</div>
+        <div class="sup-dato">✓ No divulgar info</div>
       </div>
+    </div>
 
+    <!-- Penalidades -->
+    <div class="sup-section" style="border-color:var(--R);background:var(--Rbg);margin-bottom:10px;">
+      <div class="sup-section-tit" style="color:var(--Rc);">⚠️ Penalidades (cláusula 21)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:11px;color:var(--wd);">
+        <div>• Retraso: multa por día</div>
+        <div>• Sin SOAT-C en 3d: Bs 50/día</div>
+        <div>• Hurto/robo: rescisión + penal</div>
+        <div>• Modificaciones no autorizadas</div>
+      </div>
+    </div>
 
-    </div>`;
+    <!-- Módulos -->
+    <div class="sup-section">
+      <div class="sup-section-tit">🧱 Módulos a Ejecutar (${o.mods?.length||0})</div>
+      <div class="sup-mods-grid">
+        ${(o.mods||[]).map((m,i)=>`<div class="sup-mod-item"><b style="color:var(--am);">M${String(i+1).padStart(2,'0')}</b> ${m}</div>`).join('')}
+      </div>
+    </div>
+
+  </div>`;
 }
 
 function imprimirSupervision(){
