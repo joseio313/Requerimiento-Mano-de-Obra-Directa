@@ -460,7 +460,7 @@ async function sbLog(usuario, accion) {
       <button class="nk del" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v27-ABR</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v28-ABR</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -607,9 +607,19 @@ async function sbLog(usuario, accion) {
     <!-- ═══ PANEL: CONTRATOS (por obra) ═══ -->
     <div class="panel" id="panel-contratos">
 
+      <!-- Aviso supervisor -->
       <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
 
-      <!-- KPIs compactos -->
+      <!-- Encabezado con color propio -->
+      <div style="background:linear-gradient(135deg,rgba(245,196,0,.12),var(--p1));border:1px solid var(--am);border-radius:6px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <div>
+          <div style="font-size:15px;font-weight:900;color:var(--am);letter-spacing:.5px;">📋 CONTRATOS DE OBRA</div>
+          <div style="font-size:10px;color:var(--ws);margin-top:2px;">Solicitudes y documentos por obra</div>
+        </div>
+        <button class="btn y" style="font-size:11px;padding:8px 16px;white-space:nowrap;" onclick="toggleFormSol()">✏️ Nueva / Editar</button>
+      </div>
+
+      <!-- KPIs -->
       <div class="kpi" id="kpi-sect" style="margin-bottom:12px;">
         <div class="kc"><div class="kv" id="k-tot" style="color:var(--am);">—</div><div class="kl">Obras</div></div>
         <div class="kc"><div class="kv" id="k-apt" style="color:var(--Gc);">—</div><div class="kl">Aptos</div></div>
@@ -620,14 +630,8 @@ async function sbLog(usuario, accion) {
       <!-- Aprobaciones pendientes (admin) -->
       <div id="pend-aprob"></div>
 
-      <!-- Barra de acción: título + botón abrir formulario -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--wd);">📁 Registro de Obras</div>
-        <button class="btn y" style="font-size:11px;padding:7px 16px;" onclick="toggleFormSol()">✏️ Nueva / Editar</button>
-      </div>
-
-      <!-- Formulario (cerrado por defecto, sin espacio en blanco) -->
-      <div class="card" id="card-nueva-sol" style="display:none;margin-bottom:14px;">
+      <!-- Formulario (cerrado por defecto) -->
+      <div class="card" id="card-nueva-sol" style="display:none;margin-bottom:14px;border-color:var(--am);">
         <div class="ct" style="justify-content:space-between;margin-bottom:10px;">
           <span>✏️ SOLICITUD / EDITAR</span>
           <button class="btn o" style="font-size:10px;padding:4px 10px;line-height:1;" onclick="limpiarFormSol()">✕ Cerrar</button>
@@ -1028,6 +1032,9 @@ function goPanel(id){
     const isSup=CU.r==='supervisor';
     document.getElementById('sup-av').style.display=isSup?'block':'none';
     document.getElementById('kpi-sect').style.display=isSup?'none':'grid';
+    document.getElementById('card-nueva-sol').style.display='none';
+    document.getElementById('sol-form-body').style.display='none';
+    document.getElementById('sol-obra-sel').value='';
     renderContratos();
   }
   if(id==='sup') renderSup();
