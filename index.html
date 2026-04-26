@@ -378,7 +378,7 @@ async function sbCargarDatos() {
       }));
     }
 
-    renderObras(); renderOS(); renderContratos(); renderSup(); renderAdmin(); uStats();
+    renderObras(); renderObrasPendCompleto(); renderOS(); renderContratos(); renderSup(); renderAdmin(); uStats();
     console.log('✅ Datos cargados desde Supabase');
   } catch(e) {
     console.warn('Supabase no disponible, usando datos locales:', e.message);
@@ -460,7 +460,7 @@ async function sbLog(usuario, accion) {
       <button class="nk del" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v32-ABR</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v33-ABR</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -480,6 +480,14 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CARGAR OBRA ═══ -->
     <div class="panel" id="panel-obra">
+
+      <!-- HERO HEADER Obras -->
+      <div style="background:linear-gradient(135deg,#001828,#002a40);border:2px solid #38bdf8;border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">🏗️</div>
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#38bdf8;font-weight:700;">GEAT · OBRAS</div>
+        <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Cargar Obra</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Registrá nueva obra o completá datos técnicos</div>
+      </div>
 
       <!-- Obras pendientes de datos técnicos (para Fátima) -->
       <div id="obras-pend-comp"></div>
@@ -647,16 +655,15 @@ async function sbLog(usuario, accion) {
           <button class="btn o" style="font-size:10px;padding:4px 10px;" onclick="limpiarFormSol()">✕ Cerrar</button>
         </div>
 
-        <!-- Paso 1: Nombre + Código + botón crear -->
+        <!-- Nombre + Código -->
         <div class="g g2" style="margin-bottom:10px;">
           <div class="f"><label>Nombre Obra *</label><input id="sol-nom" placeholder="ej. CECILIA-MONTERO" oninput="calcSol()"></div>
           <div class="f"><label>Código *</label><input id="sol-cod" placeholder="ej. CC-2026-001"></div>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;">
-          <select id="sol-obra-sel" onchange="selObraForm(this.value)" style="flex:1;background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:9px 10px;color:var(--wd);font-size:12px;">
-            <option value="">— O editar obra existente —</option>
+        <div style="margin-bottom:10px;">
+          <select id="sol-obra-sel" onchange="selObraForm(this.value)" style="width:100%;background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:9px 10px;color:var(--wd);font-size:12px;">
+            <option value="">— Editar obra existente (opcional) —</option>
           </select>
-          <button onclick="crearObraRapida()" style="background:var(--am);color:#000;border:none;border-radius:6px;padding:9px 16px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;">CREAR →</button>
         </div>
 
         <!-- Paso 2: Detalles (aparece al crear/seleccionar) -->
@@ -1001,7 +1008,7 @@ function tryLogin(){
   document.getElementById('screen-login').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
-  buildNav(); initMods(); renderOS(); renderObras(); renderContratos(); renderSup(); renderAdmin();
+  buildNav(); initMods(); renderOS(); renderObras(); renderObrasPendCompleto(); renderContratos(); renderSup(); renderAdmin();
   goPanel(panelInicial());
   log(`Sesión iniciada: ${u.n}`);
   sbCargarDatos();
@@ -1527,14 +1534,24 @@ function renderSolCP(o){
 }
 
 async function guardarSolicitud(){
-  const idStr=document.getElementById('sol-obra-sel').value;
-  if(!idStr){alert('⚠️ Selecciona una obra.');return;}
-  const id=parseInt(idStr);
-  const o=obras.find(x=>x.id===id);if(!o)return;
   const nom=document.getElementById('sol-nom').value.trim();
   const cod=document.getElementById('sol-cod').value.trim();
+  if(!nom||!cod){alert('⚠️ Completá Nombre y Código de la obra.');return;}
+  const idStr=document.getElementById('sol-obra-sel').value;
+  let o; let esNueva=false;
+  if(idStr){
+    o=obras.find(x=>x.id===parseInt(idStr));if(!o)return;
+  } else {
+    o=obras.find(x=>x.cod.toLowerCase()===cod.toLowerCase());
+    if(!o){
+      esNueva=true;
+      o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,mn:0,
+        est:'pendiente',fi:'',di:0,not:'',obj:'',inc:'',exc:'',
+        cp:null,cp_esc:null,aprobada:false,mods:[],contrato_firmado_contratista:null};
+      obras.push(o);
+    }
+  }
   const sup=parseFloat(document.getElementById('sol-sup').value)||0;
-  if(!nom||!cod){alert('⚠️ Completa: Nombre y Código de la obra.');return;}
   o.nom=nom; o.cod=cod; o.sup=sup;
   o.pre=parseFloat(document.getElementById('sol-pre').value)||75;
   o.monto=o.sup*o.pre; o.cuad=Math.max(4,Math.ceil(o.sup/100*4));
@@ -1549,10 +1566,16 @@ async function guardarSolicitud(){
   const ct=contratos.find(c=>c.oid===id);
   if(ct&&cond){ct.cond=cond;sbGuardarContrato(ct);}
   await sbGuardarObra(o);
-  log(`Solicitud guardada: ${o.nom}`);
-  renderContratos();renderObras();uStats();
-  renderSolSteps(o);
-  alert(`✅ Solicitud "${o.nom}" guardada correctamente.`);
+  if(esNueva){
+    buildSolSelector();
+    document.getElementById('sol-obra-sel').value=String(o.id);
+    log(`Nueva obra: ${o.nom}`);
+  } else {
+    log(`Solicitud guardada: ${o.nom}`);
+  }
+  renderContratos();renderObras();renderObrasPendCompleto();uStats();
+  renderSolSteps(o);renderSolCP(o);
+  alert(esNueva?`✅ Obra "${o.nom}" creada. Ahora podés subir el contrato del propietario.`:`✅ Solicitud "${o.nom}" guardada.`);
 }
 
 function limpiarFormSol(){
@@ -1675,12 +1698,26 @@ function editarReg(id){
 function toggleFormSol(){
   const card=document.getElementById('card-nueva-sol');
   const opening=card.style.display==='none';
-  card.style.display=opening?'block':'none';
-  if(opening) card.scrollIntoView({behavior:'smooth'});
-  else{
+  if(!opening){
+    card.style.display='none';
     document.getElementById('sol-form-body').style.display='none';
     document.getElementById('sol-obra-sel').value='';
+    return;
   }
+  // Abrir en modo nueva obra
+  document.getElementById('sol-obra-sel').value='';
+  document.getElementById('sol-nom').value='';
+  document.getElementById('sol-cod').value='';
+  const body=document.getElementById('sol-form-body');
+  body.style.display='block';
+  const area=document.getElementById('sol-cp-area');
+  if(area) area.innerHTML=`
+    <div style="padding:16px;border:1px dashed var(--bd);border-radius:6px;color:var(--ws);font-size:11px;text-align:center;">📄 Guardá la obra para habilitar subida de contrato</div>
+    <div style="padding:16px;border:1px dashed var(--bd);border-radius:6px;color:var(--ws);font-size:11px;text-align:center;">📸 El escaneado también se habilitará al guardar</div>`;
+  const steps=document.getElementById('sol-steps');
+  if(steps) steps.innerHTML='';
+  card.style.display='block';
+  card.scrollIntoView({behavior:'smooth'});
 }
 function selSupObra(id){
   const sel=document.getElementById('sup-sel-obra');
