@@ -492,7 +492,7 @@ async function sbLog(usuario, accion) {
       <!-- Obras pendientes de datos técnicos (para Fátima) -->
       <div id="obras-pend-comp"></div>
 
-      <input type="hidden" id="obra-edit-id"><div id="fatima-cp-info" style="display:none;"></div>
+      <input type="hidden" id="obra-edit-id">
       <div class="card">
         <div class="ct">Datos Generales</div>
         <div class="g g2">
@@ -623,22 +623,13 @@ async function sbLog(usuario, accion) {
       <!-- HERO HEADER -->
       <div style="background:linear-gradient(135deg,#1c1500,#2d2000);border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">📋</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;">
-          <div>
-            <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">GEAT · CONTRATOS</div>
-            <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Contratos Propietario</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi carga · Admin aprueba · Fátima completa</div>
-          </div>
-          <button onclick="toggleFormSol()" style="background:var(--am);color:#000;border:none;border-radius:7px;padding:11px 18px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;flex-shrink:0;">+ NUEVA</button>
+        <div>
+          <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">GEAT · CONTRATOS</div>
+          <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Contratos Propietario</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi carga · Admin aprueba · Fátima completa</div>
         </div>
-        <div id="kpi-sect" style="display:flex;gap:0;border-top:1px solid rgba(245,196,0,.2);padding-top:12px;">
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="k-tot">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Obras</div></div>
-          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Gc);" id="k-apt">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Aptos</div></div>
-          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Zc);" id="k-ej">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Ejecución</div></div>
-          <div style="width:1px;background:rgba(245,196,0,.15);"></div>
-          <div style="flex:1;text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="k-mon">—</div><div style="font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.35);margin-top:2px;">Monto</div></div>
+        <div id="kpi-sect" style="display:none;">
+          <span id="k-tot"></span><span id="k-apt"></span><span id="k-ej"></span><span id="k-mon"></span>
         </div>
       </div>
 
@@ -648,60 +639,59 @@ async function sbLog(usuario, accion) {
       <!-- Lista de obras -->
       <div id="registro-sol"></div>
 
-      <!-- FORMULARIO: nueva obra — SOLO uploads, nombre/código autorrellenado -->
+      <!-- FORMULARIO: nueva obra — solo uploads + auto-relleno -->
       <div id="card-nueva-sol" style="display:none;margin-top:12px;">
         <div style="background:linear-gradient(160deg,#0f1f00,#1e3500);border:1.5px solid rgba(245,196,0,.5);border-radius:12px;padding:20px;">
 
           <!-- Header -->
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;">
             <div>
-              <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">NUEVA OBRA</div>
-              <div style="font-size:16px;font-weight:900;color:#fff;margin-top:3px;">Cargá el contrato del propietario</div>
-              <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:2px;">El nombre y código se autocompletarán del archivo</div>
+              <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(245,196,0,.7);font-weight:700;margin-bottom:4px;">NUEVA OBRA</div>
+              <div style="font-size:17px;font-weight:900;color:#fff;">Subir Contrato del Propietario</div>
+              <div style="font-size:10px;color:rgba(255,255,255,.35);margin-top:3px;">El nombre y código se rellenan solos desde el archivo</div>
             </div>
-            <button onclick="limpiarFormSol()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:8px;width:36px;height:36px;font-size:16px;cursor:pointer;flex-shrink:0;">✕</button>
+            <button onclick="limpiarFormSol()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:8px;width:36px;height:36px;font-size:16px;cursor:pointer;flex-shrink:0;touch-action:manipulation;">✕</button>
           </div>
 
-          <!-- UPLOADS — primero y principal -->
+          <!-- Uploads — los dos activos desde el inicio -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+
             <!-- PDF Digital -->
             <div>
-              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:6px;">📋 Archivo Digital</div>
-              <label style="display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;">
-                <div id="box-cp-dig" style="background:rgba(0,0,0,.3);border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:22px 10px;text-align:center;transition:all .2s;">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:6px;">Contrato Digital (PDF)</div>
+              <label style="display:block;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+                <div id="box-dig" style="background:rgba(0,0,0,.3);border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:22px 10px;text-align:center;transition:all .2s;">
                   <div style="font-size:32px;margin-bottom:6px;">📋</div>
-                  <div style="font-size:11px;font-weight:700;color:var(--wd);" id="txt-cp-dig">Subir PDF</div>
-                  <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:3px;">PDF · DOC · DOCX</div>
+                  <div style="font-size:11px;font-weight:700;color:var(--wd);" id="txt-dig">Subir PDF</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">PDF · DOC · DOCX</div>
                 </div>
                 <input type="file" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="hCPNew('dig',this)">
               </label>
             </div>
+
             <!-- Foto/Escaneo -->
             <div>
-              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:6px;">📸 Foto / Escaneo</div>
-              <label style="display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;">
-                <div id="box-cp-esc" style="background:rgba(0,0,0,.3);border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:22px 10px;text-align:center;transition:all .2s;">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:6px;">Foto / Escaneo</div>
+              <label style="display:block;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;">
+                <div id="box-esc" style="background:rgba(0,0,0,.3);border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:22px 10px;text-align:center;transition:all .2s;">
                   <div style="font-size:32px;margin-bottom:6px;">📸</div>
-                  <div style="font-size:11px;font-weight:700;color:var(--wd);" id="txt-cp-esc">Subir Foto</div>
-                  <div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:3px;">JPG · PNG</div>
+                  <div style="font-size:11px;font-weight:700;color:var(--wd);" id="txt-esc">Subir Foto</div>
+                  <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:3px;">JPG · PNG</div>
                 </div>
                 <input type="file" accept="image/*,image/jpeg,image/png" style="display:none;" onchange="hCPNew('esc',this)">
               </label>
             </div>
           </div>
 
-          <!-- Nombre y Código — autocompletado, editable -->
-          <div style="background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:14px;margin-bottom:18px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:10px;">✏️ Verificá o editá los datos</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-              <div>
-                <div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:4px;">Nombre Obra *</div>
-                <input id="sol-nom" placeholder="Se autocompleta del archivo" style="width:100%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.12);border-radius:6px;color:#fff;padding:10px 11px;font-size:12px;outline:none;box-sizing:border-box;transition:border .2s;" onfocus="this.style.borderColor='rgba(245,196,0,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.12)'">
-              </div>
-              <div>
-                <div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:4px;">Código *</div>
-                <input id="sol-cod" placeholder="Ej. CM-2026-001" style="width:100%;background:rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.12);border-radius:6px;color:#fff;padding:10px 11px;font-size:12px;outline:none;box-sizing:border-box;transition:border .2s;" onfocus="this.style.borderColor='rgba(245,196,0,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.12)'">
-              </div>
+          <!-- Nombre y Código — se rellenan solos, editables por si acaso -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:5px;">Nombre Obra <span style="color:rgba(245,196,0,.5);">(auto)</span></div>
+              <input id="sol-nom" placeholder="Se rellena desde el archivo..." style="width:100%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;color:#fff;padding:11px 12px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:5px;">Código <span style="color:rgba(245,196,0,.5);">(auto)</span></div>
+              <input id="sol-cod" placeholder="Se genera automático..." style="width:100%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;color:#fff;padding:11px 12px;font-size:13px;outline:none;box-sizing:border-box;">
             </div>
           </div>
 
@@ -710,21 +700,25 @@ async function sbLog(usuario, accion) {
             💾 GUARDAR OBRA
           </button>
 
-          <!-- IDs ocultos requeridos por el JS existente -->
-          <div style="display:none;">
-            <select id="sol-obra-sel"><option value=""></option></select>
-            <div id="sol-form-body"></div>
-            <div id="sol-steps"></div>
-            <div id="sol-cp-area"></div>
-            <input id="sol-sup" type="number" value="0">
-            <input id="sol-pre" type="number" value="75">
-            <input id="sol-mon"><input id="sol-cua">
-            <input id="sol-fi" type="date"><input id="sol-di" type="number">
-            <input id="sol-map"><textarea id="sol-not"></textarea>
-            <textarea id="sol-obj"></textarea><textarea id="sol-inc"></textarea>
-            <textarea id="sol-exc"></textarea><textarea id="sol-cond"></textarea>
-            <input id="sol-deadline" type="date"><textarea id="sol-obs"></textarea>
-          </div>
+          <!-- IDs ocultos requeridos por JS existente -->
+          <div id="sol-form-body" style="display:none;"></div>
+          <div id="sol-steps" style="display:none;"></div>
+          <div id="sol-cp-area" style="display:none;"></div>
+          <select id="sol-obra-sel" style="display:none;"><option value=""></option></select>
+          <input id="sol-sup" style="display:none;" type="number" value="0">
+          <input id="sol-pre" style="display:none;" type="number" value="75">
+          <input id="sol-mon" style="display:none;">
+          <input id="sol-cua" style="display:none;">
+          <input id="sol-fi" style="display:none;" type="date">
+          <input id="sol-di" style="display:none;" type="number" value="0">
+          <input id="sol-map" style="display:none;">
+          <textarea id="sol-not" style="display:none;"></textarea>
+          <textarea id="sol-obj" style="display:none;"></textarea>
+          <textarea id="sol-inc" style="display:none;"></textarea>
+          <textarea id="sol-exc" style="display:none;"></textarea>
+          <textarea id="sol-cond" style="display:none;"></textarea>
+          <input id="sol-deadline" style="display:none;" type="date">
+          <textarea id="sol-obs" style="display:none;"></textarea>
         </div>
       </div>
 
@@ -1558,9 +1552,15 @@ function renderSolCP(o){
 }
 
 async function guardarSolicitud(){
-  const nom=document.getElementById('sol-nom').value.trim();
-  const cod=document.getElementById('sol-cod').value.trim();
-  if(!nom||!cod){alert('Completá al menos el Nombre y Código (se autocompletó del archivo, podés editarlo).');return;}
+  let nom=document.getElementById('sol-nom').value.trim();
+  let cod=document.getElementById('sol-cod').value.trim();
+  // Si no tiene nombre pero sí archivo, generar uno
+  if(!nom&&cpNewDigFile) nom=cpNewDigFile.name.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim().toUpperCase();
+  if(!nom&&cpNewEscFile) nom=cpNewEscFile.name.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim().toUpperCase();
+  if(!nom){alert('Subi al menos un archivo o ingresa el nombre de la obra.');return;}
+  if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3);cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
+  document.getElementById('sol-nom').value=nom;
+  document.getElementById('sol-cod').value=cod;
   const idStr=document.getElementById('sol-obra-sel').value;
   let o; let esNueva=false;
   if(idStr){
@@ -1589,7 +1589,7 @@ async function guardarSolicitud(){
   const cond=document.getElementById('sol-cond').value;
   const ct=contratos.find(c=>c.oid===id);
   if(ct&&cond){ct.cond=cond;sbGuardarContrato(ct);}
-  // sbGuardarObra se llama después con los archivos
+  await sbGuardarObra(o);
   if(esNueva){
     buildSolSelector();
     document.getElementById('sol-obra-sel').value=String(o.id);
@@ -1597,20 +1597,19 @@ async function guardarSolicitud(){
   } else {
     log(`Solicitud guardada: ${o.nom}`);
   }
-  await sbGuardarObra(o);
-  // Subir archivos temporales si fueron seleccionados
+  renderContratos();renderObras();renderObrasPendCompleto();uStats();
+  // Subir archivos temporales
   if(typeof cpNewDigFile!=='undefined'&&cpNewDigFile){
     try{const p=buildStoragePath('obras',o.id,'cp',cpNewDigFile.name);
-    const{error}=await sb.storage.from(BUCKET).upload(p,cpNewDigFile,{upsert:true});
-    if(!error){o.cp=p;await sbGuardarObra(o);}}catch(e){console.warn(e);}
+    const {error}=await sb.storage.from(BUCKET).upload(p,cpNewDigFile,{upsert:true});
+    if(!error){o.cp=p;await sbGuardarObra(o);renderContratos();}}catch(e){console.warn(e);}
   }
   if(typeof cpNewEscFile!=='undefined'&&cpNewEscFile){
     try{const p=buildStoragePath('obras',o.id,'cp_esc',cpNewEscFile.name);
-    const{error}=await sb.storage.from(BUCKET).upload(p,cpNewEscFile,{upsert:true});
-    if(!error){o.cp_esc=p;await sbGuardarObra(o);}}catch(e){console.warn(e);}
+    const {error}=await sb.storage.from(BUCKET).upload(p,cpNewEscFile,{upsert:true});
+    if(!error){o.cp_esc=p;await sbGuardarObra(o);renderContratos();}}catch(e){console.warn(e);}
   }
   cpNewDig=null;cpNewEsc=null;cpNewDigFile=null;cpNewEscFile=null;
-  renderContratos();renderObras();renderObrasPendCompleto();uStats();
   limpiarFormSol();
   alert(esNueva?'Obra "'+o.nom+'" registrada. Fátima puede completar los datos en panel Obras.':'Obra "'+o.nom+'" actualizada.');
 }
@@ -1670,17 +1669,20 @@ function cargarObraEnForm(id){
   document.getElementById('o-inc').value=o.inc||'';
   document.getElementById('o-exc').value=o.exc||'';
   cO();cFF();
-  // Mostrar info del contrato del propietario para Fátima
-  const infoEl=document.getElementById('fatima-cp-info');
-  if(infoEl){
-    const cpInfo=o.cp?'📋 Archivo: '+o.cp.split('/').pop():'—';
-    const escInfo=o.cp_esc?'📸 Escaneo: '+o.cp_esc.split('/').pop():'—';
-    infoEl.style.display='block';
-    infoEl.innerHTML='<div style="background:rgba(245,196,0,.08);border:1px solid rgba(245,196,0,.25);border-radius:7px;padding:12px;margin-bottom:14px;">'
-      +'<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);margin-bottom:8px;">📄 Contrato del Propietario (cargado por Steffi)</div>'
-      +'<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">'+cpInfo+'</div>'
-      +'<div style="font-size:11px;color:var(--wd);">'+escInfo+'</div>'
-      +'</div>';
+  // Mostrar info del contrato cargado por Steffi
+  const info=document.getElementById('info-contrato-steffi');
+  if(info){
+    if(o.cp||o.cp_esc){
+      info.style.display='block';
+      info.innerHTML=`<div style="background:rgba(245,196,0,.08);border:1px solid rgba(245,196,0,.3);border-radius:7px;padding:10px 14px;margin-bottom:12px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:5px;">📋 Contrato cargado por Steffi</div>
+        ${o.cp?'<div style="font-size:11px;color:rgba(255,255,255,.7);">📄 Digital: '+o.cp.split('/').pop()+'</div>':''}
+        ${o.cp_esc?'<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;">📸 Escaneo: '+o.cp_esc.split('/').pop()+'</div>':''}
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:5px;">Completá los datos técnicos abajo y guardá.</div>
+      </div>`;
+    } else {
+      info.style.display='none';
+    }
   }
   document.querySelector('.card').scrollIntoView({behavior:'smooth'});
 }
@@ -1743,42 +1745,41 @@ function editarReg(id){
   sel.value=id; selObraForm(String(id));
   card.scrollIntoView({behavior:'smooth'});
 }
-// Archivos temporales nueva obra
+// Archivos temporales para nueva obra
 let cpNewDig=null,cpNewEsc=null,cpNewDigFile=null,cpNewEscFile=null;
 
 function hCPNew(tipo,inp){
   if(!inp.files||!inp.files[0])return;
   const file=inp.files[0];
-  // Autorrellenar nombre y código desde el nombre del archivo
-  const fn=file.name.replace(/\.[^.]+$/,'') // sin extensión
-    .replace(/contrato|propietario|prop|cp_|_cp|_dig|_esc|digital|escaneo/gi,'')
-    .replace(/[_\-\.]+/g,' ').trim().toUpperCase();
+  const fn=file.name.replace(/\.[^.]+$/,''); // sin extensión
 
   if(tipo==='dig'){
-    cpNewDig=file.name;cpNewDigFile=file;
-    const b=document.getElementById('box-cp-dig');
-    const t=document.getElementById('txt-cp-dig');
-    if(b){b.style.borderColor='#4ade80';b.style.background='rgba(74,222,128,.06)';}
-    if(t)t.textContent='✓ '+file.name.slice(0,24)+(file.name.length>24?'...':'');
+    cpNewDigFile=file; cpNewDig=file.name;
+    const box=document.getElementById('box-dig');
+    const txt=document.getElementById('txt-dig');
+    if(box){box.style.borderColor='#4ade80';box.style.background='rgba(0,200,80,.08)';}
+    if(txt)txt.textContent='✓ '+file.name.slice(0,28);
   } else {
-    cpNewEsc=file.name;cpNewEscFile=file;
-    const b=document.getElementById('box-cp-esc');
-    const t=document.getElementById('txt-cp-esc');
-    if(b){b.style.borderColor='#4ade80';b.style.background='rgba(74,222,128,.06)';}
-    if(t)t.textContent='✓ '+file.name.slice(0,24)+(file.name.length>24?'...':'');
+    cpNewEscFile=file; cpNewEsc=file.name;
+    const box=document.getElementById('box-esc');
+    const txt=document.getElementById('txt-esc');
+    if(box){box.style.borderColor='#4ade80';box.style.background='rgba(0,200,80,.08)';}
+    if(txt)txt.textContent='✓ '+file.name.slice(0,28);
   }
-  // Autorrellenar si los campos están vacíos
+
+  // Auto-rellenar nombre y código desde el nombre del archivo
   const nomEl=document.getElementById('sol-nom');
   const codEl=document.getElementById('sol-cod');
-  if(nomEl&&!nomEl.value&&fn.length>2){
-    nomEl.value=fn.slice(0,40);
-    // Generar código automático: primeras 2 iniciales + año + seq
-    if(codEl&&!codEl.value){
-      const ini=fn.split(' ').map(p=>p[0]||'').join('').slice(0,2);
-      const yr=new Date().getFullYear();
-      const seq=String(obras.length+1).padStart(3,'0');
-      codEl.value=ini+'-'+yr+'-'+seq;
-    }
+  if(nomEl&&!nomEl.value){
+    const limpio=fn.replace(/contrato|propietario|prop|cp_|_cp|cp-|-cp/gi,'')
+      .replace(/[_\-\.]+/g,' ').trim().toUpperCase();
+    if(limpio.length>2) nomEl.value=limpio;
+  }
+  if(codEl&&!codEl.value&&nomEl&&nomEl.value){
+    const iniciales=nomEl.value.split(' ').map(p=>p[0]||'').join('').slice(0,3);
+    const yr=new Date().getFullYear();
+    const seq=String(obras.length+1).padStart(3,'0');
+    codEl.value=iniciales+'-'+yr+'-'+seq;
   }
 }
 
@@ -1789,16 +1790,18 @@ function toggleFormSol(){
   if(!opening){limpiarFormSol();return;}
   // Reset
   cpNewDig=null;cpNewEsc=null;cpNewDigFile=null;cpNewEscFile=null;
-  const bdig=document.getElementById('box-cp-dig');
-  const besc=document.getElementById('box-cp-esc');
-  const tdig=document.getElementById('txt-cp-dig');
-  const tesc=document.getElementById('txt-cp-esc');
-  if(bdig){bdig.style.borderColor='rgba(255,255,255,.2)';bdig.style.background='rgba(0,0,0,.3)';}
-  if(besc){besc.style.borderColor='rgba(255,255,255,.2)';besc.style.background='rgba(0,0,0,.3)';}
-  if(tdig)tdig.textContent='Subir PDF';
-  if(tesc)tesc.textContent='Subir Foto';
-  const nom=document.getElementById('sol-nom');const cod=document.getElementById('sol-cod');
-  if(nom)nom.value='';if(cod)cod.value='';
+  const nomEl=document.getElementById('sol-nom');
+  const codEl=document.getElementById('sol-cod');
+  if(nomEl)nomEl.value='';
+  if(codEl)codEl.value='';
+  const bDig=document.getElementById('box-dig');
+  const bEsc=document.getElementById('box-esc');
+  const tDig=document.getElementById('txt-dig');
+  const tEsc=document.getElementById('txt-esc');
+  if(bDig){bDig.style.borderColor='rgba(255,255,255,.2)';bDig.style.background='rgba(0,0,0,.3)';}
+  if(bEsc){bEsc.style.borderColor='rgba(255,255,255,.2)';bEsc.style.background='rgba(0,0,0,.3)';}
+  if(tDig)tDig.textContent='Subir PDF';
+  if(tEsc)tEsc.textContent='Subir Foto';
   card.style.display='block';
   card.scrollIntoView({behavior:'smooth'});
 }
