@@ -633,6 +633,11 @@ async function sbLog(usuario, accion) {
         </div>
       </div>
 
+      <!-- BOTÓN INDEPENDIENTE AGREGAR OBRA -->
+      <button onclick="toggleFormSol()" style="display:block;width:100%;background:var(--am);color:#000;border:none;border-radius:9px;padding:15px;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:14px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 16px rgba(245,196,0,.25);">
+        + AGREGAR NUEVA OBRA
+      </button>
+
       <!-- Aprobaciones pendientes -->
       <div id="pend-aprob"></div>
 
@@ -1713,7 +1718,7 @@ function renderRegistroSol(){
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;margin-left:12px;">
-          <button class="btn o sm" onclick="event.stopPropagation();editarReg(${o.id})">✏️ Editar</button>
+          <button class="btn o sm" onclick="event.stopPropagation();editarReg(${o.id})">📂 Abrir</button>
           <span class="reg-arrow">▼</span>
         </div>
       </div>
