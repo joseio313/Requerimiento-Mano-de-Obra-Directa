@@ -525,9 +525,18 @@ async function sbLog(usuario, accion) {
       <div class="card">
         <div class="ct">Notas y Cláusulas del Contrato con Propietario</div>
         <div class="f" style="margin-bottom:11px;"><label>Notas Generales</label><textarea id="o-not" placeholder="Observaciones, acceso al terreno, condiciones..."></textarea></div>
-        <div class="f" style="margin-bottom:11px;"><label>Objeto del Contrato</label><textarea id="o-obj" rows="3" placeholder="El objeto del presente contrato es la ejecución de los trabajos de construcción correspondientes a la obra denominada... incluyendo todos los trabajos especificados en los módulos de obra."></textarea></div>
-        <div class="f" style="margin-bottom:11px;"><label>Inclusiones — ¿Qué está incluido?</label><textarea id="o-inc" rows="3" placeholder="Se incluye expresamente en la presente contratación: mano de obra, herramientas menores, andamiaje, limpieza diaria del área de trabajo..."></textarea></div>
-        <div class="f" style="margin-bottom:11px;"><label>Exclusiones — ¿Qué NO está incluido?</label><textarea id="o-exc" rows="3" placeholder="Quedan expresamente excluidos del presente contrato: materiales de construcción, equipos especializados, transporte de escombros, permisos municipales..."></textarea></div>
+        <div class="f" style="margin-bottom:11px;">
+  <label>Objeto del Contrato <span style="font-size:9px;color:var(--ws);font-weight:400;">(Cláusula Segunda)</span></label>
+  <textarea id="o-obj" rows="4" placeholder="Se completa automáticamente...">El objeto del presente contrato es la ejecución de los trabajos de construcción de una vivienda unifamiliar correspondiente a la obra denominada en el presente contrato, incluyendo todos los trabajos de mano de obra directa especificados en los módulos de obra pactados entre las partes, conforme a los planos, especificaciones técnicas y demás documentos que forman parte integrante del presente contrato. EL CONTRATISTA se obliga a ejecutar los trabajos con sus propias herramientas menores, conforme a las reglas del arte de la construcción, bajo la supervisión técnica de GAMBARTE ARQUITECTURA S.R.L.</textarea>
+</div>
+        <div class="f" style="margin-bottom:11px;">
+  <label>Inclusiones — ¿Qué está incluido? <span style="font-size:9px;color:var(--ws);font-weight:400;">(Cláusula Tercera)</span></label>
+  <textarea id="o-inc" rows="4" placeholder="Se completa automáticamente...">Se incluye expresamente en la presente contratación: a) Mano de obra calificada y no calificada necesaria para la ejecución de los módulos pactados. b) Herramientas menores propias del contratista (palas, picos, carretillas, nivel, plomada, andamiaje básico). c) Limpieza diaria del área de trabajo y retiro de escombros propios de la actividad. d) Cumplimiento de normas de seguridad e higiene ocupacional durante toda la ejecución. e) Participación en reuniones de coordinación convocadas por la supervisión técnica. f) Presentación de avances fotográficos al finalizar cada módulo de obra.</textarea>
+</div>
+        <div class="f" style="margin-bottom:11px;">
+  <label>Exclusiones — ¿Qué NO está incluido? <span style="font-size:9px;color:var(--ws);font-weight:400;">(Cláusula Cuarta)</span></label>
+  <textarea id="o-exc" rows="4" placeholder="Se completa automáticamente...">Quedan expresamente excluidos del presente contrato y corren por cuenta de GAMBARTE ARQUITECTURA S.R.L.: a) Todos los materiales de construcción (cemento, arena, grava, hierro, ladrillo, madera, instalaciones, acabados y demás insumos). b) Equipos especializados y maquinaria pesada (mezcladoras, vibradores, andamiaje industrial, grúas). c) Transporte de materiales desde el depósito hasta la obra. d) Permisos municipales, aprobación de planos y derechos de construcción. e) Servicios básicos provisorios durante la construcción (agua, energía eléctrica). f) Costos de SOAT-C del contratista durante los primeros 5 días; pasado ese plazo corren por cuenta del contratista a razón de Bs. 50 por día de retraso en su presentación.</textarea>
+</div>
         <div class="brow">
           <button class="btn y" onclick="gObra()">💾 Guardar Obra</button>
           <button class="btn o" onclick="lObra()">🔄 Limpiar</button>
@@ -542,7 +551,22 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CONTRATISTA ═══ -->
     <div class="panel" id="panel-contratista">
-      <div class="ph"><h2>👷 CONTRATISTA</h2><p>Registro de datos — guarda al finalizar</p></div>
+      <div class="ph"><h2>👷 CONTRATISTA</h2><p>Elegí la obra primero, luego completá los datos</p></div>
+
+      <!-- PASO 1: ELEGIR OBRA — siempre visible y prominente -->
+      <div class="card" style="border:2px solid var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
+        <div class="ct" style="color:var(--am);">📋 PASO 1 — Elegir Obra</div>
+        <div class="f" style="margin-bottom:10px;">
+          <label>Seleccionar Obra *</label>
+          <select id="ct-o" onchange="pvO();toggleDatosContratista()" style="font-size:14px;padding:12px;">
+            <option value="">— Seleccioná una obra para continuar —</option>
+          </select>
+        </div>
+        <div id="o-prev" style="display:none;margin-top:8px;"></div>
+      </div>
+
+      <!-- PASO 2: RESTO — se habilita al elegir obra -->
+      <div id="bloque-datos-ct" style="display:none;">
 
       <div class="card">
         <div class="ct">Documentos del Contratista</div>
@@ -561,14 +585,6 @@ async function sbLog(usuario, accion) {
           <div class="f"><label>N° C.I.</label><input id="ct-ci" placeholder="14789456"></div>
           <div class="f full"><label>Dirección</label><input id="ct-d" placeholder="Zona, calle, número"></div>
         </div>
-      </div>
-
-      <div class="card">
-        <div class="ct">Asignar Obra</div>
-        <div class="f"><label>Seleccionar Obra *</label>
-          <select id="ct-o" onchange="pvO()"><option value="">— Seleccionar obra —</option></select>
-        </div>
-        <div id="o-prev" style="display:none;margin-top:10px;"></div>
       </div>
 
       <div class="card">
@@ -593,6 +609,8 @@ async function sbLog(usuario, accion) {
         </div>
         <div id="msg-ct" style="margin-top:10px;"></div>
       </div>
+
+      </div><!-- /bloque-datos-ct -->
 
       <!-- ACTIVAR PROCESO DE CONTRATACIÓN -->
       <div class="card" id="card-activar-proceso" style="display:none;border-color:var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
@@ -1349,6 +1367,17 @@ function renderOS(){
     opts+='</optgroup>';
   }
   s.innerHTML=opts;
+}
+function toggleDatosContratista(){
+  const sel=document.getElementById('ct-o');
+  const bloque=document.getElementById('bloque-datos-ct');
+  if(!bloque)return;
+  if(sel&&sel.value){
+    bloque.style.display='block';
+    bloque.scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    bloque.style.display='none';
+  }
 }
 function pvO(){
   const id=parseInt(document.getElementById('ct-o').value);
