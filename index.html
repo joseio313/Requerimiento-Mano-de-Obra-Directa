@@ -551,22 +551,7 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: CONTRATISTA ═══ -->
     <div class="panel" id="panel-contratista">
-      <div class="ph"><h2>👷 CONTRATISTA</h2><p>Elegí la obra primero, luego completá los datos</p></div>
-
-      <!-- PASO 1: ELEGIR OBRA — siempre visible y prominente -->
-      <div class="card" style="border:2px solid var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
-        <div class="ct" style="color:var(--am);">📋 PASO 1 — Elegir Obra</div>
-        <div class="f" style="margin-bottom:10px;">
-          <label>Seleccionar Obra *</label>
-          <select id="ct-o" onchange="pvO();toggleDatosContratista()" style="font-size:14px;padding:12px;">
-            <option value="">— Seleccioná una obra para continuar —</option>
-          </select>
-        </div>
-        <div id="o-prev" style="display:none;margin-top:8px;"></div>
-      </div>
-
-      <!-- PASO 2: RESTO — se habilita al elegir obra -->
-      <div id="bloque-datos-ct" style="display:none;">
+      <div class="ph"><h2>👷 CONTRATISTA</h2><p>Registro de datos — guarda al finalizar</p></div>
 
       <div class="card">
         <div class="ct">Documentos del Contratista</div>
@@ -585,6 +570,14 @@ async function sbLog(usuario, accion) {
           <div class="f"><label>N° C.I.</label><input id="ct-ci" placeholder="14789456"></div>
           <div class="f full"><label>Dirección</label><input id="ct-d" placeholder="Zona, calle, número"></div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="ct">Asignar Obra</div>
+        <div class="f"><label>Seleccionar Obra *</label>
+          <select id="ct-o" onchange="pvO()"><option value="">— Seleccionar obra —</option></select>
+        </div>
+        <div id="o-prev" style="display:none;margin-top:10px;"></div>
       </div>
 
       <div class="card">
@@ -610,26 +603,7 @@ async function sbLog(usuario, accion) {
         <div id="msg-ct" style="margin-top:10px;"></div>
       </div>
 
-      </div><!-- /bloque-datos-ct -->
-
-      <!-- ACTIVAR PROCESO DE CONTRATACIÓN -->
-      <div class="card" id="card-activar-proceso" style="display:none;border-color:var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
-        <div class="ct" style="color:var(--am);">🔍 ACTIVAR PROCESO DE BÚSQUEDA DE CONTRATISTA</div>
-        <div class="al al-z" style="margin-bottom:14px;">
-          Activa publicación, filtrado de candidatos y bot de Messenger para esta obra.
-          Solo disponible cuando el contratista tiene estado <b>APTO PARA OBRA</b>.
-        </div>
-        <div class="f" style="margin-bottom:12px;">
-          <label>Seleccionar Contratista</label>
-          <select id="sel-activar-ct" onchange="prevActivarCt()">
-            <option value="">— Seleccionar —</option>
-          </select>
-        </div>
-        <div id="prev-activar" style="margin-bottom:12px;"></div>
-        <div class="brow">
-          <button class="btn y" onclick="activarProceso()" style="font-size:13px;padding:11px 22px;">🔍 ACTIVAR PROCESO DE BÚSQUEDA</button>
-        </div>
-      </div>
+            <!-- Botón activar proceso movido a panel Contratista -->
       </div>
     </div>
 
@@ -658,6 +632,12 @@ async function sbLog(usuario, accion) {
 
       <!-- Aprobaciones pendientes -->
       <div id="pend-aprob"></div>
+
+      <!-- Contratos de contratistas para revisión Steffi -->
+      <div id="sect-contratos-ct" style="margin-bottom:14px;"></div>
+
+      <!-- Botón agregar obra -->
+      <button onclick="toggleFormSol()" style="display:block;width:100%;background:var(--am);color:#000;border:none;border-radius:9px;padding:15px;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:14px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;box-shadow:0 2px 16px rgba(245,196,0,.25);">+ AGREGAR NUEVA OBRA</button>
 
       <!-- Lista de obras -->
       <div id="registro-sol"></div>
@@ -1368,17 +1348,6 @@ function renderOS(){
   }
   s.innerHTML=opts;
 }
-function toggleDatosContratista(){
-  const sel=document.getElementById('ct-o');
-  const bloque=document.getElementById('bloque-datos-ct');
-  if(!bloque)return;
-  if(sel&&sel.value){
-    bloque.style.display='block';
-    bloque.scrollIntoView({behavior:'smooth',block:'start'});
-  } else {
-    bloque.style.display='none';
-  }
-}
 function pvO(){
   const id=parseInt(document.getElementById('ct-o').value);
   const pv=document.getElementById('o-prev');
@@ -1484,6 +1453,7 @@ function renderContratos(){
   buildSolSelector();
   renderRegistroSol();
   renderPendAPrb();
+  renderContratosContratista();
 }
 
 function buildSolSelector(){
@@ -1530,10 +1500,11 @@ function renderSolSteps(o){
   const el=document.getElementById('sol-steps');if(!el)return;
   const ct=contratos.find(c=>c.oid===o.id);
   const steps=[
-    {ico:'📄',lbl:'Contrato subido',   done:!!(o.cp||o.cp_esc)},
-    {ico:'📐',lbl:'Solicitud completa', done:!!(o.obj&&o.sup)},
-    {ico:'✅',lbl:'Obra aprobada',      done:!!o.aprobada},
-    {ico:'👷',lbl:'Contratista asignado',done:!!ct},
+    {ico:'📄',lbl:'Contrato propietario',done:!!(o.cp||o.cp_esc)},
+    {ico:'✅',lbl:'Obra aprobada',        done:!!o.aprobada},
+    {ico:'👷',lbl:'Contratista asignado', done:!!ct},
+    {ico:'📝',lbl:'Contrato generado',    done:!!ct&&ct.texto_contrato},
+    {ico:'✍️',lbl:'Contrato firmado',     done:!!ct&&!!ct.firm},
   ];
   el.innerHTML=steps.map((s,i)=>{
     const cls=s.done?'done':i===steps.findIndex(x=>!x.done)?'active':'pend';
@@ -1583,6 +1554,116 @@ function renderSolCP(o){
         :`<div style="font-size:11px;color:var(--ws);padding:8px 0;">⚠️ Sin escaneo cargado</div>`
     }
   </div>`;
+}
+
+// ══════════════════════════════════
+// CONTRATOS DE CONTRATISTA — Steffi
+// ══════════════════════════════════
+
+function renderContratosContratista(){
+  // Busca todos los contratos con texto generado y los muestra para Steffi
+  const isSteffi=CU&&(CU.r==='abogada'||CU.r==='admin');
+  const el=document.getElementById('sect-contratos-ct');
+  if(!el)return;
+  const lista=contratos.filter(c=>c.texto_contrato);
+  if(!lista.length){el.innerHTML='';return;}
+  el.innerHTML=`
+    <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--am);margin-bottom:12px;">📝 CONTRATOS DE CONTRATISTAS</div>
+    ${lista.map(c=>{
+      const o=gO(c.oid);
+      const aprobado=c.est_contrato==='aprobado';
+      const firmado=!!c.firm;
+      return `<div style="background:var(--p2);border:1px solid ${firmado?'var(--Gc)':aprobado?'var(--am)':'var(--bd)'};border-radius:8px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px;">
+          <div>
+            <div style="font-size:13px;font-weight:700;">${c.nom}</div>
+            <div style="font-size:10px;color:var(--ws);">${o.nom||'—'} · ${o.cod||''}</div>
+            <div style="margin-top:4px;">
+              ${firmado?'<span style="font-size:9px;background:rgba(74,222,128,.15);color:var(--Gc);padding:2px 8px;border-radius:20px;">✅ FIRMADO</span>':
+                aprobado?'<span style="font-size:9px;background:rgba(245,196,0,.15);color:var(--am);padding:2px 8px;border-radius:20px;">✅ APROBADO</span>':
+                '<span style="font-size:9px;background:rgba(255,255,255,.06);color:var(--ws);padding:2px 8px;border-radius:20px;">⏳ PENDIENTE REVISIÓN</span>'}
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="verContratoGenerado(${c.id})" class="et-btn" style="font-size:11px;">👁 Ver contrato</button>
+          ${!aprobado&&isSteffi?`<button onclick="aprobarContratoSteffi(${c.id})" style="background:var(--am);color:#000;border:none;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">✅ APROBAR</button>`:''}
+          ${aprobado&&!firmado?`<button onclick="imprimirParaFirma(${c.id})" style="background:#2563eb;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">🖨️ IMPRIMIR PARA FIRMA</button>`:''}
+          ${aprobado&&!firmado&&isSteffi?`<label style="background:var(--p3);border:1px solid var(--bd);color:var(--wd);border-radius:5px;padding:5px 12px;font-size:11px;cursor:pointer;">
+            📸 SUBIR FIRMADO
+            <input type="file" accept="image/*,.pdf" capture="environment" style="display:none;" onchange="subirFirmadoSteffi(${c.id},this)">
+          </label>`:''}
+          ${firmado?`<button onclick="verContratoFirmado(${c.id})" class="et-btn" style="font-size:11px;">📄 Ver firmado</button>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+function verContratoGenerado(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const o=gO(ct.oid);
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>Contrato — ${ct.nom}</title>
+  <style>
+    @page{size:216mm 330mm;margin:25mm 20mm 25mm 25mm;}
+    body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.65;color:#000;margin:0;padding:0;}
+    h1{font-size:13pt;font-weight:bold;text-align:center;text-transform:uppercase;margin:0 0 6px 0;}
+    .cod{text-align:center;font-size:10pt;color:#333;margin-bottom:16px;}
+    p{margin:0 0 6px 0;text-align:justify;}
+    .cl{font-weight:bold;margin-top:14px;margin-bottom:3px;text-transform:uppercase;}
+    .hdr{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;}
+    .firma-bloque{display:flex;justify-content:space-between;margin-top:60px;}
+    .firma-col{text-align:center;width:45%;}
+    .firma-linea{border-top:1px solid #000;padding-top:6px;font-size:10pt;}
+    br{display:block;margin:2px 0;}
+  </style></head><body>
+  <div class="hdr">
+    <div style="font-size:15pt;font-weight:900;letter-spacing:3px;">GEAT</div>
+    <div style="font-size:9pt;color:#444;">GAMBARTE ARQUITECTURA S.R.L. — Construcción y Consultoría</div>
+  </div>
+  ${(ct.texto_contrato||'').split('\n').map(l=>
+    /^CLÁUSULA/.test(l)?`<p class="cl">${l}</p>`:
+    l.startsWith('CONTRATO DE PREST')?`<h1>${l}</h1>`:
+    l.startsWith('CÓDIGO:')?`<p class="cod">${l}</p>`:
+    l.trim()===''?'<br>':
+    `<p>${l}</p>`
+  ).join('')}
+  <div class="firma-bloque">
+    <div class="firma-col"><div class="firma-linea"><strong>${ct.nom||'CONTRATISTA'}</strong><br>C.I. ${ct.ci_n||'___'}<br>Contratista</div></div>
+    <div class="firma-col"><div class="firma-linea"><strong>JOSÉ MIGUEL GAMBARTE VIDAURRE</strong><br>C.I. 7714413 SC<br>GAMBARTE ARQUITECTURA S.R.L.</div></div>
+  </div>
+  </body></html>`);
+  win.document.close();
+}
+
+function imprimirParaFirma(ctId){
+  verContratoGenerado(ctId);
+}
+
+function aprobarContratoSteffi(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  if(!confirm('¿APROBAR el contrato de '+ct.nom+'?\n\nDespués de aprobar podrás imprimirlo para que el contratista firme.'))return;
+  ct.est_contrato='aprobado';
+  sbGuardarContrato(ct);
+  sbLog(CU.n,'Contrato aprobado por Steffi: '+ct.nom);
+  renderContratosContratista();
+  alert('Contrato aprobado. Ahora podés imprimirlo para que el contratista firme.');
+}
+
+async function subirFirmadoSteffi(ctId,inp){
+  if(!inp.files||!inp.files[0])return;
+  const archivo=inp.files[0];
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  try{
+    const path=buildStoragePath('contratos',ctId,'firmado',archivo.name);
+    const {error}=await sb.storage.from(BUCKET).upload(path,archivo,{upsert:true});
+    if(error)throw error;
+    ct.firm=path;ct.est='apto_para_obra';ct.est_contrato='aprobado';
+    await sbGuardarContrato(ct);
+    sbLog(CU.n,'Firmado subido por Steffi: '+ct.nom);
+    renderContratosContratista();
+    alert('Contrato firmado subido. El contratista está APTO PARA OBRA.');
+  }catch(e){alert('Error al subir: '+e.message);}
 }
 
 async function guardarSolicitud(){
