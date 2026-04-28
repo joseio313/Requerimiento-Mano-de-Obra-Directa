@@ -1264,8 +1264,8 @@ function aObra(id){
 
 <!-- contrato firmado contratista: gestionado en panel Contratos -->
 
-    ${isA&&!o.aprobada&&(o.cp||o.cp_esc)?`<div style="margin-top:14px;"><button class="btn y" onclick="aprobOb(${o.id})">✅ APROBAR OBRA</button></div>`:''}
-    ${isA&&!o.aprobada&&!o.cp&&!o.cp_esc?`<div class="al al-r" style="margin-top:10px;">⚠️ Sin contrato del propietario. Cargalo en el panel Contratos para poder aprobar.</div>`:''}
+    ${!o.aprobada&&(o.cp||o.cp_esc)?`<div class="al al-z" style="margin-top:10px;font-size:11px;">⏳ Pendiente aprobación en panel Contratos</div>`:''}
+    ${!o.aprobada&&!o.cp&&!o.cp_esc?`<div class="al al-r" style="margin-top:10px;font-size:11px;">⚠️ Sin contrato del propietario. Steffi debe cargarlo en Contratos.</div>`:''}
   `;
   aOv('obra');
 }
