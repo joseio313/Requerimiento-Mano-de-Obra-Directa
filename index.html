@@ -372,7 +372,8 @@ async function sbCargarDatos() {
         firm: c.contrato_firmado_nombre||null,
         aprobado_por: c.aprobado_por||null,
         aprobado_fecha: c.aprobado_fecha||null,
-        fec: c.fecha_registro||null,
+        fec: c.fecha_registro?new Date(c.fecha_registro+'T00:00:00').toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}):null,
+        fec_iso: c.fecha_registro||null,
         busqueda_activa: c.busqueda_activa||false,
         busqueda_fecha: c.busqueda_fecha||null
       }));
@@ -419,7 +420,7 @@ async function sbGuardarContrato(c) {
     contrato_firmado_nombre: c.firm||null,
     aprobado_por: c.aprobado_por||null,
     aprobado_fecha: c.aprobado_fecha||null,
-    fecha_registro: c.fec||null,
+    fecha_registro: c.fec_iso||new Date().toISOString().slice(0,10),
     busqueda_activa: c.busqueda_activa||false,
     busqueda_fecha: c.busqueda_fecha||null
   };
@@ -1264,7 +1265,7 @@ function aObra(id){
 
 <!-- contrato firmado contratista: gestionado en panel Contratos -->
 
-    ${!o.aprobada&&(o.cp||o.cp_esc)?`<div class="al al-z" style="margin-top:10px;font-size:11px;">⏳ Pendiente aprobación en panel Contratos</div>`:''}
+    ${!o.aprobada&&(o.cp||o.cp_esc)?`<div class="al al-z" style="margin-top:10px;font-size:11px;">⏳ Pendiente aprobación — Steffi debe aprobar en panel Contratos</div>`:''}
     ${!o.aprobada&&!o.cp&&!o.cp_esc?`<div class="al al-r" style="margin-top:10px;font-size:11px;">⚠️ Sin contrato del propietario. Steffi debe cargarlo en Contratos.</div>`:''}
   `;
   aOv('obra');
@@ -1489,6 +1490,7 @@ async function gCont(){
     ci:upD.ci,ag:upD.ag,lz:upD.lz,cond,
     est:'generado',firm:null,
     fec:new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}),
+    fec_iso:new Date().toISOString().slice(0,10),
     texto_contrato:txt,est_contrato:'generado'};
   contratos.push(newCt);
   try{
