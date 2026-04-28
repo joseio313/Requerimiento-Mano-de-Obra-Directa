@@ -1397,6 +1397,80 @@ function pvO(){
   pv.innerHTML=`<div class="al ${alertClass}">📐 ${o.sup}m² · 👥 ${o.cuad} personas · 🧱 ${o.mods?.length||0} módulos · 📅 ${o.fi||'—'} · ⏱ ${o.di} días${aviso}</div>`;
   actuChk();
 }
+function generarTextoBase(ct, o){
+  const hoy = new Date();
+  const fecha = hoy.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  const mods = (o.mods||[]).map((m,i)=>'  M'+String(i+1).padStart(2,'0')+' — '+m).join('\n');
+  const montoUSD = o.monto||0;
+  const montoBs = Math.round(montoUSD*6.96);
+  const diasEj = o.di||90;
+  const fechaInicio = o.fi||fecha;
+  // Calcular fecha fin
+  let fechaFin = '';
+  if(o.fi){
+    const d=new Date(o.fi);d.setDate(d.getDate()+(o.di||90));
+    fechaFin=d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  }
+
+  return `CONTRATO DE PRESTACIÓN DE SERVICIOS DE MANO DE OBRA DIRECTA
+CÓDIGO: ${o.cod||'—'}
+
+En la ciudad de Santa Cruz de la Sierra, a ${fecha}, entre:
+
+CONTRATANTE: GAMBARTE ARQUITECTURA S.R.L., representada por el Sr. JOSÉ MIGUEL GAMBARTE VIDAURRE, C.I. 7714413 SC, con domicilio en Avenida Beni 3er anillo, Santa Cruz de la Sierra, en adelante "EL CONTRATANTE".
+
+CONTRATISTA: ${ct.nom||'—'}, C.I. ${ct.ci_n||'—'}, con domicilio en ${ct.dir||'—'}, en adelante "EL CONTRATISTA".
+
+CLÁUSULA PRIMERA — ANTECEDENTES
+EL CONTRATANTE requiere los servicios de mano de obra directa para la ejecución de trabajos de construcción de vivienda unifamiliar denominada "${o.nom||'—'}" (Código: ${o.cod||'—'}), ubicada según coordenadas GPS registradas en el sistema.
+
+CLÁUSULA SEGUNDA — OBJETO DEL CONTRATO
+${o.obj||'El objeto del presente contrato es la ejecución de los trabajos de construcción de una vivienda unifamiliar, incluyendo todos los trabajos de mano de obra directa especificados en los módulos de obra pactados entre las partes, conforme a los planos, especificaciones técnicas y demás documentos que forman parte integrante del presente contrato. EL CONTRATISTA se obliga a ejecutar los trabajos con sus propias herramientas menores, conforme a las reglas del arte de la construcción, bajo la supervisión técnica de GAMBARTE ARQUITECTURA S.R.L.'}
+
+CLÁUSULA TERCERA — INCLUSIONES
+${o.inc||'Se incluye expresamente: a) Mano de obra calificada y no calificada para la ejecución de los módulos pactados. b) Herramientas menores propias del contratista. c) Limpieza diaria del área de trabajo y retiro de escombros. d) Cumplimiento de normas de seguridad e higiene ocupacional. e) Participación en reuniones de coordinación. f) Presentación de avances fotográficos al finalizar cada módulo.'}
+
+CLÁUSULA CUARTA — EXCLUSIONES
+${o.exc||'Quedan excluidos y corren por cuenta del CONTRATANTE: a) Todos los materiales de construcción. b) Equipos especializados y maquinaria pesada. c) Transporte de materiales. d) Permisos municipales y aprobación de planos. e) Servicios básicos provisorios durante la construcción.'}
+
+CLÁUSULA QUINTA — MÓDULOS DE OBRA
+Los trabajos se ejecutarán en los siguientes módulos:
+${mods||'  Sin módulos definidos'}
+
+CLÁUSULA SEXTA — MONTO Y FORMA DE PAGO
+El monto total pactado es de $us ${montoUSD.toFixed(2)} (${montoBs.toLocaleString('es-BO')} bolivianos), pagadero de la siguiente manera:
+  - 30% al inicio de los trabajos: $us ${(montoUSD*0.30).toFixed(2)}
+  - 40% al 50% de avance de obra: $us ${(montoUSD*0.40).toFixed(2)}
+  - 30% a la entrega final: $us ${(montoUSD*0.30).toFixed(2)}
+
+CLÁUSULA SÉPTIMA — PLAZO DE EJECUCIÓN
+El plazo de ejecución es de ${diasEj} días calendario, con inicio el ${fechaInicio}${fechaFin?' y conclusión el '+fechaFin:''}.
+
+CLÁUSULA OCTAVA — CONDICIONES ESPECIALES
+${ct.cond||'No se han pactado condiciones especiales adicionales.'}
+
+CLÁUSULA NOVENA — OBLIGACIONES DEL CONTRATISTA
+a) Ejecutar los trabajos con personal calificado y bajo su directa responsabilidad.
+b) Presentar SOAT-C vigente dentro de los 5 primeros días de trabajo; el retraso generará una penalidad de Bs. 50 por día.
+c) Cumplir con el cronograma de avance establecido por la supervisión técnica.
+d) Mantener el área de trabajo limpia y segura en todo momento.
+e) Informar inmediatamente cualquier contingencia que afecte el avance de la obra.
+
+CLÁUSULA DÉCIMA — PENALIDADES
+Por retraso en la entrega de la obra imputable al CONTRATISTA, se aplicará una penalidad del 0.5% del monto total por cada día de retraso, hasta un máximo del 10% del monto total.
+
+CLÁUSULA DÉCIMA PRIMERA — RESCISIÓN
+Cualquiera de las partes podrá rescindir el contrato con 48 horas de anticipación, siempre que medie causa justificada. En caso de rescisión sin causa, la parte que rescinda deberá indemnizar a la otra por los daños y perjuicios ocasionados.
+
+CLÁUSULA DÉCIMA SEGUNDA — CONFIDENCIALIDAD
+EL CONTRATISTA se compromete a mantener estricta confidencialidad sobre los planos, diseños y demás información técnica proporcionada por EL CONTRATANTE.
+
+CLÁUSULA DÉCIMA TERCERA — JURISDICCIÓN
+Las partes se someten a la jurisdicción de los tribunales de la ciudad de Santa Cruz de la Sierra para cualquier controversia derivada del presente contrato.
+
+En prueba de conformidad, las partes suscriben el presente contrato en dos ejemplares de igual valor.`;
+}
+
 async function gCont(){
   const nom=document.getElementById('ct-n').value.trim();
   const oid=parseInt(document.getElementById('ct-o').value);
