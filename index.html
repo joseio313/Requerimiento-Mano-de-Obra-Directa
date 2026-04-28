@@ -571,9 +571,9 @@ async function sbLog(usuario, accion) {
       <div class="card">
         <div class="ct">Documentos del Contratista</div>
         <div class="u3">
-          <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ci',this)"></div>
-          <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ag',this)"></div>
-          <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('lz',this)"></div>
+          <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" id="inp-file-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ci',this)"></div>
+          <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" id="inp-file-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ag',this)"></div>
+          <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" id="inp-file-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('lz',this)"></div>
         </div>
       </div>
 
@@ -616,8 +616,8 @@ async function sbLog(usuario, accion) {
       <div class="card" id="card-activar-proceso" style="display:none;border-color:var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
         <div class="ct" style="color:var(--am);">🔍 ACTIVAR PROCESO DE BÚSQUEDA DE CONTRATISTA</div>
         <div class="al al-z" style="margin-bottom:14px;">
-          Activa publicación, filtrado de candidatos y bot de Messenger para esta obra.
-          Solo disponible cuando el contratista tiene estado <b>APTO PARA OBRA</b>.
+          Opcional — activa publicación en Facebook y filtrado por Messenger para buscar candidatos.
+          También podés contratar por otro medio y saltarte este paso.
         </div>
         <div class="f" style="margin-bottom:12px;">
           <label>Seleccionar Contratista</label>
@@ -1391,31 +1391,54 @@ function pvO(){
   pv.innerHTML=`<div class="al ${alertClass}">📐 ${o.sup}m² · 👥 ${o.cuad} personas · 🧱 ${o.mods?.length||0} módulos · 📅 ${o.fi||'—'} · ⏱ ${o.di} días${aviso}</div>`;
   actuChk();
 }
-function gCont(){
+async function gCont(){
   const nom=document.getElementById('ct-n').value.trim();
   const oid=parseInt(document.getElementById('ct-o').value);
   const ci=document.getElementById('ct-ci').value.trim();
-  if(!nom||!oid){alert('⚠️ Nombre y Obra son obligatorios.');return;}
-  if(ci&&contratos.find(c=>c.ci_n===ci&&c.oid===oid)){alert('⚠️ Ya existe un contratista con ese C.I. en esta obra.');return;}
+  if(!nom||!oid){alert('Nombre y Obra son obligatorios.');return;}
+  if(ci&&contratos.find(c=>c.ci_n===ci&&c.oid===oid)){alert('Ya existe un contratista con ese C.I. en esta obra.');return;}
   const o=obras.find(x=>x.id===oid);
-  const ctObj={nom,ci_n:ci,
-    tel:document.getElementById('ct-t').value.trim(),
-    dir:document.getElementById('ct-d').value.trim(),
-    cond:document.getElementById('ct-co').value.trim()};
+  const tel=document.getElementById('ct-t').value.trim();
+  const dir=document.getElementById('ct-d').value.trim();
+  const cond=document.getElementById('ct-co').value.trim();
+  const ctObj={nom,ci_n:ci,tel,dir,cond};
   const txt=generarTextoBase(ctObj, o||{});
-
-  const newCt={id:Date.now(),nom,tel:document.getElementById('ct-t').value.trim(),
-    dir:document.getElementById('ct-d').value.trim(),ci_n:document.getElementById('ct-ci').value.trim(),
-    oid,ci:upD.ci,ag:upD.ag,lz:upD.lz,cond:document.getElementById('ct-co').value.trim(),
-    est:'generado',firm:null,fec:new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}),
+  const btn=document.getElementById('btn-cargar');
+  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
+  const newCt={id:Date.now(),nom,tel,dir,ci_n:ci,oid,
+    ci:upD.ci,ag:upD.ag,lz:upD.lz,cond,
+    est:'generado',firm:null,
+    fec:new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}),
     texto_contrato:txt,est_contrato:'generado'};
   contratos.push(newCt);
-  sbGuardarContrato(newCt);
-  sbLog(CU.n,`Contratista registrado: ${nom}`);
-  log(`Contratista "${nom}" registrado → Obra #${oid}`);
-  renderContratos();renderCardActivar();uStats();
-  document.getElementById('msg-ct').innerHTML=`<div class="al al-g">✅ <b>${nom}</b> guardado. El contrato pre-generado está en el área de Contratos para que Steffi lo revise.</div>`;
-  lCont();
+  try{
+    await sbGuardarContrato(newCt);
+    // Subir archivos CI, agua, luz a Storage
+    const files=[
+      {key:'ci',inp:document.getElementById('inp-file-ci')},
+      {key:'ag',inp:document.getElementById('inp-file-ag')},
+      {key:'lz',inp:document.getElementById('inp-file-lz')}
+    ];
+    for(const f of files){
+      if(f.inp&&f.inp.files&&f.inp.files[0]){
+        const file=f.inp.files[0];
+        const path=buildStoragePath('contratistas',newCt.id,f.key,file.name);
+        const {error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:true});
+        if(!error) newCt[f.key]=path;
+      }
+    }
+    if(newCt.ci||newCt.ag||newCt.lz) await sbGuardarContrato(newCt);
+    await sbLog(CU.n,'Contratista registrado: '+nom);
+    log('Contratista '+nom+' registrado → Obra #'+oid);
+    renderContratos();renderCardActivar();uStats();
+    document.getElementById('msg-ct').innerHTML='<div class="al al-g">✅ <b>'+nom+'</b> guardado correctamente. El contrato está en Contratos para revisión de Steffi.</div>';
+    lCont();
+  }catch(e){
+    alert('Error al guardar: '+e.message);
+    console.error(e);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='💾 GUARDAR CONTRATISTA';}
+  }
 }
 function lCont(){
   ['ct-n','ct-t','ct-ci','ct-d','ct-co'].forEach(i=>document.getElementById(i).value='');
