@@ -1766,34 +1766,6 @@ function renderRegistroSol(){
           ${o.cp_esc?`<button class="btn g2b sm" onclick="simDl('${o.cp_esc}','Escaneado')">📸 Descargar Escaneado</button>`:''}
           ${ct?.tel?`<a href="https://wa.me/591${ct.tel}?text=${encodeURIComponent('📋 GEAT — Obra: '+o.nom+' ('+o.cod+')\n👷 Contratista: '+ct.nom+'\n📐 '+o.sup+'m² · $'+o.monto?.toFixed(0)+' USD')}" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;">💬 WA Resumen</a>`:''}
         </div>
-        ${(()=>{
-          const isAbog=CU&&CU.r==='abogada';
-          const isAdm=CU&&CU.r==='admin';
-          if(!ct||(CU.r!=='abogada'&&CU.r!=='admin'))return '';
-          const aprobado=ct.est_contrato==='aprobado';
-          const firmado=!!ct.firm;
-          return `<div style="background:rgba(245,196,0,.05);border:1px solid rgba(245,196,0,.2);border-radius:7px;padding:12px;margin-top:10px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:10px;">📋 Flujo del Contrato — Steffi</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-              ${ct.texto_contrato
-                ?`<button class="btn g2b sm" onclick="verContratoTexto(${ct.id})">👁 Ver Contrato</button>`
-                :'<span style="font-size:10px;color:rgba(255,255,255,.4);">Sin contrato generado aún</span>'}
-              ${ct.texto_contrato&&!aprobado&&(isAbog||isAdm)
-                ?`<button class="btn y sm" onclick="aprobarContratoSol(${ct.id})" style="font-weight:900;">✅ APROBAR CONTRATO</button>`:''}
-              ${aprobado&&!firmado
-                ?`<button class="btn sm" onclick="imprimirContratoSol(${ct.id})" style="background:#6366f1;color:#fff;font-weight:700;">🖨️ IMPRIMIR PARA FIRMA</button>`:''}
-              ${aprobado
-                ?`<span style="font-size:10px;font-weight:700;color:var(--Gc);">✅ Aprobado</span>`:''}
-              ${firmado
-                ?`<span style="font-size:10px;font-weight:700;color:var(--Gc);">📝 Firmado ✅</span>`
-                :aprobado
-                  ?(isAbog||isAdm)
-                    ?`<label class="btn sm" style="background:var(--Gc);color:#000;font-weight:700;cursor:pointer;">📤 Subir Firmado<input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="sFirm(${ct.id},this)"></label>`
-                    :''
-                  :''}
-            </div>
-          </div>`;
-        })()}
       </div>
     </div>`;
   }).join('');
@@ -1876,89 +1848,6 @@ function selSupObra(id){
 
 
 
-function verContratoTexto(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  const o=gO(ct.oid);
-  const texto=ct.texto_contrato||'Sin texto generado';
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>Contrato — ${ct.nom}</title>
-  <style>body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.7;color:#000;padding:40px;max-width:800px;margin:0 auto;}
-  h1{font-size:14pt;text-align:center;text-transform:uppercase;margin-bottom:20px;}
-  pre{white-space:pre-wrap;font-family:Arial,sans-serif;font-size:11pt;line-height:1.7;}
-  .header{text-align:center;border-bottom:2px solid #000;padding-bottom:12px;margin-bottom:20px;}
-  </style></head><body>
-  <div class="header"><div style="font-size:18pt;font-weight:900;letter-spacing:3px;">GEAT</div>
-  <div style="font-size:9pt;color:#555;">GAMBARTE ARQUITECTURA S.R.L.</div></div>
-  <pre>${texto}</pre>
-  </body></html>`);
-  win.document.close();
-}
-
-function aprobarContratoSol(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(!confirm('¿APROBAR el contrato de '+ct.nom+'?\n\nEsto habilitará la opción de imprimir para firma.'))return;
-  ct.est_contrato='aprobado';
-  ct.aprobado_por=CU.n;
-  ct.aprobado_fecha=new Date().toISOString();
-  sbGuardarContrato(ct);
-  sbLog(CU.n,'Contrato aprobado: '+ct.nom);
-  log('✅ Contrato aprobado: '+ct.nom);
-  renderContratos();
-}
-
-function imprimirContratoSol(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  const o=gO(ct.oid);
-  const texto=ct.texto_contrato||generarTextoBase(ct,o);
-  const tam=confirm('Tamano de impresion: OK=Oficio  Cancelar=Carta')?'oficio':'carta';
-  const pageSize=tam==='oficio'?'216mm 330mm':'216mm 279mm';
-  const fontSize=tam==='oficio'?'11pt':'10.5pt';
-  const margin=tam==='oficio'?'25mm 20mm 25mm 25mm':'20mm 18mm 20mm 18mm';
-  const lineas=texto.split('\n');
-  let htmlLineas=lineas.map(l=>{
-    if(l.startsWith('CONTRATO DE PREST')) return `<h1>${l}</h1>`;
-    if(l.startsWith('CÓDIGO:')) return `<p class="codigo">${l}</p>`;
-    if(/^CLÁUSULA/.test(l)) return `<p class="clausula">${l}</p>`;
-    if(l.trim()==='') return '<br>';
-    return `<p>${l}</p>`;
-  }).join('');
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><title>Contrato — ${ct.nom}</title>
-  <style>
-    @page{size:${pageSize};margin:${margin};}
-    *{box-sizing:border-box;}
-    body{font-family:Arial,sans-serif;font-size:${fontSize};line-height:1.65;color:#000;margin:0;padding:0;}
-    h1{font-size:13pt;font-weight:bold;text-align:center;text-transform:uppercase;margin:0 0 4px 0;}
-    .codigo{text-align:center;font-size:10pt;color:#333;margin:0 0 14px 0;}
-    p{margin:0 0 5px 0;text-align:justify;}
-    .clausula{font-weight:bold;margin-top:12px;margin-bottom:3px;text-transform:uppercase;}
-    .header-doc{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;}
-    .header-empresa{font-size:9pt;color:#444;margin-top:3px;}
-    .firma-bloque{display:flex;justify-content:space-between;margin-top:50px;}
-    .firma-col{text-align:center;width:45%;}
-    .firma-linea{border-top:1px solid #000;padding-top:6px;font-size:10pt;}
-    br{display:block;margin:2px 0;}
-    @media print{body{-webkit-print-color-adjust:exact;}}
-  </style></head><body>
-  <div class="header-doc">
-    <div style="font-size:15pt;font-weight:900;letter-spacing:3px;">GEAT</div>
-    <div class="header-empresa">GAMBARTE ARQUITECTURA S.R.L. — Construcción y Consultoría</div>
-  </div>
-  ${htmlLineas}
-  <div class="firma-bloque">
-    <div class="firma-col"><div class="firma-linea">
-      <strong>${ct.nom||'CONTRATISTA'}</strong><br>C.I. ${ct.ci_n||'___'}<br>Contratista
-    </div></div>
-    <div class="firma-col"><div class="firma-linea">
-      <strong>JOSÉ MIGUEL GAMBARTE VIDAURRE</strong><br>C.I. 7714413 SC<br>GAMBARTE ARQUITECTURA S.R.L.
-    </div></div>
-  </div>
-  <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`);
-  win.document.close();
-  log('Contrato impreso para firma: '+ct.nom);
-}
-
 async function sFirm(cid,inp){
   if(!inp.files[0])return;
   const ct=contratos.find(x=>x.id===cid);if(!ct)return;
@@ -1986,13 +1875,12 @@ function verContratoFirmado(cid){
 }
 
 async function simDl(f,t){
-  if(!f){alert(`⚠️ Sin ${t} cargado.`);return;}
+  if(!f){alert('Sin '+t+' cargado.');return;}
   try{
     const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(f,120);
     if(error)throw error;
-    const a=document.createElement('a');a.href=data.signedUrl;a.download=f.split('/').pop();
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }catch(e){alert('⚠️ No se pudo descargar: '+e.message);}
+    window.open(data.signedUrl,'_blank','noopener,noreferrer');
+  }catch(e){alert('No se pudo abrir: '+e.message);}
 }
 
 // ══════════════════════════════════════════════════
