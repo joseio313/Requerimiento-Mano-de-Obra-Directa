@@ -387,8 +387,9 @@ async function sbCargarDatos() {
 
 // ── GUARDAR OBRA ──
 async function sbGuardarObra(o) {
+  const esIdTemporal = typeof o.id === 'number' && o.id > 1e12;
   const {data, error} = await sb.from('rec_obras').upsert({
-    id: typeof o.id === 'number' && o.id < 1e12 ? o.id : undefined,
+    id: esIdTemporal ? undefined : (o.id || undefined),
     nombre: o.nom, codigo: o.cod, superficie: o.sup, precio_usd: o.pre,
     maps_link: o.map, cuadrilla: o.cuad, monto_usd: o.monto,
     modulos_n: o.mods?.length||0, estado: o.est,
@@ -406,8 +407,9 @@ async function sbGuardarObra(o) {
 
 // ── GUARDAR CONTRATO ──
 async function sbGuardarContrato(c) {
-  const {data, error} = await sb.from('rec_contratos').upsert({
-    id: typeof c.id === 'number' && c.id < 1e12 ? c.id : undefined,
+  // Si el id viene de Date.now() (13 dígitos) es un ID temporal — insertar sin ID
+  const esIdTemporal = typeof c.id === 'number' && c.id > 1e12;
+  const payload = {
     obra_id: c.oid, nombre_contratista: c.nom, telefono: c.tel||'',
     direccion: c.dir||'', ci_numero: c.ci_n||'',
     ci_archivo: c.ci||null, agua_archivo: c.ag||null, luz_archivo: c.lz||null,
@@ -420,9 +422,13 @@ async function sbGuardarContrato(c) {
     fecha_registro: c.fec||null,
     busqueda_activa: c.busqueda_activa||false,
     busqueda_fecha: c.busqueda_fecha||null
-  }, {onConflict: 'id'}).select().single();
-  if(error) console.error('Error contrato:', error.message);
-  else { c.id = data.id; }
+  };
+  // Solo incluir id si es un ID real de Supabase (no temporal)
+  if(!esIdTemporal && c.id) payload.id = c.id;
+  const {data, error} = await sb.from('rec_contratos')
+    .upsert(payload, {onConflict: 'id'}).select().single();
+  if(error){console.error('Error contrato:', error.message, error); throw new Error(error.message);}
+  c.id = data.id;
   return data;
 }
 
@@ -1438,6 +1444,7 @@ async function gCont(){
     console.error(e);
   }finally{
     if(btn){btn.disabled=false;btn.textContent='💾 GUARDAR CONTRATISTA';}
+    document.getElementById('msg-ct').innerHTML='';
   }
 }
 function lCont(){
