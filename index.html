@@ -1870,23 +1870,34 @@ function renderRegistroSol(){
         <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
           ${o.cp?`<button class="btn g2b sm" onclick="simDl('${o.cp}','Contrato')">📄 Descargar Contrato</button>`:''}
           ${o.cp_esc?`<button class="btn g2b sm" onclick="simDl('${o.cp_esc}','Escaneado')">📸 Descargar Escaneado</button>`:''}
-          ${ct?.tel?`<a href="https://wa.me/591${ct.tel}?text=${encodeURIComponent('📋 GEAT — Obra: '+o.nom+' ('+o.cod+')\n👷 Contratista: '+ct.nom+'\n📐 '+o.sup+'m² · $'+o.monto?.toFixed(0)+' USD')}" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;">💬 WA Resumen</a>`:''}
         </div>
         ${(CU&&(CU.r==='abogada'||CU.r==='admin')&&ct)?(()=>{
           const aprobado=ct.est_contrato==='aprobado';
           const firmado=!!ct.firm;
-          return '<div style="background:rgba(245,196,0,.05);border:1px solid rgba(245,196,0,.2);border-radius:7px;padding:12px;margin-top:10px;">'
-            +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:10px;">📋 FLUJO DEL CONTRATO — STEFFI</div>'
-            +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">'
-            +(ct.texto_contrato
-              ?'<button class="btn g2b sm" onclick="verContratoTexto('+ct.id+')">👁 Ver Contrato</button>'
-              :'<span style="font-size:10px;color:rgba(255,255,255,.4);">Sin contrato generado</span>')
-            +(!aprobado&&ct.texto_contrato?'<button class="btn y sm" onclick="aprobarContratoSol('+ct.id+')" style="font-weight:900;">✅ APROBAR</button>':'')
-            +(aprobado?'<span style="font-size:10px;font-weight:700;color:var(--Gc);">✅ Aprobado</span>':'')
-            +(aprobado&&!firmado?'<button class="btn sm" onclick="imprimirContratoSol('+ct.id+')" style="background:#6366f1;color:#fff;font-weight:700;">🖨️ IMPRIMIR PARA FIRMA</button>':'')
-            +(aprobado&&!firmado?'<label class="btn sm" style="background:var(--Gc);color:#000;font-weight:700;cursor:pointer;">📤 Subir Firmado<input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="sFirm('+ct.id+',this)"></label>':'')
-            +(firmado?'<span style="font-size:10px;font-weight:700;color:var(--Gc);">📝 Firmado ✅</span>':'')
-            +'</div></div>';
+          let out='<div style="background:rgba(245,196,0,.05);border:1.5px solid rgba(245,196,0,.25);border-radius:8px;padding:14px;margin-top:12px;">';
+          out+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:12px;">📋 FLUJO DEL CONTRATO — STEFFI</div>';
+          if(ct.texto_contrato){
+            if(!firmado){
+              out+='<div style="margin-bottom:10px;">';
+              out+='<div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">Editar Contrato</div>';
+              out+='<textarea id="ct-txt-'+ct.id+'" style="width:100%;min-height:220px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#e8e8e8;padding:10px;font-size:10.5pt;font-family:Arial,sans-serif;line-height:1.6;resize:vertical;box-sizing:border-box;">'+ct.texto_contrato+'</textarea>';
+              out+='<button onclick="guardarTextoContrato('+ct.id+')" class="btn y sm" style="margin-top:6px;font-weight:700;">💾 Guardar cambios</button>';
+              out+='</div>';
+            } else {
+              out+='<div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--Gc);margin-bottom:10px;">🔒 Contrato bloqueado — firmado y subido</div>';
+            }
+            out+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">';
+            if(!aprobado&&!firmado) out+='<button class="btn y sm" onclick="aprobarContratoSol('+ct.id+')" style="font-weight:900;">✅ APROBAR</button>';
+            if(aprobado) out+='<span style="font-size:10px;font-weight:700;color:var(--Gc);">✅ Aprobado</span>';
+            if(aprobado&&!firmado) out+='<button onclick="imprimirContratoSol('+ct.id+')" style="background:#6366f1;color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">🖨️ IMPRIMIR PARA FIRMA</button>';
+            if(aprobado&&!firmado) out+='<label style="background:var(--Gc);color:#000;border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">📤 Subir Firmado<input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="sFirm('+ct.id+',this)"></label>';
+            if(firmado) out+='<span style="font-size:10px;font-weight:700;color:var(--Gc);">📝 Firmado ✅</span>';
+            out+='</div>';
+          } else {
+            out+='<span style="font-size:11px;color:rgba(255,255,255,.4);">Sin contrato generado aún</span>';
+          }
+          out+='</div>';
+          return out;
         })():''}
       </div>
     </div>`;
@@ -1986,6 +1997,18 @@ function verContratoTexto(ctId){
     +'<pre>'+texto+'</pre>'
     +'</body></html>');
   win.document.close();
+}
+
+function guardarTextoContrato(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  if(ct.firm){alert('El contrato ya fue firmado y no puede editarse.');return;}
+  const ta=document.getElementById('ct-txt-'+ctId);
+  if(!ta)return;
+  ct.texto_contrato=ta.value;
+  if(!ct.est_contrato||ct.est_contrato==='generado') ct.est_contrato='revisado';
+  sbGuardarContrato(ct);
+  log('Contrato guardado: '+ct.nom);
+  alert('Cambios guardados correctamente.');
 }
 
 function aprobarContratoSol(ctId){
