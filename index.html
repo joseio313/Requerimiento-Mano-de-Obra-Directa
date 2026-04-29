@@ -534,15 +534,15 @@ async function sbLog(usuario, accion) {
         <div class="f" style="margin-bottom:11px;"><label>Notas Generales</label><textarea id="o-not" placeholder="Observaciones, acceso al terreno, condiciones..."></textarea></div>
         <div class="f" style="margin-bottom:11px;">
   <label>Objeto del Contrato <span style="font-size:9px;color:var(--ws);font-weight:400;">(Cláusula Segunda)</span></label>
-  <textarea id="o-obj" rows="4" placeholder="Se completa automáticamente...">El objeto del presente contrato es la ejecución de los trabajos de construcción de una vivienda unifamiliar correspondiente a la obra denominada en el presente contrato, incluyendo todos los trabajos de mano de obra directa especificados en los módulos de obra pactados entre las partes, conforme a los planos, especificaciones técnicas y demás documentos que forman parte integrante del presente contrato. EL CONTRATISTA se obliga a ejecutar los trabajos con sus propias herramientas menores, conforme a las reglas del arte de la construcción, bajo la supervisión técnica de GAMBARTE ARQUITECTURA S.R.L.</textarea>
+  <textarea id="o-obj" rows="4" placeholder="Se completa automáticamente..."></textarea>
 </div>
         <div class="f" style="margin-bottom:11px;">
   <label>Inclusiones — ¿Qué está incluido? <span style="font-size:9px;color:var(--ws);font-weight:400;">(Cláusula Tercera)</span></label>
-  <textarea id="o-inc" rows="4" placeholder="Se completa automáticamente...">Se incluye expresamente en la presente contratación: a) Mano de obra calificada y no calificada necesaria para la ejecución de los módulos pactados. b) Herramientas menores propias del contratista (palas, picos, carretillas, nivel, plomada, andamiaje básico). c) Limpieza diaria del área de trabajo y retiro de escombros propios de la actividad. d) Cumplimiento de normas de seguridad e higiene ocupacional durante toda la ejecución. e) Participación en reuniones de coordinación convocadas por la supervisión técnica. f) Presentación de avances fotográficos al finalizar cada módulo de obra.</textarea>
+  <textarea id="o-inc" rows="4" placeholder="Se completa automáticamente..."></textarea>
 </div>
         <div class="f" style="margin-bottom:11px;">
   <label>Exclusiones — ¿Qué NO está incluido? <span style="font-size:9px;color:var(--ws);font-weight:400;">(Cláusula Cuarta)</span></label>
-  <textarea id="o-exc" rows="4" placeholder="Se completa automáticamente...">Quedan expresamente excluidos del presente contrato y corren por cuenta de GAMBARTE ARQUITECTURA S.R.L.: a) Todos los materiales de construcción (cemento, arena, grava, hierro, ladrillo, madera, instalaciones, acabados y demás insumos). b) Equipos especializados y maquinaria pesada (mezcladoras, vibradores, andamiaje industrial, grúas). c) Transporte de materiales desde el depósito hasta la obra. d) Permisos municipales, aprobación de planos y derechos de construcción. e) Servicios básicos provisorios durante la construcción (agua, energía eléctrica). f) Costos de SOAT-C del contratista durante los primeros 5 días; pasado ese plazo corren por cuenta del contratista a razón de Bs. 50 por día de retraso en su presentación.</textarea>
+  <textarea id="o-exc" rows="4" placeholder="Se completa automáticamente..."></textarea>
 </div>
         <div class="brow">
           <button class="btn y" onclick="gObra()">💾 Guardar Obra</button>
@@ -1816,9 +1816,9 @@ function cargarObraEnForm(id){
   document.getElementById('o-di').value=o.di||'';
   document.getElementById('o-map').value=o.map||'';
   document.getElementById('o-not').value=o.not||'';
-  document.getElementById('o-obj').value=o.obj||'';
-  document.getElementById('o-inc').value=o.inc||'';
-  document.getElementById('o-exc').value=o.exc||'';
+  document.getElementById('o-obj').value=o.obj||'El objeto del presente contrato es la ejecución de los trabajos de construcción de una vivienda unifamiliar correspondiente a la obra denominada en el presente contrato, incluyendo todos los trabajos de mano de obra directa especificados en los módulos de obra pactados entre las partes, conforme a los planos, especificaciones técnicas y demás documentos que forman parte integrante del presente contrato. EL CONTRATISTA se obliga a ejecutar los trabajos con sus propias herramientas menores, conforme a las reglas del arte de la construcción, bajo la supervisión técnica de GAMBARTE ARQUITECTURA S.R.L.';
+  document.getElementById('o-inc').value=o.inc||'Se incluye expresamente en la presente contratación: a) Mano de obra calificada y no calificada necesaria para la ejecución de los módulos pactados. b) Herramientas menores propias del contratista (palas, picos, carretillas, nivel, plomada, andamiaje básico). c) Limpieza diaria del área de trabajo y retiro de escombros propios de la actividad. d) Cumplimiento de normas de seguridad e higiene ocupacional durante toda la ejecución. e) Participación en reuniones de coordinación convocadas por la supervisión técnica. f) Presentación de avances fotográficos al finalizar cada módulo de obra.';
+  document.getElementById('o-exc').value=o.exc||'Quedan expresamente excluidos del presente contrato y corren por cuenta de GAMBARTE ARQUITECTURA S.R.L.: a) Todos los materiales de construcción (cemento, arena, grava, hierro, ladrillo, madera, instalaciones, acabados y demás insumos). b) Equipos especializados y maquinaria pesada (mezcladoras, vibradores, andamiaje industrial, grúas). c) Transporte de materiales desde el depósito hasta la obra. d) Permisos municipales, aprobación de planos y derechos de construcción. e) Servicios básicos provisorios durante la construcción (agua, energía eléctrica). f) Costos de SOAT-C del contratista durante los primeros 5 días; pasado ese plazo corren por cuenta del contratista a razón de Bs. 50 por día de retraso en su presentación.';
   cO();cFF();
   // Mostrar info del contrato cargado por Steffi
   const info=document.getElementById('info-contrato-steffi');
