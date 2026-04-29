@@ -756,10 +756,21 @@ async function sbLog(usuario, accion) {
 
     <!-- ═══ PANEL: SUPERVISIÓN ═══ -->
     <div class="panel" id="panel-sup">
-      <div class="ph"><h2>🏗️ SUPERVISIÓN</h2><p>Estado de obras activas — seleccioná una para ver el paquete completo</p></div>
-      <div id="sup-overview"></div>
-      <div id="sup-selector"></div>
+      <div class="ph"><h2>🏗️ SUPERVISIÓN</h2><p>Seleccioná la obra para ver la información de campo</p></div>
+
+      <!-- Selector prominente — primero que ve Raí -->
+      <div style="background:linear-gradient(135deg,rgba(245,196,0,.08),var(--p1));border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--am);font-weight:700;margin-bottom:8px;">📋 ELEGIR OBRA</div>
+        <select id="sup-sel-obra-main" onchange="selSupObraMain(this.value)" style="width:100%;background:rgba(0,0,0,.4);border:1.5px solid rgba(245,196,0,.4);border-radius:7px;padding:13px 14px;color:#fff;font-size:14px;font-weight:700;outline:none;">
+          <option value="">— Seleccioná una obra —</option>
+        </select>
+        <div id="sup-obra-preview" style="margin-top:10px;display:none;"></div>
+      </div>
+
       <div id="sup-content" style="min-height:0;"></div>
+      <!-- IDs requeridos por funciones existentes -->
+      <div id="sup-overview" style="display:none;"></div>
+      <div id="sup-selector" style="display:none;"></div>
     </div>
 
     <!-- ═══ PANEL: ADMIN ═══ -->
@@ -1107,7 +1118,7 @@ function goPanel(id){
     renderContratos();
   }
   if(id==='obra') renderObrasPendCompleto();
-  if(id==='sup') renderSup();
+  if(id==='sup'){renderSup();}
 }
 
 // ══════════════════════════════════════════════════
@@ -2161,54 +2172,43 @@ function eliminarContratista(ctId){
 // ══════════════════════════════════════════════════
 // SUPERVISIÓN — selector + paquete imprimible
 // ══════════════════════════════════════════════════
-function renderSup(){
-  const sel=document.getElementById('sup-selector');
-  const cont=document.getElementById('sup-content');
-  const ov=document.getElementById('sup-overview');
-  if(!sel||!cont) return;
-  const activas=obras.filter(o=>o.aprobada);
-
-  // Tarjetas de resumen rápido
-  if(ov){
-    if(activas.length){
-      ov.innerHTML=`<div class="sup-obras-grid">${activas.map(o=>{
-        const ct=contratos.find(x=>x.oid===o.id&&x.est==='en_ejecucion')||contratos.find(x=>x.oid===o.id);
-        const estCls=ct?.est==='en_ejecucion'?'e-ej':ct?.est==='apto_para_obra'?'e-apto':'e-gen';
-        const estLbl=ct?.est==='en_ejecucion'?'En Ejecución':ct?.est==='apto_para_obra'?'Apto':'Pendiente';
-        return `<div class="sup-obra-card" onclick="selSupObra(${o.id})">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
-            <div class="soc-nom">${o.nom}</div>
-            <span class="est ${estCls}">${estLbl}</span>
-          </div>
-          <div class="soc-inf">${o.cod} · ${o.sup}m²</div>
-          <div class="soc-inf" style="margin-top:3px;">👷 ${ct?ct.nom:'Sin contratista'}</div>
-          ${o.fi?`<div class="soc-inf" style="margin-top:2px;">📅 ${o.fi} · ${o.di}d</div>`:''}
-        </div>`;
-      }).join('')}</div>`;
-    } else {
-      ov.innerHTML='';
-    }
+function selSupObraMain(oid){
+  const prev=document.getElementById('sup-obra-preview');
+  if(!oid){if(prev)prev.style.display='none';document.getElementById('sup-content').innerHTML='';return;}
+  const o=obras.find(x=>x.id==oid);
+  if(!o)return;
+  const ct=contratos.find(x=>x.oid==oid&&x.est==='en_ejecucion')||contratos.find(x=>x.oid==oid);
+  if(prev){
+    prev.style.display='block';
+    prev.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:rgba(255,255,255,.7);">
+      <span>📐 ${o.sup}m²</span>
+      <span>👥 ${o.cuad} personas</span>
+      <span>📅 ${o.fi||'—'}</span>
+      <span>⏱ ${o.di||'—'} días</span>
+      <span>👷 ${ct?ct.nom:'Sin contratista'}</span>
+    </div>`;
   }
+  renderSupObra(oid);
+}
 
+function renderSup(){
+  const cont=document.getElementById('sup-content');
+  const sel=document.getElementById('sup-sel-obra-main');
+  if(!cont) return;
+  const activas=obras.filter(o=>o.aprobada);
+  if(sel){
+    sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+
+      activas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
+  }
   if(!activas.length){
-    sel.innerHTML='';
-    cont.innerHTML=`<div style="text-align:center;padding:48px 24px;">
+    cont.innerHTML=`<div style="text-align:center;padding:40px 24px;">
       <div style="font-size:32px;margin-bottom:12px;">🏗️</div>
       <div style="font-weight:700;margin-bottom:6px;">Sin obras aprobadas</div>
-      <div style="font-size:11px;color:var(--ws);">Las obras aparecen aquí una vez que el administrador las aprueba.</div>
+      <div style="font-size:11px;color:var(--ws);">Las obras aparecerán aquí una vez que el administrador las apruebe.</div>
     </div>`;
-    return;
+  } else {
+    cont.innerHTML='';
   }
-  sel.innerHTML=`<div class="card" style="margin-bottom:14px;">
-    <div class="ct">Ver paquete completo de una obra</div>
-    <div class="f">
-      <select id="sup-sel-obra" onchange="renderSupObra(this.value)">
-        <option value="">— Elegir obra —</option>
-        ${activas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('')}
-      </select>
-    </div>
-  </div>`;
-  cont.innerHTML='';
 }
 
 function renderSupObra(oid){
@@ -2219,13 +2219,15 @@ function renderSupObra(oid){
 
   c.innerHTML=`<div id="sup-paquete">
 
-    <!-- Encabezado con botón imprimir -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <!-- Encabezado con botones de acción -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
       <div>
-        <div style="font-size:16px;font-weight:900;color:var(--am);">${o.nom}</div>
+        <div style="font-size:18px;font-weight:900;color:var(--am);">${o.nom}</div>
         <div style="font-size:11px;color:var(--ws);">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
       </div>
-      <button class="btn y sm" onclick="imprimirSupervision()">🖨️ Imprimir paquete</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn y sm" onclick="imprimirSupervision()" style="font-weight:900;">🖨️ IMPRIMIR</button>
+      </div>
     </div>
 
     <!-- Fila: Datos obra + Contratista -->
