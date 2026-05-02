@@ -2199,6 +2199,15 @@ function eliminarContratista(ctId){
 // ══════════════════════════════════════════════════
 // SUPERVISIÓN — selector + paquete imprimible
 // ══════════════════════════════════════════════════
+function calcFechaFinTexto(fi,di){
+  if(!fi||!di)return '—';
+  try{
+    const d=new Date(fi);
+    d.setDate(d.getDate()+parseInt(di));
+    return d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  }catch(e){return '—';}
+}
+
 function selSupObraMain(oid){
   const prev=document.getElementById('sup-obra-preview');
   if(!oid){if(prev)prev.style.display='none';document.getElementById('sup-content').innerHTML='';return;}
