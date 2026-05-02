@@ -2244,88 +2244,102 @@ function renderSupObra(oid){
   const o=obras.find(x=>x.id==oid);if(!o)return;
   const ct=contratos.find(x=>x.oid==oid&&x.est==='en_ejecucion')||contratos.find(x=>x.oid==oid);
 
-  c.innerHTML=`<div id="sup-paquete">
+  // Calcular días restantes y % tiempo
+  let diasRestantes='—', pctTiempo=0, colorBarra='var(--am)';
+  if(o.fi&&o.di){
+    const inicio=new Date(o.fi);
+    const fin=new Date(inicio);fin.setDate(fin.getDate()+parseInt(o.di));
+    const hoy=new Date();
+    const totalMs=fin-inicio;
+    const transcMs=hoy-inicio;
+    pctTiempo=Math.min(100,Math.max(0,Math.round(transcMs/totalMs*100)));
+    colorBarra=pctTiempo>90?'#f87171':pctTiempo>70?'#fb923c':'var(--am)';
+    const restMs=fin-hoy;
+    diasRestantes=restMs>0?Math.ceil(restMs/86400000)+' días restantes':'⚠️ PLAZO VENCIDO hace '+Math.abs(Math.ceil(restMs/86400000))+' días';
+  }
 
-    <!-- Encabezado con botones de acción -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-      <div>
-        <div style="font-size:18px;font-weight:900;color:var(--am);">${o.nom}</div>
-        <div style="font-size:11px;color:var(--ws);">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
-      </div>
-      <div style="display:flex;gap:8px;">
+  c.innerHTML=`<div id="sup-paquete">
+    <div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISIÓN</div>
+          <div style="font-size:20px;font-weight:900;color:var(--am);margin-top:3px;">${o.nom}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
+        </div>
         <button class="btn y sm" onclick="imprimirSupervision()" style="font-weight:900;">🖨️ IMPRIMIR</button>
       </div>
+      ${o.fi&&o.di?`<div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px;">
+          <span>📅 Inicio: ${o.fi}</span><span>${diasRestantes}</span><span>🏁 Fin: ${calcFechaFinTexto(o.fi,o.di)}</span>
+        </div>
+        <div style="background:rgba(255,255,255,.1);border-radius:100px;height:7px;">
+          <div style="background:${colorBarra};width:${pctTiempo}%;height:7px;border-radius:100px;"></div>
+        </div>
+        <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-align:right;">${pctTiempo}% del plazo transcurrido · ${o.di} días totales</div>
+      </div>`:''}
     </div>
 
-    <!-- Fila: Datos obra + Contratista -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div class="sup-section">
         <div class="sup-section-tit">📐 Datos de Obra</div>
+        <div class="sup-dato">Código: <b>${o.cod}</b></div>
+        <div class="sup-dato">Superficie: <b>${o.sup}m²</b></div>
+        <div class="sup-dato">Cuadrilla: <b>${o.cuad} personas</b></div>
         <div class="sup-dato">Inicio: <b>${o.fi||'—'}</b></div>
         <div class="sup-dato">Plazo: <b>${o.di||'—'} días</b></div>
-        <div class="sup-dato">Fin est.: <b>${calcFechaFinTexto(o.fi,o.di)}</b></div>
-        <div style="margin-top:8px;">
-          <a href="${o.map}" target="_blank" class="btn g2b sm" style="text-decoration:none;">📍 Ver en Maps</a>
-        </div>
+        <div class="sup-dato">Fin estimado: <b>${calcFechaFinTexto(o.fi,o.di)}</b></div>
+        ${o.map?`<div style="margin-top:8px;"><a href="${o.map}" target="_blank" class="btn g2b sm" style="text-decoration:none;">📍 Ver en Maps</a></div>`:''}
       </div>
       <div class="sup-section">
         <div class="sup-section-tit">👷 Contratista</div>
-        ${ct?`
-          <div class="sup-dato"><b>${ct.nom}</b></div>
-          <div class="sup-dato">📱 ${ct.tel||'—'}</div>
-          <div class="sup-dato">C.I. ${ct.ci_n||'—'}</div>
-          <div class="sup-dato" style="margin-top:6px;">${ct.est_contrato==='aprobado'?'<span class="est e-apto">✅ Contrato aprobado</span>':'<span class="est e-gen">⏳ En proceso</span>'}</div>
-          ${ct.tel?`<a href="https://wa.me/591${ct.tel}" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;margin-top:8px;display:inline-flex;">💬 WhatsApp</a>`:''}
+        ${ct?`<div style="font-size:13px;font-weight:700;margin-bottom:4px;">${ct.nom}</div>
+          <div class="sup-dato">📱 <b>${ct.tel||'—'}</b></div>
+          <div class="sup-dato">📍 ${ct.dir||'—'}</div>
+          <div class="sup-dato" style="margin-top:6px;">${ct.est==='en_ejecucion'?'<span class="est e-ej">🔵 En Ejecución</span>':ct.est==='apto_para_obra'?'<span class="est e-apto">✅ Apto</span>':'<span class="est e-gen">⏳ En proceso</span>'}</div>
+          ${ct.tel?`<div style="margin-top:8px;"><a href="https://wa.me/591${ct.tel}" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;">💬 WhatsApp</a></div>`:''}
         `:'<div class="sup-dato" style="color:var(--ws);">Sin contratista asignado.</div>'}
       </div>
     </div>
 
-    ${ct?.cond?`<div class="sup-section" style="margin-bottom:10px;">
-      <div class="sup-section-tit">📋 Condiciones Especiales</div>
-      <div style="font-size:11px;line-height:1.7;color:var(--wd);">${ct.cond}</div>
-    </div>`:''}
+    ${ct?.cond?`<div class="sup-section" style="margin-bottom:10px;"><div class="sup-section-tit">📋 Condiciones Especiales</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">${ct.cond}</div></div>`:''}
+    ${o.obj?`<div class="sup-section" style="margin-bottom:10px;"><div class="sup-section-tit">📄 Objeto del Contrato</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">${o.obj}</div></div>`:''}
+    ${o.inc?`<div class="sup-section" style="margin-bottom:10px;border-color:var(--G);background:var(--Gbg);"><div class="sup-section-tit" style="color:var(--Gc);">✅ Qué está INCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);">${o.inc}</div></div>`:''}
+    ${o.exc?`<div class="sup-section" style="margin-bottom:10px;border-color:var(--R);background:var(--Rbg);"><div class="sup-section-tit" style="color:var(--Rc);">❌ Qué NO está incluido</div><div style="font-size:11px;line-height:1.8;color:var(--wd);">${o.exc}</div></div>`:''}
 
-    <!-- Fila: Pagos + Obligaciones -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
       <div class="sup-section" style="border-color:var(--G);background:var(--Gbg);">
         <div class="sup-section-tit" style="color:var(--Gc);">💰 Forma de Pago</div>
         <div class="sup-dato">1er pago: <b style="color:var(--Gc);">30% al inicio</b></div>
         <div class="sup-dato">2do pago: <b style="color:var(--Gc);">40% al 50% avance</b></div>
         <div class="sup-dato">3er pago: <b style="color:var(--Gc);">30% a la entrega</b></div>
-        <div style="font-size:10px;color:var(--ws);margin-top:6px;">Quincenales según avance aprobado</div>
+        <div style="font-size:10px;color:var(--ws);margin-top:4px;">Quincenales según avance aprobado</div>
       </div>
       <div class="sup-section" style="border-color:var(--Z);background:var(--Zbg);">
-        <div class="sup-section-tit" style="color:var(--Zc);">✅ Obligaciones en Campo</div>
-        <div class="sup-dato">✓ Limpieza diaria</div>
+        <div class="sup-section-tit" style="color:var(--Zc);">✅ Obligaciones</div>
+        <div class="sup-dato">✓ Limpieza diaria del área</div>
         <div class="sup-dato">✓ Reporte semanal de avance</div>
-        <div class="sup-dato">✓ Especialistas M05,M06,M07,M10,M19</div>
-        <div class="sup-dato">✓ SOAT-C todo el personal</div>
-        <div class="sup-dato">✓ No divulgar info</div>
+        <div class="sup-dato">✓ Especialistas: M05,M06,M07,M10,M19</div>
+        <div class="sup-dato">✓ SOAT-C para todo el personal</div>
+        <div class="sup-dato">✓ Confidencialidad de planos</div>
+        <div class="sup-dato">✓ No modificar sin autorización</div>
       </div>
     </div>
 
-    <!-- Penalidades -->
     <div class="sup-section" style="border-color:var(--R);background:var(--Rbg);margin-bottom:10px;">
-      <div class="sup-section-tit" style="color:var(--Rc);">⚠️ Penalidades (cláusula 21)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:11px;color:var(--wd);">
-        <div>• Retraso: multa por día</div>
-        <div>• Sin SOAT-C en 3d: Bs 50/día</div>
-        <div>• Hurto/robo: rescisión + penal</div>
-        <div>• Modificaciones no autorizadas</div>
+      <div class="sup-section-tit" style="color:var(--Rc);">⚠️ Penalidades</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:11px;color:var(--wd);">
+        <div>• Retraso: multa por día</div><div>• Sin SOAT-C en 5d: Bs 50/día</div>
+        <div>• Hurto/robo: rescisión + proceso penal</div><div>• Modificaciones no autorizadas</div>
+        <div>• Abandono de obra: retención de pago</div><div>• Divulgar planos: responsabilidad civil</div>
       </div>
     </div>
 
-    <!-- Módulos -->
     <div class="sup-section">
-      <div class="sup-section-tit">🧱 Módulos a Ejecutar (${o.mods?.length||0})</div>
-      <div class="sup-mods-grid">
-        ${(o.mods||[]).map((m,i)=>`<div class="sup-mod-item"><b style="color:var(--am);">M${String(i+1).padStart(2,'0')}</b> ${m}</div>`).join('')}
-      </div>
+      <div class="sup-section-tit">🧱 Módulos a Ejecutar — ${o.mods?.length||0} total</div>
+      ${o.mods?.length?`<div class="sup-mods-grid">${(o.mods||[]).map((m,i)=>`<div class="sup-mod-item"><b style="color:var(--am);">M${String(i+1).padStart(2,'0')}</b> ${m}</div>`).join('')}</div>`:'<div style="font-size:11px;color:var(--ws);">Sin módulos. Completar en panel Requerimiento.</div>'}
     </div>
-
   </div>`;
 }
-
 function imprimirSupervision(){
   const el=document.getElementById('sup-paquete');if(!el)return;
   const tam=confirm('Tamano de impresion: OK=Oficio  Cancelar=Carta')?'oficio':'carta';
