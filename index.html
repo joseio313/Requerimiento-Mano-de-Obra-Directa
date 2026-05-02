@@ -379,7 +379,7 @@ async function sbCargarDatos() {
       }));
     }
 
-    renderObras(); renderObrasPendCompleto(); renderOS(); renderContratos(); renderSup(); renderAdmin(); uStats();
+    renderObras(); renderObrasPendCompleto(); renderOS(); renderContratos(); renderSup(); renderAdmin(); uStats(); renderReqSelector();
     console.log('✅ Datos cargados desde Supabase');
   } catch(e) {
     console.warn('Supabase no disponible, usando datos locales:', e.message);
@@ -491,9 +491,18 @@ async function sbLog(usuario, accion) {
       <!-- HERO HEADER Obras -->
       <div style="background:linear-gradient(135deg,#001828,#002a40);border:2px solid #38bdf8;border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">🏗️</div>
-        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#38bdf8;font-weight:700;">GEAT · OBRAS</div>
-        <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Cargar Obra</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Registrá nueva obra o completá datos técnicos</div>
+        <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#38bdf8;font-weight:700;">GEAT · REQUERIMIENTO</div>
+        <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Requerimiento de Contratista</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Elegí la obra y cargá los requerimientos</div>
+      </div>
+
+      <!-- SELECTOR DE OBRA — lo primero que ve el usuario -->
+      <div style="background:linear-gradient(135deg,rgba(56,189,248,.08),var(--p1));border:2px solid #38bdf8;border-radius:10px;padding:18px;margin-bottom:14px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;font-weight:700;margin-bottom:8px;">📋 ELEGIR OBRA</div>
+        <select id="req-sel-obra" onchange="cargarReqObra(this.value)" style="width:100%;background:rgba(0,0,0,.4);border:2px solid rgba(56,189,248,.4);border-radius:7px;padding:13px 14px;color:#fff;font-size:14px;font-weight:700;outline:none;margin-bottom:8px;">
+          <option value="">— Seleccioná una obra —</option>
+        </select>
+        <div id="req-obra-info" style="display:none;font-size:11px;color:rgba(255,255,255,.6);padding:6px 0;"></div>
       </div>
 
       <!-- Obras pendientes de datos técnicos (para Fátima) -->
@@ -1089,11 +1098,11 @@ function panelInicial(){
 function buildNav(){
   const nav=document.getElementById('nav');nav.innerHTML='';
   const maps={
-    admin:    [{id:'obra',l:'📝 Obras'},{id:'contratista',l:'👷 Contratista'},{id:'contratos',l:'📋 Contratos'},{id:'sup',l:'🏗️ Supervisión'},{id:'admin',l:'🔧 Admin'}],
+    admin:    [{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Contratista'},{id:'contratos',l:'📋 Contratos'},{id:'sup',l:'🏗️ Supervisión'},{id:'admin',l:'🔧 Admin'}],
     abogada:  [{id:'contratos',l:'📋 Contratos'}],
     supervisor:[{id:'sup',l:'🏗️ Supervisión'}],
-    comercial: [{id:'obra',l:'📝 Obras'},{id:'contratista',l:'👷 Contratista'}],
-    captadora: [{id:'obra',l:'📝 Obras'},{id:'contratista',l:'👷 Contratista'}]
+    comercial: [{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Contratista'}],
+    captadora: [{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Contratista'}]
   };
   (maps[CU.r]||[]).forEach(b=>{
     const bt=document.createElement('button');
@@ -1117,7 +1126,7 @@ function goPanel(id){
     document.getElementById('sol-obra-sel').value='';
     renderContratos();
   }
-  if(id==='obra') renderObrasPendCompleto();
+  if(id==='obra'){renderObrasPendCompleto();renderReqSelector();}
   if(id==='sup'){renderSup();}
 }
 
@@ -1135,7 +1144,7 @@ function abrirPerfil(){
     ${isAdmin?`
     <p style="font-size:10px;color:var(--ws);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Accesos rápidos</p>
     <div class="perfil-grid">
-      <div class="perfil-btn" onclick="cOv('perfil');goPanel('obra')"><div class="ico">📝</div><div class="lbl">Cargar Obra</div><div class="sub">Nueva obra</div></div>
+      <div class="perfil-btn" onclick="cOv('perfil');goPanel('obra')"><div class="ico">📝</div><div class="lbl">Requerimiento de Contratista</div><div class="sub">Nueva obra</div></div>
       <div class="perfil-btn" onclick="cOv('perfil');goPanel('contratista')"><div class="ico">👷</div><div class="lbl">Contratista</div><div class="sub">Registrar datos</div></div>
       <div class="perfil-btn" onclick="cOv('perfil');goPanel('contratos')"><div class="ico">📋</div><div class="lbl">Contratos</div><div class="sub">Revisar y aprobar</div></div>
       <div class="perfil-btn" onclick="cOv('perfil');goPanel('sup')"><div class="ico">🏗️</div><div class="lbl">Supervisión</div><div class="sub">Ver estado en campo</div></div>
@@ -1803,6 +1812,24 @@ function renderObrasPendCompleto(){
       <button onclick="cargarObraEnForm(${o.id})" style="background:var(--am);color:#000;border:none;border-radius:6px;padding:8px 14px;font-size:11px;font-weight:900;cursor:pointer;white-space:nowrap;">COMPLETAR →</button>
     </div>`).join('')}
   </div>`;
+}
+
+function renderReqSelector(){
+  const sel=document.getElementById('req-sel-obra');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Seleccioná una obra para cargar requerimientos —</option>'+
+    obras.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})${o.aprobada?' ✅':' ⏳'}</option>`).join('');
+}
+
+function cargarReqObra(oid){
+  const info=document.getElementById('req-obra-info');
+  if(!oid){if(info)info.style.display='none';return;}
+  cargarObraEnForm(parseInt(oid));
+  const o=obras.find(x=>x.id==oid);
+  if(o&&info){
+    info.style.display='block';
+    info.innerHTML=`📐 ${o.sup}m² · 👥 ${o.cuad} personas · 💰 $${(o.monto||0).toFixed(0)} USD · ${o.aprobada?'✅ Aprobada':'⏳ Pendiente aprobación'}`;
+  }
 }
 
 function cargarObraEnForm(id){
