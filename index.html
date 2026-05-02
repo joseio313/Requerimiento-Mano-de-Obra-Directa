@@ -374,6 +374,9 @@ async function sbCargarDatos() {
         aprobado_fecha: c.aprobado_fecha||null,
         fec: c.fecha_registro?new Date(c.fecha_registro+'T00:00:00').toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}):null,
         fec_iso: c.fecha_registro||null,
+        ediciones_count: c.ediciones_count||0,
+        historial_cambios: c.historial_cambios||[],
+        contrato_bloqueado: c.contrato_bloqueado||false,
         busqueda_activa: c.busqueda_activa||false,
         busqueda_fecha: c.busqueda_fecha||null
       }));
@@ -422,7 +425,10 @@ async function sbGuardarContrato(c) {
     aprobado_fecha: c.aprobado_fecha||null,
     fecha_registro: c.fec_iso||new Date().toISOString().slice(0,10),
     busqueda_activa: c.busqueda_activa||false,
-    busqueda_fecha: c.busqueda_fecha||null
+    busqueda_fecha: c.busqueda_fecha||null,
+    ediciones_count: c.ediciones_count||0,
+    historial_cambios: c.historial_cambios||[],
+    contrato_bloqueado: c.contrato_bloqueado||false
   };
   // Solo incluir id si es un ID real de Supabase (no temporal)
   if(!esIdTemporal && c.id) payload.id = c.id;
@@ -1419,130 +1425,115 @@ function pvO(){
   actuChk();
 }
 function generarTextoBase(ct, o){
-  const hoy = new Date();
-  const fecha = hoy.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  const mods = (o.mods||[]).map((m,i)=>'  M'+String(i+1).padStart(2,'0')+' — '+m).join('\n');
-  const montoUSD = o.monto||0;
-  const montoBs = Math.round(montoUSD*6.96);
-  const diasEj = o.di||90;
-  const fechaInicio = o.fi||fecha;
-  // Calcular fecha fin
-  let fechaFin = '';
-  if(o.fi){
-    const d=new Date(o.fi);d.setDate(d.getDate()+(o.di||90));
-    fechaFin=d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  }
+  const hoy=new Date();
+  const fecha=hoy.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  const mods=(o.mods||[]).map((m,i)=>'  M'+String(i+1).padStart(2,'0')+' — '+m).join('\n');
+  const montoUSD=parseFloat(o.monto)||0;
+  const montoBs=Math.round(montoUSD*6.96);
+  const p1u=(montoUSD*0.30).toFixed(2),p1b=Math.round(montoUSD*0.30*6.96);
+  const p2u=(montoUSD*0.40).toFixed(2),p2b=Math.round(montoUSD*0.40*6.96);
+  const p3u=(montoUSD*0.30).toFixed(2),p3b=Math.round(montoUSD*0.30*6.96);
+  const diasEj=o.di||90;
+  const fechaInicio=o.fi||fecha;
+  let fechaFin='—';
+  if(o.fi){const d=new Date(o.fi);d.setDate(d.getDate()+(o.di||90));fechaFin=d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});}
 
   return `CONTRATO DE PRESTACIÓN DE SERVICIOS DE MANO DE OBRA DIRECTA
-CÓDIGO: ${o.cod||'—'}
+Código: ${o.cod||'—'} | Santa Cruz de la Sierra, ${fecha}
 
-En la ciudad de Santa Cruz de la Sierra, a ${fecha}, entre:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PARTES DEL CONTRATO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-CONTRATANTE: GAMBARTE ARQUITECTURA S.R.L., representada por el Sr. JOSÉ MIGUEL GAMBARTE VIDAURRE, C.I. 7714413 SC, con domicilio en Avenida Beni 3er anillo, Santa Cruz de la Sierra, en adelante "EL CONTRATANTE".
+CONTRATANTE:
+Empresa: GAMBARTE ARQUITECTURA S.R.L.
+Representante: José Miguel Gambarte Vidaurre
+C.I.: 7714413 SC
+Domicilio: Av. Beni 3er Anillo, Santa Cruz de la Sierra
 
-CONTRATISTA: ${ct.nom||'—'}, C.I. ${ct.ci_n||'—'}, con domicilio en ${ct.dir||'—'}, en adelante "EL CONTRATISTA".
+CONTRATISTA:
+Nombre completo: ${ct.nom||'—'}
+C.I.: ${ct.ci_n||'—'}
+Teléfono: ${ct.tel||'—'}
+Domicilio: ${ct.dir||'—'}
 
-CLÁUSULA PRIMERA — ANTECEDENTES
-EL CONTRATANTE requiere los servicios de mano de obra directa para la ejecución de trabajos de construcción de vivienda unifamiliar denominada "${o.nom||'—'}" (Código: ${o.cod||'—'}), ubicada según coordenadas GPS registradas en el sistema.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA PRIMERA — OBJETO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${o.obj||'El CONTRATISTA se compromete a ejecutar los trabajos de mano de obra directa para la construcción de la obra denominada "'+o.nom+'" (Código: '+o.cod+'), conforme a los módulos acordados, bajo supervisión técnica de GAMBARTE ARQUITECTURA S.R.L.'}
 
-CLÁUSULA SEGUNDA — OBJETO DEL CONTRATO
-${o.obj||'El objeto del presente contrato es la ejecución de los trabajos de construcción de una vivienda unifamiliar, incluyendo todos los trabajos de mano de obra directa especificados en los módulos de obra pactados entre las partes, conforme a los planos, especificaciones técnicas y demás documentos que forman parte integrante del presente contrato. EL CONTRATISTA se obliga a ejecutar los trabajos con sus propias herramientas menores, conforme a las reglas del arte de la construcción, bajo la supervisión técnica de GAMBARTE ARQUITECTURA S.R.L.'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA SEGUNDA — MÓDULOS DE TRABAJO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Obra: ${o.nom||'—'} | Código: ${o.cod||'—'}
+Superficie total: ${o.sup||'—'} m² | Cuadrilla: ${o.cuad||'—'} personas
 
-CLÁUSULA TERCERA — INCLUSIONES
-${o.inc||'Se incluye expresamente: a) Mano de obra calificada y no calificada para la ejecución de los módulos pactados. b) Herramientas menores propias del contratista. c) Limpieza diaria del área de trabajo y retiro de escombros. d) Cumplimiento de normas de seguridad e higiene ocupacional. e) Participación en reuniones de coordinación. f) Presentación de avances fotográficos al finalizar cada módulo.'}
-
-CLÁUSULA CUARTA — EXCLUSIONES
-${o.exc||'Quedan excluidos y corren por cuenta del CONTRATANTE: a) Todos los materiales de construcción. b) Equipos especializados y maquinaria pesada. c) Transporte de materiales. d) Permisos municipales y aprobación de planos. e) Servicios básicos provisorios durante la construcción.'}
-
-CLÁUSULA QUINTA — MÓDULOS DE OBRA
-Los trabajos se ejecutarán en los siguientes módulos:
+Módulos pactados:
 ${mods||'  Sin módulos definidos'}
 
-CLÁUSULA SEXTA — MONTO Y FORMA DE PAGO
-El monto total pactado es de $us ${montoUSD.toFixed(2)} (${montoBs.toLocaleString('es-BO')} bolivianos), pagadero de la siguiente manera:
-  - 30% al inicio de los trabajos: $us ${(montoUSD*0.30).toFixed(2)}
-  - 40% al 50% de avance de obra: $us ${(montoUSD*0.40).toFixed(2)}
-  - 30% a la entrega final: $us ${(montoUSD*0.30).toFixed(2)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA TERCERA — MONTO Y FORMA DE PAGO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Precio acordado: USD ${montoUSD.toFixed(2)} equivalente a Bs ${montoBs.toLocaleString('es-BO')} (T.C. 6.96)
 
-CLÁUSULA SÉPTIMA — PLAZO DE EJECUCIÓN
-El plazo de ejecución es de ${diasEj} días calendario, con inicio el ${fechaInicio}${fechaFin?' y conclusión el '+fechaFin:''}.
+Pagos quincenales según avance verificado por supervisión:
+  Pago 1 — 30% al inicio de obra:
+    USD ${p1u} / Bs ${p1b.toLocaleString('es-BO')}
+  Pago 2 — 40% al 50% de avance:
+    USD ${p2u} / Bs ${p2b.toLocaleString('es-BO')}
+  Pago 3 — 30% a la entrega final:
+    USD ${p3u} / Bs ${p3b.toLocaleString('es-BO')}
 
-CLÁUSULA OCTAVA — CONDICIONES ESPECIALES
-${ct.cond||'No se han pactado condiciones especiales adicionales.'}
+${ct.cond?'Condiciones especiales pactadas:\n'+ct.cond:'Sin condiciones especiales adicionales.'}
 
-CLÁUSULA NOVENA — OBLIGACIONES DEL CONTRATISTA
-a) Ejecutar los trabajos con personal calificado y bajo su directa responsabilidad.
-b) Presentar SOAT-C vigente dentro de los 5 primeros días de trabajo; el retraso generará una penalidad de Bs. 50 por día.
-c) Cumplir con el cronograma de avance establecido por la supervisión técnica.
-d) Mantener el área de trabajo limpia y segura en todo momento.
-e) Informar inmediatamente cualquier contingencia que afecte el avance de la obra.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA CUARTA — PLAZO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Plazo de ejecución: ${diasEj} días calendario
+Fecha de inicio: ${fechaInicio}
+Fecha de entrega: ${fechaFin}
 
-CLÁUSULA DÉCIMA — PENALIDADES
-Por retraso en la entrega de la obra imputable al CONTRATISTA, se aplicará una penalidad del 0.5% del monto total por cada día de retraso, hasta un máximo del 10% del monto total.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA QUINTA — INCLUSIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${o.inc||'El CONTRATISTA incluye: a) Mano de obra calificada. b) Herramientas menores propias. c) Limpieza diaria y retiro de escombros. d) Seguridad e higiene ocupacional. e) Reportes semanales. f) Fotos de avance por módulo.'}
 
-CLÁUSULA DÉCIMA PRIMERA — RESCISIÓN
-Cualquiera de las partes podrá rescindir el contrato con 48 horas de anticipación, siempre que medie causa justificada. En caso de rescisión sin causa, la parte que rescinda deberá indemnizar a la otra por los daños y perjuicios ocasionados.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA SEXTA — EXCLUSIONES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${o.exc||'El CONTRATANTE provee: a) Todos los materiales. b) Maquinaria especializada. c) Transporte de materiales. d) Permisos municipales. e) Servicios básicos provisorios.'}
 
-CLÁUSULA DÉCIMA SEGUNDA — CONFIDENCIALIDAD
-EL CONTRATISTA se compromete a mantener estricta confidencialidad sobre los planos, diseños y demás información técnica proporcionada por EL CONTRATANTE.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA SÉPTIMA — OBLIGACIONES DEL CONTRATISTA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+a) Presentar SOAT-C dentro de los primeros 5 días (penalidad: Bs 50/día de retraso).
+b) Ejecutar bajo supervisión de GAMBARTE ARQUITECTURA S.R.L.
+c) Mantener confidencialidad de planos y diseños.
+d) No realizar modificaciones sin autorización escrita.
+e) Reportar contingencias de inmediato.
+f) Mantener el área limpia y segura en todo momento.
 
-CLÁUSULA DÉCIMA TERCERA — JURISDICCIÓN
-Las partes se someten a la jurisdicción de los tribunales de la ciudad de Santa Cruz de la Sierra para cualquier controversia derivada del presente contrato.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLÁUSULA OCTAVA — PENALIDADES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• Retraso injustificado: 0.5% del monto total por día (máximo 10%).
+• Sin SOAT-C en 5 días: Bs 50 por día.
+• Hurto o robo: rescisión inmediata + proceso penal.
+• Abandono de obra: retención del pago pendiente.
+• Divulgar planos: responsabilidad civil.
 
-En prueba de conformidad, las partes suscriben el presente contrato en dos ejemplares de igual valor.`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIRMAS DE CONFORMIDAD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+_______________________________     _______________________________
+${ct.nom||'CONTRATISTA'}
+C.I. ${ct.ci_n||'___'}                          JOSÉ MIGUEL GAMBARTE VIDAURRE
+Contratista                                 C.I. 7714413 SC
+                                            GAMBARTE ARQUITECTURA S.R.L.`;
 }
 
-async function gCont(){
-  const nom=document.getElementById('ct-n').value.trim();
-  const oid=parseInt(document.getElementById('ct-o').value);
-  const ci=document.getElementById('ct-ci').value.trim();
-  if(!nom||!oid){alert('Nombre y Obra son obligatorios.');return;}
-  if(ci&&contratos.find(c=>c.ci_n===ci&&c.oid===oid)){alert('Ya existe un contratista con ese C.I. en esta obra.');return;}
-  const o=obras.find(x=>x.id===oid);
-  const tel=document.getElementById('ct-t').value.trim();
-  const dir=document.getElementById('ct-d').value.trim();
-  const cond=document.getElementById('ct-co').value.trim();
-  const ctObj={nom,ci_n:ci,tel,dir,cond};
-  const txt=generarTextoBase(ctObj, o||{});
-  const btn=document.getElementById('btn-cargar');
-  if(btn){btn.disabled=true;btn.textContent='Guardando...';}
-  const newCt={id:Date.now(),nom,tel,dir,ci_n:ci,oid,
-    ci:upD.ci,ag:upD.ag,lz:upD.lz,cond,
-    est:'generado',firm:null,
-    fec:new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}),
-    fec_iso:new Date().toISOString().slice(0,10),
-    texto_contrato:txt,est_contrato:'generado'};
-  contratos.push(newCt);
-  try{
-    await sbGuardarContrato(newCt);
-    // Subir archivos CI, agua, luz a Storage
-    const files=[
-      {key:'ci',inp:document.getElementById('inp-file-ci')},
-      {key:'ag',inp:document.getElementById('inp-file-ag')},
-      {key:'lz',inp:document.getElementById('inp-file-lz')}
-    ];
-    for(const f of files){
-      if(f.inp&&f.inp.files&&f.inp.files[0]){
-        const file=f.inp.files[0];
-        const path=buildStoragePath('contratistas',newCt.id,f.key,file.name);
-        const {error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:true});
-        if(!error) newCt[f.key]=path;
-      }
-    }
-    if(newCt.ci||newCt.ag||newCt.lz) await sbGuardarContrato(newCt);
-    await sbLog(CU.n,'Contratista registrado: '+nom);
-    log('Contratista '+nom+' registrado → Obra #'+oid);
-    renderContratos();renderCardActivar();uStats();
-    document.getElementById('msg-ct').innerHTML='<div class="al al-g">✅ <b>'+nom+'</b> guardado correctamente. El contrato está en Contratos para revisión de Steffi.</div>';
-    lCont();
-  }catch(e){
-    alert('Error al guardar: '+e.message);
-    console.error(e);
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='💾 GUARDAR CONTRATISTA';}
-    document.getElementById('msg-ct').innerHTML='';
-  }
-}
+
 function lCont(){
   ['ct-n','ct-t','ct-ci','ct-d','ct-co'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('ct-o').value='';document.getElementById('o-prev').style.display='none';
@@ -1915,13 +1906,34 @@ function renderRegistroSol(){
           let out='<div style="background:rgba(245,196,0,.05);border:1.5px solid rgba(245,196,0,.25);border-radius:8px;padding:14px;margin-top:12px;">';
           out+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:12px;">📋 FLUJO DEL CONTRATO — STEFFI</div>';
           if(ct.texto_contrato){
-            if(!firmado){
-              out+='<div style="margin-bottom:10px;">';
-              out+='<div style="font-size:9px;color:rgba(255,255,255,.4);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px;">Editar Contrato</div>';
-              out+='<textarea id="ct-txt-'+ct.id+'" style="width:100%;min-height:220px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#e8e8e8;padding:10px;font-size:10.5pt;font-family:Arial,sans-serif;line-height:1.6;resize:vertical;box-sizing:border-box;">'+ct.texto_contrato+'</textarea>';
-              out+='<button onclick="guardarTextoContrato('+ct.id+')" class="btn y sm" style="margin-top:6px;font-weight:700;">💾 Guardar cambios</button>';
+            const ediciones=ct.ediciones_count||0;
+            const bloqueado=ct.contrato_bloqueado||false;
+            const hist=ct.historial_cambios||[];
+            if(hist.length){
+              out+='<div style="background:rgba(245,196,0,.05);border:1px solid rgba(245,196,0,.15);border-radius:6px;padding:8px 12px;margin-bottom:8px;">';
+              out+='<div style="font-size:9px;color:var(--am);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">📋 Historial de cambios</div>';
+              hist.forEach(h=>{ out+='<div style="font-size:10px;color:rgba(255,255,255,.5);">Edición '+h.e+' — '+h.n+' · '+h.f+'</div>'; });
               out+='</div>';
-            } else {
+            }
+            if(!firmado&&!bloqueado){
+              out+='<div style="margin-bottom:10px;">';
+              out+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">';
+              out+='<div style="font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:1px;">Editar Contrato</div>';
+              out+='<span style="font-size:10px;color:'+(ediciones>=2?'#f87171':'rgba(255,255,255,.4)')+';">'+ediciones+'/3 ediciones</span>';
+              out+='</div>';
+              out+='<textarea id="ct-txt-'+ct.id+'" style="width:100%;min-height:220px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#e8e8e8;padding:10px;font-size:10.5pt;font-family:Arial,sans-serif;line-height:1.6;resize:vertical;box-sizing:border-box;">'+ct.texto_contrato+'</textarea>';
+              out+='<div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">';
+              out+='<button onclick="guardarTextoContrato('+ct.id+')" class="btn y sm" style="font-weight:700;">💾 Guardar cambios</button>';
+              out+='<button id="btn-ia-'+ct.id+'" onclick="editarContratoConIA('+ct.id+')" class="btn sm" style="background:#6366f1;color:#fff;font-weight:700;">🤖 Editar con IA</button>';
+              out+='</div></div>';
+            } else if(bloqueado&&!firmado){
+              out+='<div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);border-radius:6px;padding:10px 12px;margin-bottom:10px;">';
+              out+='<div style="font-size:11px;color:#f87171;font-weight:700;">🔒 Límite de 3 ediciones alcanzado</div>';
+              out+='<div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:3px;">Contactá al administrador para desbloquear.</div>';
+              if(CU.r==='admin') out+='<button onclick="desbloquearContrato('+ct.id+')" class="btn sm" style="background:#f87171;color:#000;font-weight:700;margin-top:8px;">🔓 Desbloquear (Admin)</button>';
+              out+='</div>';
+              out+='<textarea style="width:100%;min-height:120px;background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.08);border-radius:6px;color:rgba(255,255,255,.4);padding:10px;font-size:10pt;font-family:Arial,sans-serif;line-height:1.6;resize:none;box-sizing:border-box;" readonly>'+ct.texto_contrato+'</textarea>';
+            } else if(firmado){
               out+='<div style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.3);border-radius:6px;padding:8px 12px;font-size:11px;color:var(--Gc);margin-bottom:10px;">🔒 Contrato bloqueado — firmado y subido</div>';
             }
             out+='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">';
@@ -2039,14 +2051,66 @@ function verContratoTexto(ctId){
 
 function guardarTextoContrato(ctId){
   const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(ct.firm){alert('El contrato ya fue firmado y no puede editarse.');return;}
-  const ta=document.getElementById('ct-txt-'+ctId);
-  if(!ta)return;
+  if(ct.firm){alert('Contrato firmado — no puede editarse.');return;}
+  if(ct.contrato_bloqueado){alert('Este contrato alcanzó el límite de 3 ediciones. Pedile al administrador que lo desbloquee.');return;}
+  const ediciones=ct.ediciones_count||0;
+  if(ediciones>=3){ct.contrato_bloqueado=true;sbGuardarContrato(ct);alert('Límite de 3 ediciones alcanzado. Contrato bloqueado.');renderContratos();return;}
+  const ta=document.getElementById('ct-txt-'+ctId);if(!ta)return;
+  const ahora=new Date().toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   ct.texto_contrato=ta.value;
+  ct.ediciones_count=(ediciones+1);
   if(!ct.est_contrato||ct.est_contrato==='generado') ct.est_contrato='revisado';
+  const hist=ct.historial_cambios||[];
+  hist.push({n:CU.n,f:ahora,e:ct.ediciones_count});
+  ct.historial_cambios=hist;
   sbGuardarContrato(ct);
-  log('Contrato guardado: '+ct.nom);
-  alert('Cambios guardados correctamente.');
+  log('Contrato editado ('+ct.ediciones_count+'/3): '+ct.nom);
+  renderContratos();
+  alert('Guardado. Edición '+ct.ediciones_count+' de 3.');
+}
+
+function desbloquearContrato(ctId){
+  if(CU.r!=='admin'){alert('Solo el administrador puede desbloquear.');return;}
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  if(!confirm('Desbloquear contrato de '+ct.nom+'? Se resetea el contador.'))return;
+  ct.contrato_bloqueado=false;ct.ediciones_count=0;
+  sbGuardarContrato(ct);renderContratos();
+}
+
+async function editarContratoConIA(ctId){
+  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  if(ct.firm){alert('Contrato firmado — no puede editarse.');return;}
+  if(ct.contrato_bloqueado){alert('Contrato bloqueado. Pedile al admin que lo desbloquee.');return;}
+  const instruccion=prompt('Indicale a la IA qué cambiar en el contrato:\n(ej: "cambia el plazo a 90 días", "agrega cláusula de garantía de 6 meses")');
+  if(!instruccion)return;
+  const btn=document.getElementById('btn-ia-'+ctId);
+  if(btn){btn.disabled=true;btn.textContent='⏳ Procesando...';}
+  try{
+    // Obtener API key de Supabase
+    const {data:cfg}=await sb.from('app_config').select('value').eq('key','anthropic_api_key').single();
+    if(!cfg?.value)throw new Error('API key no configurada');
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':cfg.value,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({
+        model:'claude-haiku-4-5',
+        max_tokens:4000,
+        system:'Eres un asistente legal especializado en contratos de construcción bolivianos. Recibirás un contrato de prestación de servicios y una instrucción de modificación. Devuelve SOLO el texto completo del contrato modificado, sin explicaciones adicionales, sin markdown, sin comillas. Mantén el mismo formato y estructura del contrato original.',
+        messages:[{role:'user',content:'CONTRATO ACTUAL:\n\n'+ct.texto_contrato+'\n\nINSTRUCCIÓN DE MODIFICACIÓN:\n'+instruccion+'\n\nDevuelve el contrato completo con la modificación aplicada:'}]
+      })
+    });
+    if(!resp.ok)throw new Error('Error API: '+resp.status);
+    const data=await resp.json();
+    const nuevoTexto=data.content[0].text;
+    const ta=document.getElementById('ct-txt-'+ctId);
+    if(ta)ta.value=nuevoTexto;
+    ct.texto_contrato=nuevoTexto;
+    alert('IA aplicó el cambio. Revisá el contrato y tocá Guardar si estás conforme.');
+  }catch(e){
+    alert('Error al procesar con IA: '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='🤖 Editar con IA';}
+  }
 }
 
 function aprobarContratoSol(ctId){
