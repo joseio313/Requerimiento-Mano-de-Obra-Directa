@@ -437,12 +437,25 @@ async function storageUrl(path){
             <button class="btn btn-o btn-sm" onclick="fatAddMod()" style="margin-bottom:14px;">+ Agregar módulo</button>
           </div>
 
-          <!-- Objeto / Inclusiones / Exclusiones -->
+          <!-- Objeto / Inclusiones / Exclusiones — con texto GEAT por defecto -->
+          <div style="background:rgba(245,196,0,.06);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;margin-bottom:10px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:4px;">📋 Cláusulas del Contrato con el Contratista</div>
+            <div style="font-size:10px;color:var(--wd);">Texto pre-cargado con los estándares GEAT. Editá solo si hay condiciones especiales para esta obra.</div>
+          </div>
           <div class="fg" style="margin-bottom:14px;gap:10px;">
-            <div class="f"><label>Objeto del Contrato</label><textarea id="fat-obj" rows="3" placeholder="Descripción del trabajo a realizar..."></textarea></div>
-            <div class="f"><label>¿Qué está INCLUIDO?</label><textarea id="fat-inc" rows="3" placeholder="Mano de obra, herramientas menores..."></textarea></div>
-            <div class="f"><label>¿Qué NO está incluido?</label><textarea id="fat-exc" rows="3" placeholder="Materiales, maquinaria..."></textarea></div>
-            <div class="f"><label>Notas adicionales</label><textarea id="fat-not" rows="2" placeholder="Observaciones, condiciones de acceso..."></textarea></div>
+            <div class="f">
+              <label>Objeto del Contrato <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
+              <textarea id="fat-obj" rows="4"></textarea>
+            </div>
+            <div class="f">
+              <label>¿Qué está INCLUIDO? — Obligaciones del Contratista <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
+              <textarea id="fat-inc" rows="6"></textarea>
+            </div>
+            <div class="f">
+              <label>¿Qué NO está incluido? — Corre por cuenta de GEAT <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
+              <textarea id="fat-exc" rows="5"></textarea>
+            </div>
+            <div class="f"><label>Notas adicionales de la obra</label><textarea id="fat-not" rows="2" placeholder="Observaciones de acceso, condiciones del terreno, requerimientos especiales..."></textarea></div>
           </div>
 
           <div class="brow">
@@ -932,6 +945,32 @@ const MOD_DEF=['Excavación y nivelación','Cimientos y zapatas','Columnas y vig
 'Pintura exterior','Acabados baños','Acabados cocina','Escaleras','Jardín y exteriores',
 'Limpieza final','Supervisión técnica','Entrega y cierre'];
 
+// ── TEXTOS GEAT ESTÁNDAR PARA CONTRATOS CON CONTRATISTA ──
+// Lo mismo que GEAT firma con el propietario, exigimos al contratista en mano de obra
+function FAT_OBJ(nomObra){
+  return 'El CONTRATISTA se compromete a ejecutar los trabajos de MANO DE OBRA DIRECTA para la construcción de la vivienda unifamiliar denominada "'+nomObra+'", conforme a los planos y especificaciones técnicas proporcionados por GAMBARTE ARQUITECTURA S.R.L., bajo supervisión técnica permanente del Residente de Obra. El CONTRATISTA se obliga a ejecutar los trabajos con personal calificado, herramientas menores propias, y bajo estricto cumplimiento de las normas de seguridad e higiene ocupacional vigentes en Bolivia.';
+}
+const FAT_INC=`Se incluye expresamente en la presente contratación:
+a) Mano de obra calificada y no calificada necesaria para la ejecución de todos los módulos pactados.
+b) Herramientas menores propias del contratista (palas, picos, carretillas, nivel, plomada, andamiaje básico propio).
+c) Limpieza diaria del área de trabajo y retiro de escombros propios de la actividad constructiva.
+d) Cumplimiento de normas de seguridad e higiene ocupacional durante toda la ejecución (EPP básico).
+e) Participación en reuniones de coordinación convocadas por la supervisión técnica.
+f) Presentación de avances fotográficos al finalizar cada módulo de obra.
+g) Reporte semanal escrito de avance al Supervisor de Obra.
+h) Instalaciones especializadas (sanitaria, eléctrica, hidráulica, estructuras, pintura) ejecutadas por personal con experiencia comprobada y aprobado por el Residente de Obra.
+i) Aportar el 50% de la madera necesaria para la ejecución de la obra (encofrados, andamiaje, etc.).
+j) Garantizar acabados de calidad con personal calificado y herramientas que aseguren buena ejecución.`;
+const FAT_EXC=`Quedan expresamente EXCLUIDOS del presente contrato y corren por cuenta de GAMBARTE ARQUITECTURA S.R.L.:
+a) Todos los materiales de construcción (cemento, arena, grava, hierro, ladrillo, madera estructural, instalaciones, acabados y demás insumos).
+b) Equipos especializados y maquinaria pesada (mezcladoras, vibradores, andamiaje industrial, grúas, compactadoras).
+c) Transporte de materiales desde depósito o proveedor hasta el sitio de obra.
+d) Permisos municipales, aprobación de planos y derechos de construcción ante autoridades.
+e) Servicios básicos provisorios durante la construcción (agua, energía eléctrica, sanitarios).
+f) El 50% restante de la madera necesaria para la obra.
+g) Planos arquitectónicos, estructurales y de instalaciones.
+h) Costos de SOAT-C del contratista (debe presentarlo en máximo 3 días del primer pago; pasado ese plazo: Bs 50/día de multa).`;
+
 function renderFatima(){
   // Poblar selector con obras SIN datos técnicos (sup=0)
   const sel=document.getElementById('fat-sel-obra');if(!sel)return;
@@ -960,6 +999,15 @@ function fatSelObra(oid){
   // Inicializar módulos
   fatMods=MOD_DEF.map(m=>({lbl:m,inc:true}));
   renderFatMods();
+  // Pre-cargar textos estándar GEAT
+  const elObj=document.getElementById('fat-obj');
+  const elInc=document.getElementById('fat-inc');
+  const elExc=document.getElementById('fat-exc');
+  const elNot=document.getElementById('fat-not');
+  if(elObj) elObj.value=o.obj||FAT_OBJ(o.nom);
+  if(elInc) elInc.value=o.inc||FAT_INC;
+  if(elExc) elExc.value=o.exc||FAT_EXC;
+  if(elNot) elNot.value=o.not||'';
   form.scrollIntoView({behavior:'smooth'});
 }
 
@@ -1317,33 +1365,185 @@ function supSelObra(oid){
   const o=obras.find(x=>x.id==oid);if(!o)return;
   const ct=gCByObra(o.id);
   const monto=o.monto,montoBs=Math.round(monto*6.96);
-  c.innerHTML=`<div style="background:var(--p2);border:1px solid var(--am);border-radius:8px;padding:14px;margin-top:14px;">
-    <div style="font-size:18px;font-weight:900;color:var(--am);margin-bottom:8px;">${o.nom}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-      <div><div style="font-size:9px;color:var(--ws);">SUPERFICIE</div><div style="font-weight:700;">${o.sup}m²</div></div>
-      <div><div style="font-size:9px;color:var(--ws);">CUADRILLA</div><div style="font-weight:700;">${o.cuad} personas</div></div>
-      <div><div style="font-size:9px;color:var(--ws);">INICIO</div><div style="font-weight:700;">${o.fi||'—'}</div></div>
-      <div><div style="font-size:9px;color:var(--ws);">PLAZO</div><div style="font-weight:700;">${o.di} días</div></div>
-      <div><div style="font-size:9px;color:var(--ws);">FIN ESTIMADO</div><div style="font-weight:700;">${fechaFin(o.fi,o.di)}</div></div>
-      ${o.map?`<div><a href="${o.map}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;margin-top:4px;">📍 Maps</a></div>`:''}
+  const p1u=(monto*.30).toFixed(2),p1b=Math.round(monto*.30*6.96);
+  const p2u=(monto*.40).toFixed(2),p2b=Math.round(monto*.40*6.96);
+  const p3u=(monto*.30).toFixed(2),p3b=Math.round(monto*.30*6.96);
+  // Calcular progreso de tiempo
+  let barHtml='',diasInfo='';
+  if(o.fi&&o.di){
+    const inicio=new Date(o.fi),fin=new Date(inicio);fin.setDate(fin.getDate()+parseInt(o.di));
+    const hoy=new Date(),total=fin-inicio,transc=hoy-inicio;
+    const pct=Math.min(100,Math.max(0,Math.round(transc/total*100)));
+    const color=pct>90?'#f87171':pct>70?'#fb923c':'var(--am)';
+    const rest=fin-hoy;
+    const diasRest=rest>0?Math.ceil(rest/86400000)+' días restantes':'⚠️ Plazo vencido hace '+Math.abs(Math.ceil(rest/86400000))+' días';
+    barHtml=`<div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--wd);margin-bottom:4px;">
+        <span>📅 Inicio: ${o.fi}</span><span>${diasRest}</span><span>🏁 ${fechaFin(o.fi,o.di)}</span>
+      </div>
+      <div style="background:rgba(255,255,255,.1);border-radius:100px;height:8px;">
+        <div style="background:${color};width:${pct}%;height:8px;border-radius:100px;transition:width .4s;"></div>
+      </div>
+      <div style="font-size:9px;color:var(--ws);margin-top:3px;text-align:right;">${pct}% del plazo · ${o.di} días totales</div>
+    </div>`;
+  }
+
+  function seccion(color,titulo,contenido){
+    return `<div style="background:var(--p2);border:1px solid ${color};border-radius:6px;padding:12px;margin-bottom:10px;">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:${color};font-weight:700;margin-bottom:8px;">${titulo}</div>
+      ${contenido}
+    </div>`;
+  }
+  function dato(label,val){return val?`<div style="font-size:11px;color:var(--wd);margin-bottom:4px;"><span style="color:var(--ws);font-size:9px;text-transform:uppercase;letter-spacing:.5px;">${label}:</span> <b style="color:var(--w);">${val}</b></div>`:''}
+
+  c.innerHTML=`
+  <!-- HERO -->
+  <div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISIÓN</div>
+    <div style="font-size:22px;font-weight:900;color:var(--am);margin:4px 0;">${o.nom}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.5);">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
+    ${barHtml}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      ${o.map?`<a href="${o.map}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;">📍 Ver en Maps</a>`:''}
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);color:var(--w);" onclick="supImprimir(${o.id})">🖨️ Imprimir</button>
     </div>
-    ${ct?`<div style="border-top:1px solid var(--bd);padding-top:12px;margin-top:4px;">
-      <div style="font-size:9px;color:var(--ws);margin-bottom:4px;">CONTRATISTA</div>
-      <div style="font-size:15px;font-weight:800;">${ct.nom}</div>
-      <div style="font-size:12px;color:var(--wd);">📱 ${ct.tel}</div>
-      ${ct.tel?`<a href="https://wa.me/591${ct.tel}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;margin-top:8px;display:inline-flex;">💬 WhatsApp</a>`:''}
-    </div>`:''}
-    <div style="border-top:1px solid var(--bd);padding-top:12px;margin-top:12px;">
-      <div style="font-size:9px;color:var(--ws);margin-bottom:8px;">💰 FORMA DE PAGO</div>
-      <div>• 30% al inicio: <b>$${(monto*.30).toFixed(0)}</b> / Bs ${Math.round(monto*.30*6.96).toLocaleString('es-BO')}</div>
-      <div>• 40% al 50%: <b>$${(monto*.40).toFixed(0)}</b> / Bs ${Math.round(monto*.40*6.96).toLocaleString('es-BO')}</div>
-      <div>• 30% entrega: <b>$${(monto*.30).toFixed(0)}</b> / Bs ${Math.round(monto*.30*6.96).toLocaleString('es-BO')}</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+    ${seccion('var(--am)','📐 Datos de Obra',
+      dato('Superficie',o.sup+'m²')+dato('Cuadrilla',o.cuad+' personas')+dato('Inicio',o.fi||'—')+
+      dato('Plazo',o.di+' días calendario')+dato('Fin estimado',fechaFin(o.fi,o.di))+
+      dato('Código',o.cod)
+    )}
+    ${ct?seccion('var(--Zc)','👷 Contratista',
+      `<div style="font-size:15px;font-weight:900;color:var(--w);margin-bottom:6px;">${ct.nom}</div>`+
+      dato('Teléfono','📱 '+ct.tel)+dato('C.I.',ct.ci_n)+dato('Dirección',ct.dir)+
+      (ct.tel?`<a href="https://wa.me/591${ct.tel}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;margin-top:8px;display:inline-flex;">💬 WhatsApp directo</a>`:'')
+    ):seccion('var(--Nc)','👷 Contratista','<div style="font-size:11px;color:var(--ws);">Sin contratista asignado aún.</div>')}
+  </div>
+
+  ${seccion('var(--Gc)','💰 Forma de Pago al Contratista',
+    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Pago 1 — 30% INICIO</div>
+        <div style="font-size:16px;font-weight:900;color:var(--w);">$${p1u}</div>
+        <div style="font-size:10px;color:var(--wd);">Bs ${p1b.toLocaleString('es-BO')}</div>
+        <div style="font-size:9px;color:var(--ws);margin-top:3px;">Contra firma + SOAT-C</div>
+      </div>
+      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Pago 2 — 40% AVANCE</div>
+        <div style="font-size:16px;font-weight:900;color:var(--w);">$${p2u}</div>
+        <div style="font-size:10px;color:var(--wd);">Bs ${p2b.toLocaleString('es-BO')}</div>
+        <div style="font-size:9px;color:var(--ws);margin-top:3px;">Al 50% verificado</div>
+      </div>
+      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Pago 3 — 30% ENTREGA</div>
+        <div style="font-size:16px;font-weight:900;color:var(--w);">$${p3u}</div>
+        <div style="font-size:10px;color:var(--wd);">Bs ${p3b.toLocaleString('es-BO')}</div>
+        <div style="font-size:9px;color:var(--ws);margin-top:3px;">Entrega aceptada</div>
+      </div>
+    </div>`
+  )}
+
+  ${o.obj?seccion('var(--Zc)','📄 Objeto del Contrato',`<div style="font-size:11px;line-height:1.7;color:var(--wd);">${o.obj}</div>`):''}
+
+  ${o.inc?seccion('var(--Gc)','✅ INCLUIDO — Obligaciones del Contratista',`<div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">${o.inc}</div>`):''}
+
+  ${o.exc?seccion('var(--Rc)','❌ NO INCLUIDO — Corre por cuenta de GEAT',`<div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">${o.exc}</div>`):''}
+
+  ${ct&&ct.cond?seccion('var(--Pc)','📋 Condiciones Especiales Pactadas',`<div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">${ct.cond}</div>`):''}
+
+  ${seccion('var(--Rc)','⚠️ Penalidades — Conocé tus Responsabilidades',
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:11px;color:var(--wd);">
+      <div>• Retraso injustificado: 0.5%/día (máx. 10%)</div>
+      <div>• Sin SOAT-C en 3 días: Bs 50/día de multa</div>
+      <div>• Hurto/robo: Rescisión + acción penal</div>
+      <div>• Abandono de obra: Retención del pago pendiente</div>
+      <div>• Mod. sin autorización: Retención siguiente pago</div>
+      <div>• Divulgar planos: Responsabilidad civil y penal</div>
+    </div>`
+  )}
+
+  ${seccion('var(--Zbg)','✅ Obligaciones en Campo — Recordatorio diario',
+    `<div style="font-size:11px;color:var(--wd);line-height:1.8;">
+      ✓ Limpieza diaria del área de trabajo y retiro de escombros<br>
+      ✓ Reporte semanal escrito de avance al supervisor<br>
+      ✓ No realizar modificaciones sin autorización escrita<br>
+      ✓ Personal especialista para M. Sanitaria, Eléctrica, Hidráulica, Estructuras, Pintura<br>
+      ✓ SOAT-C de todo el personal vigente (presentar en máx. 3 días del 1er pago)<br>
+      ✓ Fotos de avance por módulo completado<br>
+      ✓ Respetar confidencialidad de planos y datos de la obra
+    </div>`
+  )}
+
+  ${o.mods.length?seccion('var(--am)','🧱 Módulos a Ejecutar — '+o.mods.length+' total',
+    `<div class="mods-grid">${o.mods.map((m,i)=>`<div class="mod-item"><span class="mod-num">M${String(i+1).padStart(2,'0')}</span> ${m}</div>`).join('')}</div>`
+  ):''}
+
+  ${o.not?seccion('var(--ws)','📝 Notas de la Obra',`<div style="font-size:11px;line-height:1.7;color:var(--wd);">${o.not}</div>`):''}
+  `;
+}
+
+function supImprimir(oid){
+  const o=obras.find(x=>x.id==oid);if(!o)return;
+  const ct=gCByObra(o.id);
+  const monto=o.monto;
+  const p1u=(monto*.30).toFixed(2),p1b=Math.round(monto*.30*6.96);
+  const p2u=(monto*.40).toFixed(2),p2b=Math.round(monto*.40*6.96);
+  const p3u=(monto*.30).toFixed(2),p3b=Math.round(monto*.30*6.96);
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head><style>
+    @page{size:216mm 330mm;margin:20mm 18mm;}
+    body{font-family:Arial,sans-serif;font-size:10.5pt;color:#000;line-height:1.6;}
+    h2{font-size:14pt;margin-bottom:4px;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:14px 0 6px;padding-bottom:3px;}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+    .box{border:1px solid #ccc;padding:8px;border-radius:4px;}
+    .mods{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+    .mod{border:1px solid #ccc;padding:3px 6px;font-size:9pt;}
+    .firmas{display:flex;justify-content:space-between;margin-top:60px;}
+    .fc{text-align:center;width:45%;}
+    .fl{border-top:1px solid #000;padding-top:5px;font-size:9pt;}
+    @media print{button{display:none;}}
+  </style></head><body>
+  <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;">
+    <div style="font-size:16pt;font-weight:900;letter-spacing:3px;">GEAT</div>
+    <div style="font-size:9pt;color:#555;">GAMBARTE ARQUITECTURA S.R.L. · Paquete de Supervisión</div>
+  </div>
+  <h2>${o.nom}</h2><p style="color:#555;font-size:9pt;">${o.cod} · Generado: ${new Date().toLocaleDateString('es-BO')}</p>
+  <div class="g2">
+    <div class="box"><h3>Datos de Obra</h3>
+      <p>Superficie: <b>${o.sup}m²</b></p><p>Cuadrilla: <b>${o.cuad} personas</b></p>
+      <p>Inicio: <b>${o.fi||'—'}</b></p><p>Plazo: <b>${o.di} días</b></p>
+      <p>Fin: <b>${fechaFin(o.fi,o.di)}</b></p>
+      <p>Maps: ${o.map||'—'}</p>
     </div>
-    ${o.mods.length?`<div style="border-top:1px solid var(--bd);padding-top:12px;margin-top:12px;">
-      <div style="font-size:9px;color:var(--ws);margin-bottom:8px;">🧱 MÓDULOS (${o.mods.length})</div>
-      <div class="mods-grid">${o.mods.map((m,i)=>`<div class="mod-item"><span class="mod-num">M${String(i+1).padStart(2,'0')}</span> ${m}</div>`).join('')}</div>
-    </div>`:''}
-  </div>`;
+    <div class="box"><h3>Contratista</h3>
+      ${ct?`<p><b>${ct.nom}</b></p><p>Tel: ${ct.tel||'—'}</p><p>C.I.: ${ct.ci_n||'—'}</p><p>Dir.: ${ct.dir||'—'}</p>`:
+      '<p>Sin contratista asignado.</p>'}
+    </div>
+  </div>
+  <h3>Forma de Pago</h3>
+  <div class="g3">
+    <div class="box" style="text-align:center;"><b>Pago 1 — 30% inicio</b><br>$${p1u}<br>Bs ${p1b.toLocaleString('es-BO')}</div>
+    <div class="box" style="text-align:center;"><b>Pago 2 — 40% avance</b><br>$${p2u}<br>Bs ${p2b.toLocaleString('es-BO')}</div>
+    <div class="box" style="text-align:center;"><b>Pago 3 — 30% entrega</b><br>$${p3u}<br>Bs ${p3b.toLocaleString('es-BO')}</div>
+  </div>
+  ${o.obj?`<h3>Objeto del Contrato</h3><p>${o.obj}</p>`:''}
+  ${o.inc?`<h3>Incluido — Obligaciones del Contratista</h3><p style="white-space:pre-line;">${o.inc}</p>`:''}
+  ${o.exc?`<h3>No Incluido — Corre por cuenta de GEAT</h3><p style="white-space:pre-line;">${o.exc}</p>`:''}
+  ${ct&&ct.cond?`<h3>Condiciones Especiales</h3><p style="white-space:pre-line;">${ct.cond}</p>`:''}
+  <h3>Penalidades</h3>
+  <ul><li>Retraso: 0.5%/día (máx. 10%)</li><li>Sin SOAT-C en 3 días: Bs 50/día</li>
+  <li>Hurto/robo: Rescisión + acción penal</li><li>Abandono: Retención total pago pendiente</li></ul>
+  ${o.mods.length?`<h3>Módulos a Ejecutar (${o.mods.length})</h3><div class="mods">${o.mods.map((m,i)=>`<div class="mod"><b>M${String(i+1).padStart(2,'0')}</b> ${m}</div>`).join('')}</div>`:''}
+  ${o.not?`<h3>Notas de Obra</h3><p>${o.not}</p>`:''}
+  <div class="firmas">
+    <div class="fc"><div class="fl"><strong>Arq. Raí</strong><br>Supervisor de Obra<br>Fecha: ___/___/______</div></div>
+    <div class="fc"><div class="fl"><strong>Fátima</strong><br>Responsable Administrativa<br>Fecha: ___/___/______</div></div>
+  </div>
+  <script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
 }
 
 // PERFIL
