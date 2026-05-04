@@ -18,8 +18,6 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--w);min-height:100vh;font-size:14px;}
-
-/* ════ LOGIN PIN ════ */
 #screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at 50% 35%,rgba(245,196,0,.07) 0%,transparent 60%),var(--bg);}
 .pin-box{background:var(--p1);border:1px solid var(--bd);border-top:3px solid var(--am);
@@ -41,8 +39,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .nk.zero{grid-column:2;}
 .pin-hint{font-size:11px;color:var(--ws);}
 .pin-error{color:var(--Rc);font-size:11px;margin-top:10px;min-height:18px;}
-
-/* ════ APP SHELL ════ */
 #app{display:none;}
 .hdr{background:var(--p1);border-bottom:2px solid var(--am);height:52px;padding:0 16px;
   display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;}
@@ -54,32 +50,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .hdr-user:hover{border-color:var(--am);color:var(--am);}
 .btn-exit{background:transparent;border:1px solid var(--bd);color:var(--ws);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:11px;transition:all .2s;}
 .btn-exit:hover{border-color:var(--R);color:var(--R);}
-
-/* NAV */
 .nav{background:var(--p1);border-bottom:1px solid var(--bd);padding:0 16px;display:flex;gap:0;overflow-x:auto;}
 .nb{background:transparent;border:none;color:var(--ws);padding:12px 16px;cursor:pointer;
   font-size:12px;font-weight:600;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;}
 .nb:hover{color:var(--w);}
 .nb.on{color:var(--am);border-bottom-color:var(--am);}
-
-/* MAIN */
 .main{padding:22px 16px;max-width:1160px;margin:0 auto;}
-#contratos-por-obra,#sup-content,#sup-selector,#pend-aprob{width:100%;box-sizing:border-box;min-height:0;}
-.obra-contrato-card,.occ-card{width:100%;box-sizing:border-box;margin-left:0;margin-right:0;}
-#panel-contratos .ph,#panel-sup .ph{margin-bottom:14px;}
 .panel{display:none;animation:fadeIn .2s ease;}
 .panel.on{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 .ph{margin-bottom:14px;}
 .ph h2{font-size:18px;font-weight:800;color:var(--am);letter-spacing:2px;margin-bottom:3px;}
 .ph p{color:var(--ws);font-size:11px;}
-
-/* CARD */
 .card{background:var(--p1);border:1px solid var(--bd);border-radius:5px;padding:18px;margin-bottom:14px;}
 .ct{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:var(--am);
   margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;}
-
-/* FORMS */
 .f{display:flex;flex-direction:column;gap:4px;}
 .f label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--ws);}
 .f input,.f select,.f textarea{background:var(--p2);border:1px solid var(--bd);color:var(--w);
@@ -91,8 +76,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .g{display:grid;gap:11px;}
 .g2{grid-template-columns:1fr 1fr;}.g3{grid-template-columns:1fr 1fr 1fr;}
 .g4{grid-template-columns:1fr 1fr 1fr 1fr;}.full{grid-column:1/-1;}
-
-/* BTN */
 .btn{padding:8px 16px;border-radius:3px;font-size:11px;font-weight:700;letter-spacing:1px;
   text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:5px;}
 .y{background:var(--am);color:#000;}.y:hover{background:var(--amh);transform:translateY(-1px);}
@@ -102,8 +85,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .pb{background:var(--Pbg);border:1px solid var(--P);color:var(--Pc);}
 .sm{padding:5px 10px;font-size:9px;}
 .brow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-
-/* UPLOAD */
 .u3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;}
 .ub{border:2px dashed var(--bd);border-radius:4px;padding:14px 8px;text-align:center;
   cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
@@ -118,15 +99,60 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ua:hover{border-color:var(--am);}
 .ua.ok{border-color:var(--G);border-style:solid;background:var(--Gbg);}
 .ua input{position:absolute;inset:0;opacity:0;cursor:pointer;}
-.ua{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
-.ub{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+.ua,.ub{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 @media(max-width:768px){
   .ua{padding:20px 14px;min-height:80px;}
   .ub{padding:18px 8px;min-height:80px;}
   .ua input,.ub input{width:100%;height:100%;font-size:16px;}
 }
-
-/* MODAL */
+.mg{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;}
+.mi{position:relative;}
+.mi input{width:100%;background:var(--p2);border:1px solid var(--bd);color:var(--w);
+  padding:6px 4px;border-radius:3px;font-size:10px;outline:none;text-align:center;}
+.mi input:focus{border-color:var(--am);}
+.ml{font-size:8px;color:var(--ws);text-align:center;margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:3px;}
+.mi-del{background:none;border:none;color:var(--ws);font-size:9px;cursor:pointer;padding:0;line-height:1;margin-left:auto;}
+.mi-del:hover{color:var(--Rc);}
+.add-mod{background:transparent;border:1px dashed var(--bd);color:var(--ws);padding:4px 12px;
+  border-radius:3px;cursor:pointer;font-size:9px;margin-top:8px;transition:all .2s;}
+.add-mod:hover{border-color:var(--am);color:var(--am);}
+.sol-steps{display:flex;gap:0;margin-bottom:20px;overflow:hidden;border-radius:4px;}
+.sol-step{flex:1;padding:8px 6px;text-align:center;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;border-right:1px solid var(--bg);
+  transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.sol-step:last-child{border-right:none;}
+.sol-step .ss-ico{font-size:14px;}
+.sol-step.done{background:var(--Gbg);color:var(--Gc);}
+.sol-step.active{background:var(--amd);color:var(--am);}
+.sol-step.pend{background:var(--p2);color:var(--ws);}
+.reg-card{background:var(--p1);border:1px solid var(--bd);border-radius:5px;
+  margin-bottom:12px;overflow:hidden;transition:border-color .2s;}
+.reg-card:hover{border-color:var(--am);}
+.reg-hdr{background:var(--p2);padding:12px 16px;display:flex;
+  justify-content:space-between;align-items:center;gap:10px;cursor:pointer;}
+.reg-hdr:hover{background:var(--p3);}
+.reg-titulo{font-weight:700;font-size:13px;}
+.reg-sub{font-size:10px;color:var(--wd);margin-top:2px;}
+.reg-body{display:none;padding:14px;border-top:1px solid var(--bd);}
+.reg-card.open .reg-body{display:block;}
+.reg-card.open .reg-arrow{transform:rotate(180deg);}
+.reg-arrow{color:var(--am);transition:transform .2s;font-size:12px;}
+.reg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px;}
+.reg-dato{background:var(--p2);border-radius:3px;padding:8px 10px;}
+.reg-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:3px;}
+.reg-val{font-size:12px;font-weight:700;color:var(--w);}
+@media(max-width:720px){.reg-grid{grid-template-columns:1fr 1fr;}.sol-steps{flex-wrap:wrap;}}
+.obra-card{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:12px 14px;
+  margin-bottom:8px;cursor:pointer;transition:all .2s;}
+.obra-card:hover{border-color:var(--am);background:var(--p3);}
+.oc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.oc-nom{font-weight:700;font-size:13px;}
+.obadge{font-size:9px;padding:2px 8px;border-radius:20px;font-weight:700;}
+.ob-a{background:var(--Gbg);color:var(--Gc);}
+.ob-p{background:var(--Nbg);color:var(--Nc);}
+.ob-r{background:var(--Rbg);color:var(--Rc);}
+.oc-inf{font-size:11px;color:var(--wd);}
+.oc-inf span{margin-right:9px;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:none;
   align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
 .overlay.on{display:flex;}
@@ -136,31 +162,27 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .modal-hdr h3{font-size:14px;font-weight:800;color:var(--am);}
 .xbtn{background:none;border:none;color:var(--ws);font-size:18px;cursor:pointer;padding:2px 7px;}
 .xbtn:hover{color:var(--w);}
-
-/* CONTRATOS EDITOR */
-.editor-section{background:var(--p1);border:1px solid var(--bd);border-radius:4px;padding:14px;margin-bottom:12px;}
-.editor-section h4{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--am);margin-bottom:10px;font-weight:800;}
-.editor-toolbar{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--bd);}
-.et-btn{background:var(--p2);border:1px solid var(--bd);color:var(--wd);padding:4px 10px;
-  border-radius:3px;cursor:pointer;font-size:10px;transition:all .2s;}
-.et-btn:hover{border-color:var(--am);color:var(--am);}
-.et-btn:disabled{opacity:.5;cursor:not-allowed;}
-.et-btn.ia{background:var(--Pbg);border-color:var(--P);color:var(--Pc);}
-.et-btn.ia:hover{background:#6d28d9;}
-.contrato-editor{width:100%;min-height:340px;background:#0d1117;border:none;color:var(--w);
-  font-family:'Courier New',monospace;font-size:12px;line-height:1.7;outline:none;resize:vertical;padding:4px;}
-.editor-status{font-size:10px;color:var(--ws);margin-top:6px;text-align:right;}
-.editor-counter{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:5px;}
-.editor-counter.warn{color:var(--Nc);}
-.editor-counter.danger{color:var(--Rc);}
-
-/* HISTORIAL */
-.historial-box{background:rgba(245,196,0,.05);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:10px;margin-top:8px;}
-.historial-entry{font-size:10px;color:var(--wd);padding:4px 0;border-bottom:1px solid rgba(245,196,0,.1);}
-.historial-entry:last-child{border-bottom:none;}
-.historial-entry b{color:var(--am);}
-
-/* TABLE */
+.msec{margin-bottom:14px;}
+.msec h4{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--ws);margin-bottom:8px;}
+.mrow{display:flex;gap:8px;margin-bottom:4px;font-size:12px;}
+.mrow .lbl{color:var(--ws);min-width:118px;flex-shrink:0;}
+.mrow .val{color:var(--w);font-weight:600;}
+.chips{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{background:var(--p2);border:1px solid var(--bd);border-radius:3px;padding:3px 8px;font-size:9px;color:var(--wd);}
+.perfil-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.perfil-btn{background:var(--p2);border:1px solid var(--bd);border-radius:5px;padding:16px 10px;
+  text-align:center;cursor:pointer;transition:all .2s;}
+.perfil-btn:hover{border-color:var(--am);background:var(--p3);}
+.perfil-btn .ico{font-size:22px;margin-bottom:6px;}
+.perfil-btn .lbl{font-size:11px;font-weight:700;}
+.perfil-btn .sub{font-size:9px;color:var(--ws);margin-top:2px;}
+.perfil-info{background:var(--p2);border-radius:4px;padding:14px;margin-bottom:12px;}
+.perfil-info .nombre{font-size:18px;font-weight:800;color:var(--am);margin-bottom:4px;}
+.perfil-info .rol{font-size:11px;color:var(--ws);}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px;}
+.kc{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;text-align:center;}
+.kv{font-size:24px;font-weight:900;margin-bottom:2px;}
+.kl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);}
 .tw{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:11px;}
 thead th{background:var(--p2);color:var(--am);font-size:9px;font-weight:800;text-transform:uppercase;
@@ -169,33 +191,72 @@ tbody tr{border-bottom:1px solid var(--bd);transition:background .15s;}
 tbody tr:hover{background:var(--p2);}
 tbody td{padding:9px 10px;color:var(--wd);}
 tbody td:first-child{color:var(--w);font-weight:600;}
-
-/* BADGES ESTADO */
 .est{display:inline-block;padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;}
 .e-apto{background:var(--Gbg);color:var(--Gc);}
 .e-gen{background:var(--Abg);color:var(--Ac);}
 .e-bus{background:var(--Pbg);color:var(--Pc);}
 .e-ej{background:var(--Zbg);color:var(--Zc);}
-
-/* ALERT */
+.e-rev{background:var(--Abg);color:var(--Ac);}
 .al{padding:8px 12px;border-radius:3px;font-size:11px;margin-bottom:10px;}
 .al-g{background:var(--Gbg);border:1px solid var(--G);color:var(--Gc);}
 .al-z{background:var(--Zbg);border:1px solid var(--Z);color:var(--Zc);}
 .al-n{background:var(--Nbg);border:1px solid var(--N);color:var(--Nc);}
 .al-p{background:var(--Pbg);border:1px solid var(--P);color:var(--Pc);}
 .al-r{background:var(--Rbg);border:1px solid var(--R);color:var(--Rc);}
-
-/* KPI */
-.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:14px;}
-.kc{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;text-align:center;}
-.kv{font-size:24px;font-weight:900;margin-bottom:2px;}
-.kl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);}
-
-/* RESP */
+.obra-contrato-card{background:var(--p2);border:1px solid var(--bd);border-radius:5px;margin-bottom:14px;overflow:hidden;}
+.occ-hdr{background:var(--p3);padding:13px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.occ-hdr:hover{background:var(--bh);}
+.occ-titulo{font-weight:700;font-size:13px;}
+.occ-sub{font-size:10px;color:var(--wd);margin-top:2px;}
+.occ-arrow{color:var(--am);transition:transform .2s;}
+.occ-card.open .occ-arrow{transform:rotate(180deg);}
+.occ-body{display:none;padding:14px;box-sizing:border-box;}
+.occ-card.open .occ-body{display:block;}
+/* ── MEJORA v35: Editor IA Steffi ── */
+.ia-toolbar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.btn-ia{background:var(--Pbg);border:1px solid var(--Pc);color:var(--Pc);padding:5px 12px;border-radius:4px;font-size:11px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all .2s;}
+.btn-ia:hover{background:#4c1d95;border-color:var(--Pc);}
+.btn-ia:disabled{opacity:.5;cursor:not-allowed;}
+.historial-box{background:rgba(245,196,0,.05);border:1px solid rgba(245,196,0,.2);border-radius:5px;padding:10px 12px;margin-top:8px;}
+.hist-entry{font-size:10px;color:var(--wd);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.hist-entry:last-child{border-bottom:none;}
+.hist-entry b{color:var(--am);}
+.edit-counter{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:3px;}
+.edit-counter.ok{background:var(--Gbg);color:var(--Gc);}
+.edit-counter.warn{background:var(--Nbg);color:var(--Nc);}
+.edit-counter.danger{background:var(--Rbg);color:var(--Rc);}
+.contrato-editor{width:100%;min-height:320px;background:#0d1117;border:1px solid var(--bd);color:var(--w);
+  font-family:'Courier New',monospace;font-size:11.5px;line-height:1.7;outline:none;resize:vertical;padding:10px;border-radius:4px;}
+.contrato-editor:focus{border-color:var(--am);}
+/* ── FIN MEJORAS ── */
+.apb{background:linear-gradient(135deg,var(--Nbg),var(--amd));border:1px solid var(--Nc);
+  border-radius:5px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;margin-bottom:12px;}
+.apb-l{display:flex;align-items:center;gap:10px;}
+.apb-ico{font-size:22px;}
+.apb-txt h4{font-size:12px;font-weight:700;color:var(--Nc);margin-bottom:2px;}
+.apb-txt p{font-size:10px;color:var(--ws);}
+.apb-r{display:flex;gap:7px;}
+.sup-aviso{background:var(--Pbg);border:1px solid var(--P);border-radius:3px;padding:7px 12px;
+  font-size:10px;color:var(--Pc);margin-bottom:12px;}
+.sup-section{background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:13px;margin-bottom:10px;}
+.sup-section-tit{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--ws);margin-bottom:8px;}
+.sup-mods-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-top:4px;}
+.sup-mod-item{background:var(--p3);border:1px solid var(--bd);border-radius:3px;padding:5px 9px;font-size:11px;}
+.sup-dato{font-size:11px;color:var(--wd);margin-bottom:4px;}
+.sup-dato b{color:var(--w);}
+@media print{
+  #app>*:not(#panel-contratos){display:none!important;}
+  .no-print{display:none!important;}
+  body{background:white;color:black;}
+  .contrato-editor{border:none;min-height:auto;font-size:11pt;color:black;background:white;}
+}
 @media(max-width:720px){
   .g3,.g2{grid-template-columns:1fr;}
   .kpi{grid-template-columns:repeat(2,1fr);}
   .u3{grid-template-columns:1fr;}
+  .mg{grid-template-columns:repeat(2,1fr);}
+  .perfil-grid{grid-template-columns:repeat(2,1fr);}
   .main{padding:14px 10px;}
   .pin-box{width:92%;}
   thead{display:none;}
@@ -204,149 +265,126 @@ tbody td:first-child{color:var(--w);font-weight:600;}
   tbody td::before{content:attr(data-label)': ';font-weight:700;color:var(--am);font-size:9px;text-transform:uppercase;}
 }
 </style>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ══════════════════════════════════════
-// SUPABASE
-// ══════════════════════════════════════
-const SB_URL = 'https://jsacnpgpnvoslrpurfxc.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWNucGdwbnZvc2xycHVyZnhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMTIwNjUsImV4cCI6MjA4OTc4ODA2NX0.fOF7BQuNG6KdWMbsr7YQJ3kUIeJ9mdgV1fGmDMDGWtE';
-const sb = supabase.createClient(SB_URL, SB_KEY);
+const SB_URL='https://jsacnpgpnvoslrpurfxc.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWNucGdwbnZvc2xycHVyZnhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMTIwNjUsImV4cCI6MjA4OTc4ODA2NX0.fOF7BQuNG6KdWMbsr7YQJ3kUIeJ9mdgV1fGmDMDGWtE';
+const sb=supabase.createClient(SB_URL,SB_KEY);
 const BUCKET='rec-archivos';
 
 async function sbCargarDatos(){
   try{
-    const [{data:obrasDB}, {data:contratosDB}] = await Promise.all([
+    const [{data:obrasDB},{data:contratosDB}]=await Promise.all([
       sb.from('rec_obras').select('*').order('created_at'),
       sb.from('rec_contratos').select('*').order('created_at')
     ]);
-    if(obrasDB?.length){
-      obras = obrasDB.map(o=>({
-        id: o.id, nom: o.nombre, cod: o.codigo, sup: parseFloat(o.superficie)||0,
-        pre: parseFloat(o.precio_usd)||75, map: o.maps_link||'',
-        cuad: o.cuadrilla||4, monto: parseFloat(o.monto_usd)||0,
-        mn: o.modulos_n||0, est: o.estado||'pendiente',
-        fi: o.fecha_inicio||'', di: o.dias_ejecucion||0,
-        not: o.notas||'', obj: o.objeto_contrato||'',
-        inc: o.inclusiones||'', exc: o.exclusiones||'',
-        cp: o.contrato_propietario_nombre||null,
-        cp_esc: o.contrato_propietario_escaneado||null,
-        aprobada: o.aprobada||false,
-        mods: o.modulos||[], contrato_firmado_contratista: o.contrato_firmado_contratista||null
+    if(obrasDB&&obrasDB.length>0){
+      obras=obrasDB.map(o=>({
+        id:o.id,nom:o.nombre,cod:o.codigo,sup:parseFloat(o.superficie)||0,
+        pre:parseFloat(o.precio_usd)||75,map:o.maps_link||'',
+        cuad:o.cuadrilla||4,monto:parseFloat(o.monto_usd)||0,
+        mn:o.modulos_n||0,est:o.estado||'pendiente',
+        fi:o.fecha_inicio||'',di:o.dias_ejecucion||0,
+        not:o.notas||'',obj:o.objeto_contrato||'',
+        inc:o.inclusiones||'',exc:o.exclusiones||'',
+        cp:o.contrato_propietario_nombre||null,
+        cp_esc:o.contrato_propietario_escaneado||null,
+        aprobada:o.aprobada||false,
+        mods:o.modulos||[],contrato_firmado_contratista:o.contrato_firmado_contratista||null
       }));
     }
-    if(contratosDB?.length){
-      contratos = contratosDB.map(c=>({
-        id: c.id, nom: c.nombre_contratista, tel: c.telefono||'',
-        dir: c.direccion||'', ci_n: c.ci_numero||'',
-        oid: c.obra_id, ci: c.ci_archivo||null, ag: c.agua_archivo||null,
-        lz: c.luz_archivo||null, cond: c.condiciones||'',
-        est: c.estado||'generado', est_contrato: c.estado_contrato||'generado',
-        texto_contrato: c.texto_contrato||null,
-        firm: c.contrato_firmado_nombre||null,
-        aprobado_por: c.aprobado_por||null,
-        aprobado_fecha: c.aprobado_fecha||null,
-        fec: c.fecha_registro?new Date(c.fecha_registro+'T00:00:00').toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}):null,
-        fec_iso: c.fecha_registro||null,
-        ediciones_count: c.ediciones_count||0,
-        historial_cambios: c.historial_cambios||[],
-        contrato_bloqueado: c.contrato_bloqueado||false,
-        busqueda_activa: c.busqueda_activa||false,
-        busqueda_fecha: c.busqueda_fecha||null
+    if(contratosDB&&contratosDB.length>0){
+      contratos=contratosDB.map(c=>({
+        id:c.id,nom:c.nombre_contratista,tel:c.telefono||'',
+        dir:c.direccion||'',ci_n:c.ci_numero||'',
+        oid:c.obra_id,ci:c.ci_archivo||null,ag:c.agua_archivo||null,
+        lz:c.luz_archivo||null,cond:c.condiciones||'',
+        est:c.estado||'generado',est_contrato:c.estado_contrato||'generado',
+        texto_contrato:c.texto_contrato||null,
+        firm:c.contrato_firmado_nombre||null,
+        aprobado_por:c.aprobado_por||null,aprobado_fecha:c.aprobado_fecha||null,
+        fec:c.fecha_registro?new Date(c.fecha_registro+'T00:00:00').toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'}):null,
+        fec_iso:c.fecha_registro||null,
+        ediciones_count:c.ediciones_count||0,
+        historial_cambios:c.historial_cambios||[],
+        contrato_bloqueado:c.contrato_bloqueado||false,
+        busqueda_activa:c.busqueda_activa||false,
+        busqueda_fecha:c.busqueda_fecha||null
       }));
     }
-    renderObras(); renderObrasPendCompleto(); renderOS(); renderContratos(); uStats();
+    renderObras();renderObrasPendCompleto();renderOS();renderContratos();renderSup();renderAdmin();uStats();renderReqSelector();
     console.log('✅ Datos cargados desde Supabase');
-  }catch(e){
-    console.warn('Supabase no disponible, usando datos locales:', e.message);
-  }
+  }catch(e){console.warn('Supabase no disponible:',e.message);}
 }
 
 async function sbGuardarObra(o){
-  const esIdTemporal = typeof o.id === 'number' && o.id > 1e12;
-  const {data, error} = await sb.from('rec_obras').upsert({
-    id: esIdTemporal ? undefined : (o.id || undefined),
-    nombre: o.nom, codigo: o.cod, superficie: o.sup, precio_usd: o.pre,
-    maps_link: o.map, cuadrilla: o.cuad, monto_usd: o.monto,
-    modulos_n: o.mods?.length||0, estado: o.est,
-    fecha_inicio: o.fi||null, dias_ejecucion: o.di||0, notas: o.not||'',
-    objeto_contrato: o.obj||null, inclusiones: o.inc||null, exclusiones: o.exc||null,
-    contrato_propietario_nombre: o.cp||null,
-    contrato_propietario_escaneado: o.cp_esc||null,
-    aprobada: o.aprobada||false,
-    modulos: o.mods||[], contrato_firmado_contratista: o.contrato_firmado_contratista||null
-  }, {onConflict: 'id'}).select().single();
-  if(error) console.error('Error obra:', error.message);
-  else { o.id = data.id; }
+  const esTemp=typeof o.id==='number'&&o.id>1e12;
+  const {data,error}=await sb.from('rec_obras').upsert({
+    id:esTemp?undefined:(o.id||undefined),
+    nombre:o.nom,codigo:o.cod,superficie:o.sup,precio_usd:o.pre,
+    maps_link:o.map,cuadrilla:o.cuad,monto_usd:o.monto,
+    modulos_n:o.mods?.length||0,estado:o.est,
+    fecha_inicio:o.fi||null,dias_ejecucion:o.di||0,notas:o.not||'',
+    objeto_contrato:o.obj||null,inclusiones:o.inc||null,exclusiones:o.exc||null,
+    contrato_propietario_nombre:o.cp||null,
+    contrato_propietario_escaneado:o.cp_esc||null,
+    aprobada:o.aprobada||false,
+    modulos:o.mods||[],contrato_firmado_contratista:o.contrato_firmado_contratista||null
+  },{onConflict:'id'}).select().single();
+  if(error)console.error('Error obra:',error.message);
+  else{o.id=data.id;}
   return data;
 }
 
 async function sbGuardarContrato(c){
-  const esIdTemporal = typeof c.id === 'number' && c.id > 1e12;
-  const payload = {
-    obra_id: c.oid, nombre_contratista: c.nom, telefono: c.tel||'',
-    direccion: c.dir||'', ci_numero: c.ci_n||'',
-    ci_archivo: c.ci||null, agua_archivo: c.ag||null, luz_archivo: c.lz||null,
-    condiciones: c.cond||'', estado: c.est||'generado',
-    estado_contrato: c.est_contrato||'generado',
-    texto_contrato: c.texto_contrato||null,
-    contrato_firmado_nombre: c.firm||null,
-    aprobado_por: c.aprobado_por||null,
-    aprobado_fecha: c.aprobado_fecha||null,
-    fecha_registro: c.fec_iso||new Date().toISOString().slice(0,10),
-    busqueda_activa: c.busqueda_activa||false,
-    busqueda_fecha: c.busqueda_fecha||null,
-    ediciones_count: c.ediciones_count||0,
-    historial_cambios: c.historial_cambios||[],
-    contrato_bloqueado: c.contrato_bloqueado||false
+  const esTemp=typeof c.id==='number'&&c.id>1e12;
+  const payload={
+    obra_id:c.oid,nombre_contratista:c.nom,telefono:c.tel||'',
+    direccion:c.dir||'',ci_numero:c.ci_n||'',
+    ci_archivo:c.ci||null,agua_archivo:c.ag||null,luz_archivo:c.lz||null,
+    condiciones:c.cond||'',estado:c.est||'generado',
+    estado_contrato:c.est_contrato||'generado',
+    texto_contrato:c.texto_contrato||null,
+    contrato_firmado_nombre:c.firm||null,
+    aprobado_por:c.aprobado_por||null,aprobado_fecha:c.aprobado_fecha||null,
+    fecha_registro:c.fec_iso||new Date().toISOString().slice(0,10),
+    busqueda_activa:c.busqueda_activa||false,busqueda_fecha:c.busqueda_fecha||null,
+    ediciones_count:c.ediciones_count||0,
+    historial_cambios:c.historial_cambios||[],
+    contrato_bloqueado:c.contrato_bloqueado||false
   };
-  if(!esIdTemporal && c.id) payload.id = c.id;
-  const {data, error} = await sb.from('rec_contratos')
-    .upsert(payload, {onConflict: 'id'}).select().single();
-  if(error){console.error('Error contrato:', error.message); throw new Error(error.message);}
-  c.id = data.id;
+  if(!esTemp&&c.id)payload.id=c.id;
+  const {data,error}=await sb.from('rec_contratos').upsert(payload,{onConflict:'id'}).select().single();
+  if(error){console.error('Error contrato:',error.message);throw new Error(error.message);}
+  c.id=data.id;
   return data;
 }
 
-async function sbLog(usuario, accion){
-  await sb.from('rec_auditoria').insert({usuario, accion});
-}
-
-function buildStoragePath(folder,id,campo,filename){
-  return `${folder}/${id}/${campo}_${Date.now()}_${filename}`;
-}
+async function sbLog(usuario,accion){await sb.from('rec_auditoria').insert({usuario,accion});}
+function buildStoragePath(folder,id,campo,filename){return `${folder}/${id}/${campo}_${Date.now()}_${filename}`;}
 </script>
 </head>
 <body>
 
-<!-- LOGIN PIN -->
+<!-- LOGIN -->
 <div id="screen-login">
   <div class="pin-box">
     <div class="logo-g">G</div>
     <h1>GEAT</h1>
     <p>ASIGNACIÓN DE CONTRATISTAS</p>
     <div class="pin-display">
-      <div class="pin-dot" id="d0"></div>
-      <div class="pin-dot" id="d1"></div>
-      <div class="pin-dot" id="d2"></div>
-      <div class="pin-dot" id="d3"></div>
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="numpad">
-      <button class="nk" onclick="pin(1)">1</button>
-      <button class="nk" onclick="pin(2)">2</button>
-      <button class="nk" onclick="pin(3)">3</button>
-      <button class="nk" onclick="pin(4)">4</button>
-      <button class="nk" onclick="pin(5)">5</button>
-      <button class="nk" onclick="pin(6)">6</button>
-      <button class="nk" onclick="pin(7)">7</button>
-      <button class="nk" onclick="pin(8)">8</button>
-      <button class="nk" onclick="pin(9)">9</button>
+      <button class="nk" onclick="pin(1)">1</button><button class="nk" onclick="pin(2)">2</button><button class="nk" onclick="pin(3)">3</button>
+      <button class="nk" onclick="pin(4)">4</button><button class="nk" onclick="pin(5)">5</button><button class="nk" onclick="pin(6)">6</button>
+      <button class="nk" onclick="pin(7)">7</button><button class="nk" onclick="pin(8)">8</button><button class="nk" onclick="pin(9)">9</button>
       <button class="nk zero" onclick="pin(0)">0</button>
       <button class="nk del" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v34-STEFFI-IA</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v35-IA-STEFFI</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -361,18 +399,16 @@ function buildStoragePath(folder,id,campo,filename){
     </div>
   </header>
   <nav class="nav" id="nav"></nav>
-
   <main class="main">
 
-    <!-- PANEL: CARGAR OBRA -->
+    <!-- PANEL OBRA -->
     <div class="panel" id="panel-obra">
       <div style="background:linear-gradient(135deg,#001828,#002a40);border:2px solid #38bdf8;border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">🏗️</div>
         <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#38bdf8;font-weight:700;">GEAT · REQUERIMIENTO</div>
-        <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Requerimiento de Contratista</div>
+        <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;">Requerimiento de Contratista</div>
         <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Elegí la obra y cargá los requerimientos</div>
       </div>
-
       <div style="background:linear-gradient(135deg,rgba(56,189,248,.08),var(--p1));border:2px solid #38bdf8;border-radius:10px;padding:18px;margin-bottom:14px;">
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;font-weight:700;margin-bottom:8px;">📋 ELEGIR OBRA</div>
         <select id="req-sel-obra" onchange="cargarReqObra(this.value)" style="width:100%;background:rgba(0,0,0,.4);border:2px solid rgba(56,189,248,.4);border-radius:7px;padding:13px 14px;color:#fff;font-size:14px;font-weight:700;outline:none;margin-bottom:8px;">
@@ -380,9 +416,7 @@ function buildStoragePath(folder,id,campo,filename){
         </select>
         <div id="req-obra-info" style="display:none;font-size:11px;color:rgba(255,255,255,.6);padding:6px 0;"></div>
       </div>
-
       <div id="obras-pend-comp"></div>
-
       <input type="hidden" id="obra-edit-id">
       <div class="card">
         <div class="ct">Datos Generales</div>
@@ -397,7 +431,6 @@ function buildStoragePath(folder,id,campo,filename){
           <div class="f"><label>Fecha Conclusión</label><input id="o-ff" readonly></div>
         </div>
       </div>
-
       <div class="card">
         <div class="ct">Cálculos Automáticos</div>
         <div class="g g3">
@@ -406,9 +439,13 @@ function buildStoragePath(folder,id,campo,filename){
           <div class="f"><label>Módulos estimados</label><input id="c-moo" readonly></div>
         </div>
       </div>
-
       <div class="card">
-        <div class="ct">Notas y Cláusulas</div>
+        <div class="ct">Módulos de Obra</div>
+        <div class="mg" id="mg-cont"></div>
+        <button class="add-mod" onclick="addMod()">+ Agregar módulo</button>
+      </div>
+      <div class="card">
+        <div class="ct">Notas y Cláusulas del Contrato</div>
         <div class="f" style="margin-bottom:11px;"><label>Notas Generales</label><textarea id="o-not" placeholder="Observaciones..."></textarea></div>
         <div class="f" style="margin-bottom:11px;"><label>Objeto del Contrato</label><textarea id="o-obj" rows="4" placeholder="Se completa automáticamente..."></textarea></div>
         <div class="f" style="margin-bottom:11px;"><label>Inclusiones</label><textarea id="o-inc" rows="4" placeholder="Se completa automáticamente..."></textarea></div>
@@ -418,17 +455,15 @@ function buildStoragePath(folder,id,campo,filename){
           <button class="btn o" onclick="lObra()">🔄 Limpiar</button>
         </div>
       </div>
-
       <div class="card">
         <div class="ct">Obras Registradas</div>
         <div id="obras-lista"></div>
       </div>
     </div>
 
-    <!-- PANEL: CONTRATISTA -->
+    <!-- PANEL CONTRATISTA -->
     <div class="panel" id="panel-contratista">
       <div class="ph"><h2>👷 CONTRATISTA</h2><p>Elegí la obra primero, luego completá los datos</p></div>
-
       <div class="card" style="border:2px solid var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
         <div class="ct" style="color:var(--am);">📋 PASO 1 — Elegir Obra</div>
         <div class="f" style="margin-bottom:10px;">
@@ -439,17 +474,15 @@ function buildStoragePath(folder,id,campo,filename){
         </div>
         <div id="o-prev" style="display:none;margin-top:8px;"></div>
       </div>
-
       <div id="bloque-datos-ct" style="display:none;">
         <div class="card">
           <div class="ct">Documentos del Contratista</div>
           <div class="u3">
-            <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" id="inp-file-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" onchange="hUD('ci',this)"></div>
-            <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" id="inp-file-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" onchange="hUD('ag',this)"></div>
-            <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" id="inp-file-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" onchange="hUD('lz',this)"></div>
+            <div class="ub" id="bci"><div class="ico">🪪</div><div class="lbl">C.I. Carnet</div><div class="st" id="s-ci"></div><input type="file" id="inp-file-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ci',this)"></div>
+            <div class="ub" id="bag"><div class="ico">💧</div><div class="lbl">Aviso Agua</div><div class="st" id="s-ag"></div><input type="file" id="inp-file-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('ag',this)"></div>
+            <div class="ub" id="blz"><div class="ico">⚡</div><div class="lbl">Aviso Luz</div><div class="st" id="s-lz"></div><input type="file" id="inp-file-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="font-size:16px;" onchange="hUD('lz',this)"></div>
           </div>
         </div>
-
         <div class="card">
           <div class="ct">Datos Personales</div>
           <div class="g g3">
@@ -459,48 +492,153 @@ function buildStoragePath(folder,id,campo,filename){
             <div class="f full"><label>Dirección</label><input id="ct-d" placeholder="Zona, calle, número"></div>
           </div>
         </div>
-
         <div class="card">
           <div class="ct">Condiciones Especiales</div>
-          <div class="f"><textarea id="ct-co" placeholder="Materiales, horarios, forma de pago..."></textarea></div>
+          <div class="f"><textarea id="ct-co" placeholder="Materiales, horarios, forma de pago parcial..."></textarea></div>
         </div>
-
         <div class="card">
           <div class="ct">Estado de carga</div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;" id="chk-wrap">
             <span id="chk-ci" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ C.I.</span>
-            <span id="chk-ag" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Agua</span>
-            <span id="chk-lz" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Luz</span>
+            <span id="chk-ag" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Aviso Agua</span>
+            <span id="chk-lz" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Aviso Luz</span>
             <span id="chk-nom" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Nombre</span>
-            <span id="chk-tel" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Tel</span>
-            <span id="chk-obra" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Obra</span>
+            <span id="chk-tel" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Teléfono</span>
+            <span id="chk-obra" style="font-size:11px;padding:3px 9px;border-radius:20px;background:var(--p3);color:var(--ws);">⬜ Obra asignada</span>
           </div>
+          <div class="al al-z" style="margin-bottom:12px;">Al guardar, el contrato se genera automáticamente y pasa a Contratos para revisión de Steffi.</div>
           <div class="brow">
             <button class="btn y" onclick="gCont()" style="font-size:13px;padding:11px 22px;">💾 GUARDAR CONTRATISTA</button>
             <button class="btn o" onclick="lCont()">🔄 Limpiar</button>
           </div>
           <div id="msg-ct" style="margin-top:10px;"></div>
         </div>
+        <div class="card" id="card-activar-proceso" style="display:none;border-color:var(--am);background:linear-gradient(135deg,rgba(245,196,0,.06),var(--p1));">
+          <div class="ct" style="color:var(--am);">🔍 ACTIVAR PROCESO DE BÚSQUEDA</div>
+          <div class="al al-z" style="margin-bottom:14px;">Activa publicación en Facebook y filtrado por Messenger.</div>
+          <div class="f" style="margin-bottom:12px;"><label>Seleccionar Contratista</label><select id="sel-activar-ct" onchange="prevActivarCt()"><option value="">— Seleccionar —</option></select></div>
+          <div id="prev-activar" style="margin-bottom:12px;"></div>
+          <div class="brow"><button class="btn y" onclick="activarProceso()" style="font-size:13px;padding:11px 22px;">🔍 ACTIVAR BÚSQUEDA</button></div>
+        </div>
       </div>
     </div>
 
-    <!-- PANEL: CONTRATOS -->
+    <!-- PANEL CONTRATOS -->
     <div class="panel" id="panel-contratos">
+      <div class="sup-aviso" id="sup-av" style="display:none;">👁️ Vista Supervisión — solo lectura.</div>
       <div style="background:linear-gradient(135deg,#1c1500,#2d2000);border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;">
         <div style="position:absolute;right:-8px;top:-18px;font-size:100px;opacity:.05;user-select:none;line-height:1;">📋</div>
         <div>
           <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--am);font-weight:700;">GEAT · CONTRATOS</div>
-          <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;line-height:1.1;">Contratos de Mano de Obra</div>
-          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi edita · Admin aprueba</div>
+          <div style="font-size:20px;font-weight:900;color:#fff;margin-top:3px;">Contratos de Mano de Obra</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.4);margin-top:3px;">Steffi edita · Admin aprueba · Fátima completa</div>
         </div>
       </div>
-
+      <button onclick="toggleFormSol()" style="display:block;width:100%;background:var(--am);color:#000;border:none;border-radius:9px;padding:15px;font-size:15px;font-weight:900;cursor:pointer;margin-bottom:14px;touch-action:manipulation;box-shadow:0 2px 16px rgba(245,196,0,.25);">+ AGREGAR NUEVA OBRA</button>
       <div id="pend-aprob"></div>
-      <div id="registro-contratos"></div>
+      <div id="registro-sol"></div>
+      <div id="card-nueva-sol" style="display:none;margin-top:12px;">
+        <div style="background:linear-gradient(160deg,#0f1f00,#1e3500);border:1.5px solid rgba(245,196,0,.5);border-radius:12px;padding:20px;">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;">
+            <div>
+              <div style="font-size:9px;letter-spacing:3px;text-transform:uppercase;color:rgba(245,196,0,.7);font-weight:700;margin-bottom:4px;">NUEVA OBRA</div>
+              <div style="font-size:17px;font-weight:900;color:#fff;">Subir Contrato del Propietario</div>
+            </div>
+            <button onclick="limpiarFormSol()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);border-radius:8px;width:36px;height:36px;font-size:16px;cursor:pointer;">✕</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:6px;">Contrato Digital (PDF)</div>
+              <label style="display:block;cursor:pointer;">
+                <div id="box-dig" style="background:rgba(0,0,0,.3);border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:22px 10px;text-align:center;transition:all .2s;">
+                  <div style="font-size:32px;margin-bottom:6px;">📋</div>
+                  <div style="font-size:11px;font-weight:700;color:var(--wd);" id="txt-dig">Subir PDF</div>
+                </div>
+                <input type="file" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="hCPNew('dig',this)">
+              </label>
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:6px;">Foto / Escaneo</div>
+              <label style="display:block;cursor:pointer;">
+                <div id="box-esc" style="background:rgba(0,0,0,.3);border:2px dashed rgba(255,255,255,.2);border-radius:10px;padding:22px 10px;text-align:center;transition:all .2s;">
+                  <div style="font-size:32px;margin-bottom:6px;">📸</div>
+                  <div style="font-size:11px;font-weight:700;color:var(--wd);" id="txt-esc">Subir Foto</div>
+                </div>
+                <input type="file" accept="image/*,image/jpeg,image/png" style="display:none;" onchange="hCPNew('esc',this)">
+              </label>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:5px;">Nombre Obra <span style="color:rgba(245,196,0,.5);">(auto)</span></div>
+              <input id="sol-nom" placeholder="Se rellena desde el archivo..." style="width:100%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;color:#fff;padding:11px 12px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-bottom:5px;">Código <span style="color:rgba(245,196,0,.5);">(auto)</span></div>
+              <input id="sol-cod" placeholder="Se genera automático..." style="width:100%;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.12);border-radius:7px;color:#fff;padding:11px 12px;font-size:13px;outline:none;box-sizing:border-box;">
+            </div>
+          </div>
+          <button onclick="guardarSolicitud()" style="width:100%;background:var(--am);color:#000;border:none;border-radius:8px;padding:14px;font-size:14px;font-weight:900;cursor:pointer;">💾 GUARDAR OBRA</button>
+          <div id="sol-form-body" style="display:none;"></div>
+          <div id="sol-steps" style="display:none;"></div>
+          <div id="sol-cp-area" style="display:none;"></div>
+          <select id="sol-obra-sel" style="display:none;"><option value=""></option></select>
+          <input id="sol-sup" style="display:none;" type="number" value="0">
+          <input id="sol-pre" style="display:none;" type="number" value="75">
+          <input id="sol-mon" style="display:none;"><input id="sol-cua" style="display:none;">
+          <input id="sol-fi" style="display:none;" type="date"><input id="sol-di" style="display:none;" type="number" value="0">
+          <input id="sol-map" style="display:none;"><textarea id="sol-not" style="display:none;"></textarea>
+          <textarea id="sol-obj" style="display:none;"></textarea><textarea id="sol-inc" style="display:none;"></textarea>
+          <textarea id="sol-exc" style="display:none;"></textarea><textarea id="sol-cond" style="display:none;"></textarea>
+          <input id="sol-deadline" style="display:none;" type="date"><textarea id="sol-obs" style="display:none;"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL SUPERVISIÓN -->
+    <div class="panel" id="panel-sup">
+      <div class="ph"><h2>🏗️ SUPERVISIÓN</h2><p>Seleccioná la obra para ver información de campo</p></div>
+      <div style="background:linear-gradient(135deg,rgba(245,196,0,.08),var(--p1));border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--am);font-weight:700;margin-bottom:8px;">📋 ELEGIR OBRA</div>
+        <select id="sup-sel-obra-main" onchange="selSupObraMain(this.value)" style="width:100%;background:rgba(0,0,0,.4);border:1.5px solid rgba(245,196,0,.4);border-radius:7px;padding:13px 14px;color:#fff;font-size:14px;font-weight:700;outline:none;">
+          <option value="">— Seleccioná una obra —</option>
+        </select>
+        <div id="sup-obra-preview" style="margin-top:10px;display:none;"></div>
+      </div>
+      <div id="sup-content" style="min-height:0;"></div>
+      <div id="sup-overview" style="display:none;"></div>
+      <div id="sup-selector" style="display:none;"></div>
+    </div>
+
+    <!-- PANEL ADMIN -->
+    <div class="panel" id="panel-admin">
+      <div class="ph"><h2>🔧 CONTROL EJECUTIVO</h2><p>Vista completa — solo Josemiguel</p></div>
+      <div class="card" style="background:linear-gradient(135deg,rgba(245,196,0,.07),var(--p1));border-color:var(--am);">
+        <div class="ct">💰 Resumen Financiero</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="a-mon">—</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Comprometido USD</div></div>
+          <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--am);" id="a-mon-bs">—</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Comprometido Bs</div></div>
+          <div style="text-align:center;"><div style="font-size:22px;font-weight:900;color:var(--Gc);" id="a-obr">—</div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Obras activas</div></div>
+        </div>
+      </div>
+      <div class="card"><div class="ct">⚡ Requieren mi aprobación</div><div id="adm-pend-apro" style="min-height:0;"></div></div>
+      <div class="card"><div class="ct">⚖️ Contratos pendientes revisión Steffi</div><div id="adm-pend-legal" style="min-height:0;"></div></div>
+      <div class="card">
+        <div class="ct">📊 Estado completo por obra</div>
+        <div class="tw"><table><thead><tr><th>Obra</th><th>Contratista</th><th>Tel</th><th>Docs</th><th>Contrato</th><th>Estado</th><th>Monto USD</th></tr></thead><tbody id="a-tb"></tbody></table></div>
+      </div>
+      <div class="card"><div class="ct">🔒 Contratos con Propietarios (confidencial)</div><div id="adm-props" style="min-height:0;"></div></div>
+      <div class="card"><div class="ct">📋 Auditoría del sistema</div><div id="a-log" style="font-size:10px;color:var(--wd);line-height:2;"></div></div>
     </div>
 
   </main>
 </div>
+
+<!-- MODAL OBRA DETALLE -->
+<div class="overlay" id="ov-obra"><div class="modal" id="m-obra">
+  <div class="modal-hdr"><h3 id="m-obra-tit">Obra</h3><button class="xbtn" onclick="cOv('obra')">✕</button></div>
+  <div id="m-obra-body"></div>
+</div></div>
 
 <!-- MODAL PERFIL -->
 <div class="overlay" id="ov-perfil"><div class="modal" id="m-perfil">
@@ -510,8 +648,14 @@ function buildStoragePath(folder,id,campo,filename){
 
 <script>
 // ══════════════════════════════════════════════════
-// DATOS GLOBALES
+// DATOS & CONSTANTES
 // ══════════════════════════════════════════════════
+const MDEF=['Excavación y nivelación','Cimientos y zapatas','Columnas y vigas','Losas y entrepisos',
+'Mampostería (paredes)','Instalaciones eléctricas','Instalaciones sanitarias','Cubierta y techos',
+'Enlucido y revoques','Pisos y revestimientos','Ventanas y puertas','Pintura interior',
+'Pintura exterior','Acabados baños','Acabados cocina','Escaleras','Jardín y exteriores',
+'Limpieza final','Supervisión técnica','Entrega y cierre'];
+
 const USERS={
   '1024':{n:'Josemiguel',r:'admin',icon:'👤'},
   '2232':{n:'Fátima',r:'captadora',icon:'📝'},
@@ -519,78 +663,51 @@ const USERS={
   '6677':{n:'Arq. Raí',r:'supervisor',icon:'🏗️'}
 };
 
-let CU=null;
-let pinBuf='';
-let obras=[];
-let contratos=[];
-let logs_=[];
+let CU=null,pinBuf='',obras=[],contratos=[],logs_=[];
+let cpNewDig=null,cpNewEsc=null,cpNewDigFile=null,cpNewEscFile=null;
+let mc=20;
+let upD={ci:null,ag:null,lz:null};
 
-// ══════════════════════════════════════════════════
-// PIN & LOGIN
-// ══════════════════════════════════════════════════
-function pin(n){
-  if(pinBuf.length>=4)return;
-  pinBuf+=n;
-  updDots();
-  if(pinBuf.length===4) setTimeout(tryLogin,150);
-}
-function delPin(){
-  pinBuf=pinBuf.slice(0,-1);
-  updDots();
-  document.getElementById('pin-err').textContent='';
-  document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));
-}
-function updDots(){
-  for(let i=0;i<4;i++){
-    const d=document.getElementById('d'+i);
-    d.classList.toggle('filled',i<pinBuf.length);
-  }
-}
+const EL={
+  apto_para_obra:'<span class="est e-apto">🟢 Apto</span>',
+  generado:'<span class="est e-gen">🟡 Generado</span>',
+  busqueda:'<span class="est e-bus">🟣 Búsqueda</span>',
+  en_ejecucion:'<span class="est e-ej">🔵 En Ejecución</span>'
+};
+
+// ── PIN LOGIN ──
+function pin(n){if(pinBuf.length>=4)return;pinBuf+=n;updDots();if(pinBuf.length===4)setTimeout(tryLogin,150);}
+function delPin(){pinBuf=pinBuf.slice(0,-1);updDots();document.getElementById('pin-err').textContent='';document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));}
+function updDots(){for(let i=0;i<4;i++){const d=document.getElementById('d'+i);d.classList.toggle('filled',i<pinBuf.length);}}
 function tryLogin(){
   const u=USERS[pinBuf];
   if(!u){
     document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('filled');d.classList.add('error');});
     document.getElementById('pin-err').textContent='Código incorrecto.';
-    setTimeout(()=>{
-      pinBuf='';
-      document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('filled','error');});
-      document.getElementById('pin-err').textContent='';
-    },1200);
+    setTimeout(()=>{pinBuf='';document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('filled','error');});document.getElementById('pin-err').textContent='';},1200);
     return;
   }
   CU={...u,pin:pinBuf};
   document.getElementById('screen-login').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
-  buildNav();
-  renderOS();
-  renderObrasPendCompleto();
-  renderContratos();
+  buildNav();initMods();renderOS();renderObras();renderObrasPendCompleto();renderContratos();renderSup();renderAdmin();
   goPanel(panelInicial());
-  log(`Sesión: ${u.n}`);
+  log('Sesión: '+u.n);
   sbCargarDatos();
 }
-function logout(){
-  CU=null;pinBuf='';
-  document.getElementById('screen-login').style.display='flex';
-  document.getElementById('app').style.display='none';
-  updDots();
-}
-function panelInicial(){
-  const m={admin:'obra',captadora:'obra',abogada:'contratos',supervisor:'obra'};
-  return m[CU.r]||'obra';
-}
+function logout(){CU=null;pinBuf='';document.getElementById('screen-login').style.display='flex';document.getElementById('app').style.display='none';updDots();}
+function panelInicial(){return {admin:'obra',comercial:'obra',captadora:'obra',abogada:'contratos',supervisor:'sup'}[CU.r]||'obra';}
 
-// ══════════════════════════════════════════════════
-// NAVEGACIÓN
-// ══════════════════════════════════════════════════
+// ── NAV ──
 function buildNav(){
   const nav=document.getElementById('nav');nav.innerHTML='';
   const maps={
-    admin:    [{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Cont.'},{id:'contratos',l:'📋 Contratos'}],
-    abogada:  [{id:'contratos',l:'📋 Contratos'}],
-    supervisor:[{id:'obra',l:'📋 Req.'}],
-    captadora: [{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Cont.'}]
+    admin:[{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Contratista'},{id:'contratos',l:'📋 Contratos'},{id:'sup',l:'🏗️ Supervisión'},{id:'admin',l:'🔧 Admin'}],
+    abogada:[{id:'contratos',l:'📋 Contratos'}],
+    supervisor:[{id:'sup',l:'🏗️ Supervisión'}],
+    comercial:[{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Contratista'}],
+    captadora:[{id:'obra',l:'📋 Req.'},{id:'contratista',l:'👷 Contratista'}]
   };
   (maps[CU.r]||[]).forEach(b=>{
     const bt=document.createElement('button');
@@ -603,506 +720,794 @@ function goPanel(id){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   const p=document.getElementById('panel-'+id);if(p)p.classList.add('on');
   const n=document.getElementById('nb-'+id);if(n)n.classList.add('on');
-  if(id==='contratos'){renderContratos();}
-  if(id==='obra'){renderReqSelector();}
+  if(id==='contratista'){renderCardActivar();}
+  if(id==='contratos'){
+    document.getElementById('sup-av').style.display=CU.r==='supervisor'?'block':'none';
+    document.getElementById('card-nueva-sol').style.display='none';
+    renderContratos();
+  }
+  if(id==='obra'){renderObrasPendCompleto();renderReqSelector();}
+  if(id==='sup'){renderSup();}
 }
 
-// ══════════════════════════════════════════════════
-// OBRAS
-// ══════════════════════════════════════════════════
+// ── MÓDULOS ──
+function initMods(){const c=document.getElementById('mg-cont');c.innerHTML='';mc=20;for(let i=1;i<=20;i++)c.appendChild(mkM(i,MDEF[i-1]||''));}
+function mkM(n,v=''){const d=document.createElement('div');d.className='mi';d.innerHTML=`<div class="ml">M${String(n).padStart(2,'0')}<button class="mi-del" onclick="delMod(this)">✕</button></div><input id="mm${n}" placeholder="Módulo ${n}" value="${v.replace(/"/g,'&quot;')}">`;return d;}
+function addMod(){mc++;document.getElementById('mg-cont').appendChild(mkM(mc,''));}
+function delMod(btn){btn.closest('.mi').remove();}
+
+// ── OBRA FORM ──
 function cO(){
-  const s=parseFloat(document.getElementById('o-sup').value)||0;
-  const p=parseFloat(document.getElementById('o-pre').value)||75;
+  const s=parseFloat(document.getElementById('o-sup').value)||0,p=parseFloat(document.getElementById('o-pre').value)||75;
   if(!s)return;
-  const cuad=Math.max(4,Math.ceil(s/100*4));
-  const montoUSD=s*p;
-  const montoBs=Math.round(montoUSD*6.96);
+  const cuad=Math.max(4,Math.ceil(s/100*4)),montoUSD=s*p,montoBs=Math.round(montoUSD*6.96);
   document.getElementById('c-cua').value=cuad+' personas';
   document.getElementById('c-mon').value='$'+montoUSD.toFixed(2)+' USD  /  Bs '+montoBs.toLocaleString('es-BO');
   document.getElementById('c-moo').value=Math.max(5,Math.ceil(s/10))+' módulos';
 }
 function cFF(){
-  const fi=document.getElementById('o-fi').value;
-  const d=parseInt(document.getElementById('o-di').value)||0;
+  const fi=document.getElementById('o-fi').value,d=parseInt(document.getElementById('o-di').value)||0;
   if(fi&&d){const dt=new Date(fi);dt.setDate(dt.getDate()+d);document.getElementById('o-ff').value=dt.toLocaleDateString('es-BO',{day:'2-digit',month:'long',year:'numeric'});}
 }
 function gObra(){
-  const nom=document.getElementById('o-nom').value.trim();
-  const cod=document.getElementById('o-cod').value.trim();
-  const sup=parseFloat(document.getElementById('o-sup').value);
-  const mp=document.getElementById('o-map').value.trim();
+  const nom=document.getElementById('o-nom').value.trim(),cod=document.getElementById('o-cod').value.trim();
+  const sup=parseFloat(document.getElementById('o-sup').value),mp=document.getElementById('o-map').value.trim();
   if(!nom||!cod||!sup||!mp){alert('⚠️ Completa: Nombre, Código, Superficie y Maps');return;}
   const pre=parseFloat(document.getElementById('o-pre').value)||75;
-  const not=document.getElementById('o-not').value;
-  const obj=document.getElementById('o-obj').value;
-  const inc=document.getElementById('o-inc').value;
-  const exc=document.getElementById('o-exc').value;
-  const fi=document.getElementById('o-fi').value;
-  const di=parseInt(document.getElementById('o-di').value)||0;
+  const mods=[];document.querySelectorAll('#mg-cont .mi input').forEach(inp=>{const v=inp.value.trim();if(v)mods.push(v);});
+  const cuad=Math.max(4,Math.ceil(sup/100*4));
+  const not=document.getElementById('o-not').value,obj=document.getElementById('o-obj').value;
+  const inc=document.getElementById('o-inc').value,exc=document.getElementById('o-exc').value;
+  const fi=document.getElementById('o-fi').value,di=parseInt(document.getElementById('o-di').value)||0;
   const editId=parseInt(document.getElementById('obra-edit-id').value)||0;
   if(editId){
     const o=obras.find(x=>x.id===editId);
-    if(o){
-      Object.assign(o,{nom,cod,sup,pre,map:mp,monto:sup*pre,cuad:Math.max(4,Math.ceil(sup/100*4)),fi,di,not,obj,inc,exc});
-      sbGuardarObra(o);
-      log(`Obra "${nom}" completada`);renderOS();renderContratos();renderObrasPendCompleto();uStats();lObra();
-      alert(`✅ Datos de "${nom}" guardados.`);return;
-    }
+    if(o){Object.assign(o,{nom,cod,sup,pre,map:mp,cuad,monto:sup*pre,mn:mods.length,fi,di,not,obj,inc,exc,mods});sbGuardarObra(o);log('Obra "'+nom+'" completada');renderOS();renderObras();renderContratos();renderObrasPendCompleto();uStats();lObra();alert('✅ Datos de "'+nom+'" guardados.');return;}
   }
-  const o={id:Date.now(),nom,cod,sup,pre,map:mp,cuad:Math.max(4,Math.ceil(sup/100*4)),monto:sup*pre,
-    est:'pendiente',fi,di,not,obj,inc,exc,cp:null,cp_esc:null,aprobada:false,mods:[],contrato_firmado_contratista:null};
-  obras.push(o);
-  sbGuardarObra(o);
-  log(`Obra "${nom}" cargada`);renderOS();renderObrasPendCompleto();uStats();lObra();
-  alert(`✅ Obra "${nom}" guardada.`);
+  const o={id:Date.now(),nom,cod,sup,pre,map:mp,cuad,monto:sup*pre,mn:mods.length,est:'pendiente',fi,di,not,obj,inc,exc,cp:null,cp_esc:null,aprobada:false,mods,contrato_firmado_contratista:null};
+  obras.push(o);sbGuardarObra(o);log('Obra "'+nom+'" cargada');renderOS();renderObras();uStats();lObra();
+  alert('✅ Obra "'+nom+'" guardada.\n⏳ Pendiente aprobación.');
 }
 function lObra(){
   ['o-nom','o-cod','o-sup','o-map','o-fi','o-di','o-not','o-obj','o-inc','o-exc'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  document.getElementById('o-pre').value='75';
-  document.getElementById('o-ff').value='';
+  document.getElementById('o-pre').value='75';document.getElementById('o-ff').value='';
   ['c-cua','c-mon','c-moo'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('obra-edit-id').value='';
+  document.getElementById('obra-edit-id').value='';initMods();
 }
 function renderObras(){
   const c=document.getElementById('obras-lista');if(!c)return;
   if(!obras.length){c.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras.</p>';return;}
-  c.innerHTML=obras.map(o=>`<div class="obra-card" onclick="aObra(${o.id})" style="cursor:pointer;">
-    <div style="display:flex;justify-content:space-between;"><div style="font-weight:700;">${o.nom}</div><div style="font-size:10px;color:var(--am);">${o.cod}</div></div>
-    <div style="font-size:11px;color:var(--wd);margin-top:3px;">📐 ${o.sup}m² · 👥 ${o.cuad} pers. · 💰 $${o.monto.toFixed(0)}</div>
-  </div>`).join('');
-}
-function aObra(id){
-  const o=obras.find(x=>x.id===id);if(!o)return;
-  alert(`Obra: ${o.nom}\nCódigo: ${o.cod}\nSuperficie: ${o.sup}m²\nMonto: $${o.monto.toFixed(2)}`);
-}
-function renderObrasPendCompleto(){
-  const c=document.getElementById('obras-pend-comp');if(!c)return;
-  c.innerHTML='';
-}
-function renderReqSelector(){
-  const sel=document.getElementById('req-sel-obra');if(!sel)return;
-  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+obras.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
-}
-function cargarReqObra(oid){
-  const info=document.getElementById('req-obra-info');
-  if(!oid){if(info)info.style.display='none';return;}
-  const o=obras.find(x=>x.id==oid);
-  if(o&&info){
-    info.style.display='block';
-    info.innerHTML=`📐 ${o.sup}m² · 👥 ${o.cuad} personas · 💰 $${o.monto.toFixed(0)} USD`;
-  }
-}
-function renderOS(){
-  const s=document.getElementById('ct-o');if(!s)return;
-  s.innerHTML='<option value="">— Seleccionar obra —</option>'+obras.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
+  c.innerHTML=obras.map(o=>{
+    const tieneCp=o.cp||o.cp_esc;
+    const cls=o.aprobada?'ob-a':tieneCp?'ob-p':'ob-r';
+    const lb=o.aprobada?'✅ Activa':tieneCp?'⏳ Pend. aprobación':'⚠️ Sin contrato prop.';
+    const isA=CU&&CU.r==='admin';
+    return `<div class="obra-card" onclick="aObra(${o.id})">
+      <div class="oc-top"><div class="oc-nom">${o.nom}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="obadge ${cls}">${lb}</div>
+          ${isA?`<button class="btn rb sm" onclick="event.stopPropagation();eliminarObra(${o.id})">🗑</button>`:''}
+        </div>
+      </div>
+      <div class="oc-inf"><span>📋 ${o.cod}</span><span>📐 ${o.sup}m²</span><span>👥 ${o.cuad} pers.</span><span>🧱 ${o.mods?.length||0} mód.</span></div>
+    </div>`;
+  }).join('');
 }
 
-// ══════════════════════════════════════════════════
-// CONTRATISTA
-// ══════════════════════════════════════════════════
-let upD={ci:null,ag:null,lz:null};
+// ── MODAL OBRA ──
+function aObra(id){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  const isA=CU.r==='admin';
+  document.getElementById('m-obra-tit').textContent=o.nom+' — '+o.cod;
+  document.getElementById('m-obra-body').innerHTML=`
+    <div class="msec"><h4>Datos Generales</h4>
+      <div class="mrow"><span class="lbl">Superficie</span><span class="val">${o.sup} m²</span></div>
+      <div class="mrow"><span class="lbl">Cuadrilla</span><span class="val">${o.cuad} personas</span></div>
+      <div class="mrow"><span class="lbl">Inicio</span><span class="val">${o.fi||'—'} (${o.di} días)</span></div>
+      ${isA?`<div class="mrow"><span class="lbl">Monto Total</span><span class="val" style="color:var(--am);">$${o.monto.toFixed(2)}</span></div>`:''}
+      <div class="mrow"><span class="lbl">Estado</span><span class="val">${o.aprobada?'✅ Aprobada':'⏳ Pendiente'}</span></div>
+      <div class="mrow"><span class="lbl">Maps</span><span class="val"><a href="${o.map}" target="_blank" style="color:var(--am);">📍 Ver</a></span></div>
+    </div>
+    ${o.not?`<div class="msec"><h4>Notas</h4><p style="font-size:11px;color:var(--wd);line-height:1.7;">${o.not}</p></div>`:''}
+    <div class="msec"><h4>Módulos (${o.mods?.length||0})</h4>
+      <div class="chips">${(o.mods||[]).map((m,i)=>`<div class="chip">M${String(i+1).padStart(2,'0')} — ${m}</div>`).join('')||'<span style="color:var(--ws)">Sin módulos</span>'}</div>
+    </div>
+    ${!o.aprobada&&(o.cp||o.cp_esc)?`<div class="al al-z" style="margin-top:10px;font-size:11px;">⏳ Pendiente aprobación de Josemiguel</div>`:''}
+  `;
+  aOv('obra');
+}
+function aprobOb(id){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  if(!o.cp&&!o.cp_esc){alert('⚠️ Sin contrato del propietario.');return;}
+  if(!confirm('¿APROBAR "'+o.nom+'"?'))return;
+  o.aprobada=true;o.est='activa';sbGuardarObra(o);sbLog(CU.n,'Obra aprobada: '+o.nom);
+  log('✅ Obra "'+o.nom+'" APROBADA');cOv('obra');renderObras();renderOS();renderContratos();uStats();
+  alert('✅ Obra "'+o.nom+'" aprobada.');
+}
+function rzOb(id){const o=obras.find(x=>x.id===id);if(!o)return;if(!confirm('¿Rechazar "'+o.nom+'"?'))return;o.est='rechazada';log('❌ Rechazada: '+o.nom);renderContratos();renderObras();}
+function eliminarObra(id){
+  if(CU.r!=='admin'){alert('⛔ Solo admin puede eliminar.');return;}
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  if(!confirm('⚠️ ¿ELIMINAR la obra "'+o.nom+'"?'))return;
+  obras=obras.filter(x=>x.id!==id);contratos=contratos.filter(x=>x.oid!==id);
+  sb.from('rec_obras').delete().eq('id',id).then(()=>{});
+  sb.from('rec_contratos').delete().eq('obra_id',id).then(()=>{});
+  log('🗑 Obra "'+o.nom+'" eliminada');renderObras();renderOS();renderContratos();uStats();
+}
+
+// ── CONTRATISTA ──
 function hUD(t,i){
   if(!i.files[0])return;
-  const file=i.files[0];
-  upD[t]=file.name;
-  document.getElementById('b'+t).classList.add('ok');
-  document.getElementById('s-'+t).textContent='✓ '+file.name;
+  const file=i.files[0];upD[t]=file.name;
+  document.getElementById('b'+t).classList.add('ok');document.getElementById('s-'+t).textContent='✓ '+file.name;
   actuChk();
 }
 function actuChk(){
-  const checks={ci:upD.ci,ag:upD.ag,lz:upD.lz,
-    nom:document.getElementById('ct-n')?.value.trim(),
-    tel:document.getElementById('ct-t')?.value.trim(),
-    obra:document.getElementById('ct-o')?.value};
+  const checks={ci:upD.ci,ag:upD.ag,lz:upD.lz,nom:document.getElementById('ct-n')?.value.trim(),tel:document.getElementById('ct-t')?.value.trim(),obra:document.getElementById('ct-o')?.value};
   Object.entries(checks).forEach(([k,v])=>{
     const el=document.getElementById('chk-'+k);if(!el)return;
     if(v){el.textContent='✅ '+el.textContent.replace(/^[⬜✅] /,'');el.style.background='var(--Gbg)';el.style.color='var(--Gc)';}
     else{el.textContent='⬜ '+el.textContent.replace(/^[⬜✅] /,'');el.style.background='var(--p3)';el.style.color='var(--ws)';}
   });
 }
+function renderOS(){
+  const s=document.getElementById('ct-o');if(!s)return;
+  const apr=obras.filter(o=>o.aprobada),pend=obras.filter(o=>!o.aprobada);
+  let opts='<option value="">— Seleccionar obra —</option>';
+  if(apr.length){opts+='<optgroup label="✅ Aprobadas">';opts+=apr.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');opts+='</optgroup>';}
+  if(pend.length){opts+='<optgroup label="⏳ Pendientes">';opts+=pend.map(o=>`<option value="${o.id}" style="color:#fb923c;">${o.nom} — sin aprobar</option>`).join('');opts+='</optgroup>';}
+  s.innerHTML=opts;
+}
 function toggleDatosContratista(){
-  const sel=document.getElementById('ct-o');
-  const bloque=document.getElementById('bloque-datos-ct');
-  if(sel&&sel.value){bloque.style.display='block';bloque.scrollIntoView({behavior:'smooth'});}
+  const sel=document.getElementById('ct-o'),bloque=document.getElementById('bloque-datos-ct');
+  if(sel&&sel.value){bloque.style.display='block';bloque.scrollIntoView({behavior:'smooth',block:'start'});}
   else{bloque.style.display='none';}
 }
 function pvO(){
-  const id=parseInt(document.getElementById('ct-o').value);
-  const pv=document.getElementById('o-prev');
-  if(!id){if(pv)pv.style.display='none';actuChk();return;}
+  const id=parseInt(document.getElementById('ct-o').value),pv=document.getElementById('o-prev');
+  if(!id){pv.style.display='none';actuChk();return;}
   const o=obras.find(x=>x.id===id);
-  if(o&&pv){pv.style.display='block';pv.innerHTML=`<div class="al al-g">📐 ${o.sup}m² · 👥 ${o.cuad} personas · 🧱 ${o.mods?.length||0} módulos</div>`;}
+  if(o&&pv){pv.style.display='block';pv.innerHTML=`<div class="al ${o.aprobada?'al-g':'al-n'}">📐 ${o.sup}m² · 👥 ${o.cuad} personas · 🧱 ${o.mods?.length||0} módulos${o.aprobada?'':' · ⚠️ Obra sin aprobar'}</div>`;}
   actuChk();
 }
-function gCont(){
-  const nom=document.getElementById('ct-n').value.trim();
-  const tel=document.getElementById('ct-t').value.trim();
-  const ci_n=document.getElementById('ct-ci').value.trim();
-  const dir=document.getElementById('ct-d').value.trim();
-  const cond=document.getElementById('ct-co').value;
-  const oid=parseInt(document.getElementById('ct-o').value);
+async function gCont(){
+  const nom=document.getElementById('ct-n').value.trim(),tel=document.getElementById('ct-t').value.trim();
+  const ci_n=document.getElementById('ct-ci').value.trim(),dir=document.getElementById('ct-d').value.trim();
+  const cond=document.getElementById('ct-co').value,oid=parseInt(document.getElementById('ct-o').value);
   if(!nom||!tel||!oid){alert('⚠️ Nombre, Teléfono y Obra son obligatorios.');return;}
-  if(!upD.ci||!upD.ag||!upD.lz){alert('⚠️ Carga los 3 documentos: C.I., Agua, Luz.');return;}
-  
   const o=obras.find(x=>x.id===oid);
   const ct={id:Date.now(),nom,tel,ci_n,dir,oid,ci:upD.ci,ag:upD.ag,lz:upD.lz,cond,
-    est:'generado',est_contrato:'generado',texto_contrato:generarTextoCont(nom,ci_n,dir,o,cond),
-    firm:null,aprobado_por:null,aprobado_fecha:null,fec_iso:new Date().toISOString().slice(0,10),
-    ediciones_count:0,historial_cambios:[],contrato_bloqueado:false,busqueda_activa:false,busqueda_fecha:null};
-  
+    est:'generado',est_contrato:'generado',
+    texto_contrato:generarTextoCont(nom,ci_n,dir,o,cond),
+    firm:null,aprobado_por:null,aprobado_fecha:null,
+    fec_iso:new Date().toISOString().slice(0,10),
+    ediciones_count:0,historial_cambios:[],contrato_bloqueado:false,
+    busqueda_activa:false,busqueda_fecha:null};
   contratos.push(ct);
-  sbGuardarContrato(ct);
-  log(`Contratista guardado: ${nom}`);
-  alert(`✅ Contratista "${nom}" registrado.\n\nContrato generado → pendiente revisión de Steffi.`);
-  lCont();renderContratos();uStats();
+  try{await sbGuardarContrato(ct);}catch(e){console.error(e);}
+  log('Contratista guardado: '+nom);
+  document.getElementById('msg-ct').innerHTML='<div class="al al-g">✅ Guardado. Contrato generado → Steffi revisa en Contratos.</div>';
+  setTimeout(()=>{document.getElementById('msg-ct').innerHTML='';},4000);
+  lCont();renderContratos();renderCardActivar();uStats();
 }
 function lCont(){
   ['ct-n','ct-t','ct-ci','ct-d','ct-co'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('ct-o').value='';
-  document.getElementById('o-prev').style.display='none';
+  document.getElementById('ct-o').value='';document.getElementById('o-prev').style.display='none';
   upD={ci:null,ag:null,lz:null};
   ['ci','ag','lz'].forEach(t=>{document.getElementById('b'+t).classList.remove('ok');document.getElementById('s-'+t).textContent='';});
-  actuChk();
+  toggleDatosContratista();
 }
+function renderCardActivar(){
+  const card=document.getElementById('card-activar-proceso');if(!card)return;
+  const isA=CU&&CU.r==='admin';card.style.display=isA?'block':'none';if(!isA)return;
+  const sel=document.getElementById('sel-activar-ct');if(!sel)return;
+  const aptos=contratos.filter(c=>c.est==='apto_para_obra');
+  sel.innerHTML='<option value="">— Seleccionar contratista apto —</option>'+aptos.map(c=>{const o=gO(c.oid);return `<option value="${c.id}">${c.nom} → ${o.nom||'?'}</option>`;}).join('');
+  if(!aptos.length)card.style.display='none';
+}
+function prevActivarCt(){
+  const id=parseInt(document.getElementById('sel-activar-ct').value),pv=document.getElementById('prev-activar');
+  if(!id){pv.innerHTML='';return;}
+  const ct=contratos.find(x=>x.id===id),o=ct?gO(ct.oid):{};
+  pv.innerHTML=ct?`<div class="al al-g">👷 ${ct.nom} · 📋 ${o.nom||'—'} · ${o.sup||'—'}m²</div>`:'';
+}
+function activarProceso(){
+  const id=parseInt(document.getElementById('sel-activar-ct').value);
+  if(!id){alert('Seleccioná un contratista.');return;}
+  const ct=contratos.find(x=>x.id===id);if(!ct)return;
+  const o=gO(ct.oid);if(!o.aprobada){alert('⚠️ La obra "'+o.nom+'" aún no fue aprobada.');return;}
+  if(!confirm('¿ACTIVAR BÚSQUEDA para '+ct.nom+'?'))return;
+  ct.est='busqueda';ct.busqueda_activa=true;ct.busqueda_fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  sbGuardarContrato(ct);sbLog(CU.n,'Búsqueda activada: '+ct.nom);log('🔍 Búsqueda: '+ct.nom);renderContratos();renderCardActivar();uStats();
+}
+function gO(id){return obras.find(o=>o.id===id)||{};}
 
+// ══════════════════════════════════════════════════
+// GENERADOR DE CONTRATO — ENFOCADO EN CONTRATISTA
+// ══════════════════════════════════════════════════
 function generarTextoCont(nom,ci_n,dir,o,cond){
   const hoy=new Date();
   const fecha=hoy.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
-  const montoUSD=parseFloat(o.monto)||0;
+  const mods=(o&&o.mods||[]).map(function(m,i){return '  M'+String(i+1).padStart(2,'0')+' — '+m;}).join('\n');
+  const montoUSD=parseFloat(o&&o.monto||0);
   const montoBs=Math.round(montoUSD*6.96);
-  const p1u=(montoUSD*0.30).toFixed(2);
-  const p1b=Math.round(montoUSD*0.30*6.96);
-  const p2u=(montoUSD*0.40).toFixed(2);
-  const p2b=Math.round(montoUSD*0.40*6.96);
-  const p3u=(montoUSD*0.30).toFixed(2);
-  const p3b=Math.round(montoUSD*0.30*6.96);
-  
-  return `CONTRATO DE PRESTACIÓN DE SERVICIOS DE MANO DE OBRA
-Código: ${o.cod}
-Santa Cruz de la Sierra, ${fecha}
-
-════════════════════════════════════════════════════════════════
-PARTES DEL CONTRATO
-════════════════════════════════════════════════════════════════
-
-CONTRATANTE:
-  Empresa: GAMBARTE ARQUITECTURA S.R.L.
-  Representante: José Miguel Gambarte Vidaurre
-  C.I.: 7714413 SC
-  Domicilio: Av. Beni 3er Anillo, Santa Cruz de la Sierra
-
-CONTRATISTA (PRINCIPAL):
-  Nombre completo: ${nom}
-  C.I.: ${ci_n}
-  Domicilio: ${dir}
-  
-════════════════════════════════════════════════════════════════
-CLÁUSULA PRIMERA — OBJETO DEL CONTRATO
-════════════════════════════════════════════════════════════════
-El CONTRATISTA se compromete a ejecutar los trabajos de mano de 
-obra directa para la construcción de la obra denominada:
-
-  📌 ${o.nom}
-  📍 Código: ${o.cod}
-  📐 Superficie: ${o.sup}m²
-
-Conforme a los planos, especificaciones técnicas y bajo supervisión 
-de GAMBARTE ARQUITECTURA S.R.L.
-
-════════════════════════════════════════════════════════════════
-CLÁUSULA SEGUNDA — MONTO Y FORMA DE PAGO (ENFOQUE CONTRATISTA)
-════════════════════════════════════════════════════════════════
-PRECIO TOTAL PACTADO:
-  USD ${montoUSD.toFixed(2)} equivalente a Bs ${montoBs.toLocaleString('es-BO')}
-  (Tipo de cambio oficial: 6.96 Bs/USD)
-
-FORMA DE PAGO EN 3 CUOTAS QUINCENALES:
-
-1️⃣ ANTICIPO AL INICIO DE OBRA (30%):
-   • USD ${p1u} / Bs ${p1b.toLocaleString('es-BO')}
-   • Contra presentación de contrato firmado y SOAT-C provisional
-   
-2️⃣ AVANCE 50% EJECUTADO (40%):
-   • USD ${p2u} / Bs ${p2b.toLocaleString('es-BO')}
-   • Verificación de avance por supervisor técnico
-   
-3️⃣ ENTREGA FINAL (30%):
-   • USD ${p3u} / Bs ${p3b.toLocaleString('es-BO')}
-   • Obra completada y aceptada por propietario
-
-CONDICIONES DE PAGO:
-• Las cuotas se abonan al 100% contra comprobantes firmados
-• Pagos realizados quincenalmente (cada 15 días)
-• El CONTRATISTA debe emitir recibos y/o boletas fiscales
-• SOAT-C completo debe presentarse dentro de 3 días del primer pago
-  (Multa por atraso: Bs 50/día hasta presentar)
-
-════════════════════════════════════════════════════════════════
-CLÁUSULA TERCERA — PLAZO Y CALENDARIO
-════════════════════════════════════════════════════════════════
-Plazo de ejecución: ${o.di} días calendario
-Fecha inicio: ${o.fi || 'A convenir'}
-Extensiones de plazo: Solo por caso fortuito o fuerza mayor
-
-════════════════════════════════════════════════════════════════
-CLÁUSULA CUARTA — OBLIGACIONES DEL CONTRATISTA
-════════════════════════════════════════════════════════════════
-El CONTRATISTA se obliga a:
-
-✓ Ejecutar conforme a planos y especificaciones técnicas
-✓ Aportar herramientas menores propias (palas, picos, nivel, etc.)
-✓ Mantener limpieza diaria del área de trabajo
-✓ Reportar avance semanal al supervisor
-✓ No modificar planos sin autorización escrita
-✓ Garantizar mano de obra calificada
-✓ Cumplimiento total con normas de seguridad e higiene ocupacional
-✓ Presentar SOAT-C completo dentro de 3 días del primer pago
-✓ Respetar confidencialidad de planos y especificaciones
-✓ Estar disponible para coordinaciones de supervisión
-
-════════════════════════════════════════════════════════════════
-CLÁUSULA QUINTA — PENALIDADES Y SANCIONES
-════════════════════════════════════════════════════════════════
-• Retraso injustificado: 0.5% del monto total por día (máx. 10%)
-• SOAT-C no presentado en 3 días: Bs 50/día de multa
-• Hurto/robo: Rescisión inmediata + acción legal
-• Modificaciones no autorizadas: Retención de pago
-• Abandono de obra: Retención total de pago pendiente
-
-${cond?`════════════════════════════════════════════════════════════════\nCLÁUSULA SEXTA — CONDICIONES ESPECIALES\n════════════════════════════════════════════════════════════════\n${cond}`:''}
-
-════════════════════════════════════════════════════════════════
-FIRMAS DE CONFORMIDAD
-════════════════════════════════════════════════════════════════
-
-_____________________________     _____________________________
-${nom}                              JOSÉ MIGUEL GAMBARTE VIDAURRE
-C.I. ${ci_n}                        C.I. 7714413 SC
-Contratista                         GAMBARTE ARQUITECTURA S.R.L.
-`;
+  const p1u=(montoUSD*0.30).toFixed(2),p1b=Math.round(montoUSD*0.30*6.96);
+  const p2u=(montoUSD*0.40).toFixed(2),p2b=Math.round(montoUSD*0.40*6.96);
+  const p3u=(montoUSD*0.30).toFixed(2),p3b=Math.round(montoUSD*0.30*6.96);
+  const diasEj=o&&o.di||90,fechaInicio=o&&o.fi||fecha;
+  let fechaFin='—';
+  if(o&&o.fi){const d=new Date(o.fi);d.setDate(d.getDate()+(o.di||90));fechaFin=d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});}
+  return 'CONTRATO DE PRESTACIÓN DE SERVICIOS DE MANO DE OBRA DIRECTA\n'+
+'Código: '+(o&&o.cod||'—')+'\n'+
+'Santa Cruz de la Sierra, '+fecha+'\n\n'+
+'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA PRIMERA — PARTES\n'+
+'════════════════════════════════════════════════════════\n\n'+
+'CONTRATANTE:\n'+
+'  Empresa: GAMBARTE ARQUITECTURA S.R.L.\n'+
+'  Representante: José Miguel Gambarte Vidaurre\n'+
+'  C.I.: 7714413 SC\n'+
+'  Domicilio: Av. Beni 3er Anillo, Santa Cruz de la Sierra\n\n'+
+'CONTRATISTA (PARTE PRINCIPAL):\n'+
+'  Nombre completo: '+nom+'\n'+
+'  C.I.: '+ci_n+'\n'+
+'  Domicilio: '+dir+'\n\n'+
+'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA SEGUNDA — OBJETO DEL CONTRATO\n'+
+'════════════════════════════════════════════════════════\n\n'+
+'El CONTRATISTA se compromete a ejecutar los trabajos de mano de obra\n'+
+'directa para la construcción de:\n\n'+
+'  📌 Obra: '+(o&&o.nom||'—')+'\n'+
+'  📋 Código: '+(o&&o.cod||'—')+'\n'+
+'  📐 Superficie: '+(o&&o.sup||'—')+'m²\n'+
+'  👥 Cuadrilla requerida: '+(o&&o.cuad||'—')+' personas\n\n'+
+(mods?'Módulos de ejecución pactados:\n'+mods+'\n\n':'')+
+'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA TERCERA — MONTO Y FORMA DE PAGO\n'+
+'════════════════════════════════════════════════════════\n\n'+
+'PRECIO TOTAL ACORDADO:\n'+
+'  USD '+montoUSD.toFixed(2)+' equivalente a Bs '+montoBs.toLocaleString('es-BO')+'\n'+
+'  (Tipo de cambio oficial: 6.96 Bs/USD)\n\n'+
+'PAGOS EN 3 CUOTAS QUINCENALES:\n\n'+
+'  1er PAGO — 30% ANTICIPO AL INICIO DE OBRA:\n'+
+'     USD '+p1u+' / Bs '+p1b.toLocaleString('es-BO')+'\n'+
+'     Condición: Contra firma de contrato + SOAT-C provisional\n\n'+
+'  2do PAGO — 40% AL 50% DE AVANCE:\n'+
+'     USD '+p2u+' / Bs '+p2b.toLocaleString('es-BO')+'\n'+
+'     Condición: Verificación de avance por supervisor técnico\n\n'+
+'  3er PAGO — 30% A LA ENTREGA FINAL:\n'+
+'     USD '+p3u+' / Bs '+p3b.toLocaleString('es-BO')+'\n'+
+'     Condición: Obra completada y aceptada por propietario\n\n'+
+'NOTAS DE PAGO:\n'+
+'  • Pagos quincenales según avance aprobado\n'+
+'  • CONTRATISTA debe emitir nota fiscal/recibo por cada pago\n'+
+'  • SOAT-C debe presentarse dentro de 3 días del primer pago\n'+
+'    (Multa por atraso: Bs 50/día hasta presentar)\n\n'+
+'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA CUARTA — PLAZO DE EJECUCIÓN\n'+
+'════════════════════════════════════════════════════════\n\n'+
+'  Plazo: '+diasEj+' días calendario\n'+
+'  Inicio: '+fechaInicio+'\n'+
+'  Entrega estimada: '+fechaFin+'\n'+
+'  Extensión: Solo por caso fortuito o fuerza mayor documentada\n\n'+
+'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA QUINTA — OBLIGACIONES DEL CONTRATISTA\n'+
+'════════════════════════════════════════════════════════\n\n'+
+'El CONTRATISTA se obliga a:\n'+
+'  ✓ Ejecutar conforme a planos y especificaciones técnicas\n'+
+'  ✓ Aportar herramientas menores propias\n'+
+'  ✓ Mantener limpieza diaria del área de trabajo\n'+
+'  ✓ Reportar avance semanal al supervisor\n'+
+'  ✓ No modificar planos sin autorización escrita\n'+
+'  ✓ Garantizar mano de obra calificada en módulos especializados\n'+
+'  ✓ Presentar SOAT-C completo en máximo 3 días del primer pago\n'+
+'  ✓ Respetar confidencialidad de planos y diseños\n'+
+'  ✓ Aportar el 50% de la madera necesaria para la ejecución\n\n'+
+'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA SEXTA — PENALIDADES\n'+
+'════════════════════════════════════════════════════════\n\n'+
+'  • Retraso injustificado: 0.5% del monto total/día (máx. 10%)\n'+
+'  • SOAT-C fuera de plazo: Bs 50 por día de demora\n'+
+'  • Hurto/robo: Rescisión inmediata + acción legal penal\n'+
+'  • Modificaciones no autorizadas: Retención de pago siguiente\n'+
+'  • Abandono de obra: Retención total del pago pendiente\n'+
+'  • Divulgar planos: Responsabilidad civil y penal\n\n'+
+(cond?'════════════════════════════════════════════════════════\n'+
+'CLÁUSULA SÉPTIMA — CONDICIONES ESPECIALES\n'+
+'════════════════════════════════════════════════════════\n\n'+
+cond+'\n\n':'')+
+'════════════════════════════════════════════════════════\n'+
+'FIRMAS DE CONFORMIDAD\n'+
+'════════════════════════════════════════════════════════\n\n\n\n'+
+'_______________________________     _______________________________\n'+
+nom+'       JOSÉ MIGUEL GAMBARTE VIDAURRE\n'+
+'C.I. '+ci_n+'                              C.I. 7714413 SC\n'+
+'Contratista                                 GAMBARTE ARQUITECTURA S.R.L.';
 }
 
 // ══════════════════════════════════════════════════
-// CONTRATOS — CON IA INTEGRADA
+// CONTRATOS — PANEL COMPLETO CON IA + HISTORIAL
 // ══════════════════════════════════════════════════
 function renderContratos(){
-  const c=document.getElementById('registro-contratos');if(!c)return;
-  if(!contratos.length){c.innerHTML='<p style="color:var(--ws);padding:20px;text-align:center;">Sin contratos aún.</p>';return;}
-  
-  c.innerHTML=contratos.map(ct=>{
-    const o=obras.find(x=>x.id===ct.oid);
-    const ediciones=ct.ediciones_count||0;
-    const bloqueado=ct.contrato_bloqueado||false;
-    const hist=ct.historial_cambios||[];
+  buildSolSelector();
+  renderRegistroSol();
+  renderPendAPrb();
+}
+
+function buildSolSelector(){
+  const sel=document.getElementById('sol-obra-sel');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Seleccionar obra —</option>'+obras.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})${o.aprobada?' ✅':' ⏳'}</option>`).join('');
+  if(cur)sel.value=cur;
+}
+
+function renderRegistroSol(){
+  const c=document.getElementById('registro-sol');if(!c)return;
+  if(!obras.length){c.innerHTML=`<div style="text-align:center;padding:36px;color:var(--ws);"><div style="font-size:28px;margin-bottom:10px;">📁</div><div style="font-weight:700;margin-bottom:4px;">Sin solicitudes aún</div></div>`;return;}
+  c.innerHTML=obras.map(function(o){
+    const ct=contratos.find(function(x){return x.oid===o.id;});
+    const steps=[!!(o.cp||o.cp_esc),!!(o.obj&&o.sup),!!o.aprobada,!!ct];
+    const done=steps.filter(Boolean).length;
+    const pct=Math.round(done/steps.length*100);
+    const badgeCls=o.aprobada?'ob-a':o.cp||o.cp_esc?'ob-p':'ob-r';
+    const badgeLbl=o.aprobada?'✅ Aprobada':o.cp||o.cp_esc?'⏳ Pendiente':'⚠️ Sin contrato';
     const isSteffi=CU&&CU.r==='abogada';
     const isAdmin=CU&&CU.r==='admin';
-    
-    return `<div class="editor-section" style="margin-bottom:14px;">
-      <h4>👷 ${ct.nom} → ${o?.nom||'?'}</h4>
-      
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;font-size:11px;">
-        <div><b>Tel:</b> ${ct.tel}</div>
-        <div><b>C.I.:</b> ${ct.ci_n}</div>
-        <div><b>Dirección:</b> ${ct.dir}</div>
-        <div><b>Estado:</b> ${ct.est}</div>
-      </div>
-
-      ${isSteffi&&ct.texto_contrato?`
-      <div style="background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:10px;margin-bottom:10px;">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);margin-bottom:8px;font-weight:700;">📋 EDITOR DE CONTRATO — STEFFI</div>
-        
-        <!-- CONTADOR Y ESTADO -->
-        <div class="editor-counter ${ediciones>=2?'warn':''}${bloqueado?'danger':''}">
-          <span>📝 Ediciones: ${ediciones}/3</span>
-          ${bloqueado?'<span style="color:var(--Rc);">🔒 BLOQUEADO</span>':''}
-        </div>
-
-        <!-- HISTORIAL VISIBLE -->
-        ${hist.length?`<div class="historial-box">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);margin-bottom:6px;font-weight:700;">📋 Historial de cambios</div>
-          ${hist.map((h,i)=>`<div class="historial-entry"><b>Ed. ${h.e}</b> · ${h.n} · ${h.f}</div>`).join('')}
-        </div>`:''}
-
-        ${!ct.firm&&!bloqueado?`
-        <!-- TEXTAREA PARA EDITAR -->
-        <textarea class="contrato-editor" id="ct-txt-${ct.id}" style="margin-top:8px;">${ct.texto_contrato}</textarea>
-        
-        <!-- BOTONES: GUARDAR + IA -->
-        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-          <button class="et-btn" style="background:var(--am);color:#000;font-weight:900;" onclick="guardarTextoContrato(${ct.id})">💾 Guardar Cambios</button>
-          <button class="et-btn ia" onclick="editarContratoConIA(${ct.id})" id="btn-ia-${ct.id}">🤖 Editar con IA</button>
-        </div>
-        `:`${ct.firm?'<div class="al al-g" style="margin-top:8px;">🔒 Contrato firmado — no editable</div>':'<div class="al al-z" style="margin-top:8px;">🔒 Límite 3 ediciones alcanzado</div>'}`}
-
-        ${bloqueado&&isAdmin?`<div style="margin-top:8px;"><button class="btn rb sm" onclick="desbloquearContrato(${ct.id})">🔓 Desbloquear (Admin)</button></div>`:''}
-      </div>
-      `:''} 
-
-      ${isAdmin||isSteffi?`
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${!ct.firm&&!bloqueado&&isSteffi?`<button class="btn y sm" onclick="aprobarContratoSol(${ct.id})">✅ APROBAR</button>`:''}
-        ${ct.est_contrato==='aprobado'&&!ct.firm?`<button class="btn sm" style="background:#6366f1;color:#fff;font-weight:700;" onclick="imprimirContrato(${ct.id})">🖨️ IMPRIMIR</button>`:''}
-      </div>
-      `:''}
-    </div>`;
+    const canEdit=isSteffi||isAdmin;
+    var contratoHtml='';
+    if(canEdit&&ct&&ct.texto_contrato){
+      const ed=ct.ediciones_count||0;
+      const bloq=ct.contrato_bloqueado||false;
+      const hist=ct.historial_cambios||[];
+      const cntClass=bloq?'danger':ed>=2?'warn':'ok';
+      const cntLabel=bloq?'🔒 BLOQUEADO':ed+'/3 ediciones';
+      contratoHtml+='<div style="background:rgba(245,196,0,.06);border:1.5px solid rgba(245,196,0,.25);border-radius:8px;padding:14px;margin-top:12px;">';
+      contratoHtml+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:10px;">📋 CONTRATO — EDITOR STEFFI</div>';
+      // Contador
+      contratoHtml+='<div class="edit-counter '+cntClass+'" style="margin-bottom:10px;">📝 '+cntLabel+'</div>';
+      // Historial
+      if(hist.length){
+        contratoHtml+='<div class="historial-box" style="margin-bottom:10px;">';
+        contratoHtml+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:5px;">📋 Historial de cambios</div>';
+        hist.forEach(function(h){contratoHtml+='<div class="hist-entry"><b>Ed.'+h.e+'</b> · '+h.n+' · '+h.f+'</div>';});
+        contratoHtml+='</div>';
+      }
+      if(!ct.firm&&!bloq){
+        // Editor
+        contratoHtml+='<textarea class="contrato-editor" id="ct-txt-'+ct.id+'">'+ct.texto_contrato+'</textarea>';
+        // Toolbar: Guardar + IA morado
+        contratoHtml+='<div class="ia-toolbar" style="margin-top:8px;">';
+        contratoHtml+='<button class="btn y sm" style="font-weight:900;" onclick="guardarTextoContrato('+ct.id+')">💾 Guardar Cambios</button>';
+        contratoHtml+='<button class="btn-ia" id="btn-ia-'+ct.id+'" onclick="editarContratoConIA('+ct.id+')">🤖 Editar con IA</button>';
+        if(isAdmin)contratoHtml+='<button class="btn rb sm" onclick="desbloquearContrato('+ct.id+')">🔓 Desbloquear</button>';
+        contratoHtml+='</div>';
+      } else if(bloq&&!ct.firm){
+        contratoHtml+='<div class="al al-r">🔒 Límite 3 ediciones alcanzado.</div>';
+        contratoHtml+='<textarea class="contrato-editor" style="opacity:.5;cursor:not-allowed;" readonly>'+ct.texto_contrato+'</textarea>';
+        if(isAdmin)contratoHtml+='<div style="margin-top:8px;"><button class="btn rb sm" onclick="desbloquearContrato('+ct.id+')">🔓 Desbloquear (Admin)</button></div>';
+      } else if(ct.firm){
+        contratoHtml+='<div class="al al-g">🔒 Contrato firmado — no editable</div>';
+        contratoHtml+='<textarea class="contrato-editor" style="opacity:.6;cursor:not-allowed;" readonly>'+ct.texto_contrato+'</textarea>';
+      }
+      // Acciones
+      contratoHtml+='<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">';
+      if(!ct.firm&&!bloq&&(isSteffi||isAdmin))contratoHtml+='<button class="btn y sm" onclick="aprobarContratoSol('+ct.id+')">✅ APROBAR</button>';
+      if(ct.est_contrato==='aprobado'&&!ct.firm)contratoHtml+='<button class="btn sm" style="background:#6366f1;color:#fff;font-weight:700;" onclick="imprimirContratoSol('+ct.id+')">🖨️ IMPRIMIR</button>';
+      if(ct.est_contrato==='aprobado'&&!ct.firm)contratoHtml+='<label style="background:var(--Gc);color:#000;border-radius:3px;padding:5px 12px;font-size:9px;font-weight:700;cursor:pointer;text-transform:uppercase;">📤 Subir Firmado<input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="sFirm('+ct.id+',this)"></label>';
+      if(ct.firm)contratoHtml+='<span style="font-size:10px;font-weight:700;color:var(--Gc);">📝 Firmado ✅</span>';
+      contratoHtml+='</div>';
+      contratoHtml+='</div>';
+    } else if(canEdit&&ct&&!ct.texto_contrato){
+      contratoHtml='<div class="al al-n" style="margin-top:10px;">Sin contrato generado aún.</div>';
+    }
+    return '<div class="reg-card" id="reg-'+o.id+'">' +
+      '<div class="reg-hdr" onclick="togReg('+o.id+')">' +
+      '<div style="flex:1;min-width:0;">' +
+      '<div class="reg-titulo">📁 '+o.nom+' <span class="obadge '+badgeCls+'" style="margin-left:8px;">'+badgeLbl+'</span></div>' +
+      '<div class="reg-sub">'+o.cod+' · '+o.sup+'m² · $'+(o.monto?.toFixed(0)||0)+' USD · Progreso: '+pct+'% ('+done+'/4)</div>' +
+      '<div style="margin-top:5px;height:3px;background:var(--bd);border-radius:2px;"><div style="height:3px;width:'+pct+'%;background:'+(pct===100?'var(--Gc)':'var(--am)')+';border-radius:2px;transition:width .4s;"></div></div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;margin-left:12px;">' +
+      '<button class="btn o sm" onclick="event.stopPropagation();editarReg('+o.id+')">📂 Abrir</button>' +
+      '<span class="reg-arrow">▼</span>' +
+      '</div>' +
+      '</div>' +
+      '<div class="reg-body">' +
+      '<div class="reg-grid">' +
+      '<div class="reg-dato"><div class="reg-lbl">Superficie</div><div class="reg-val">'+o.sup+' m²</div></div>' +
+      '<div class="reg-dato"><div class="reg-lbl">Cuadrilla</div><div class="reg-val">'+o.cuad+' personas</div></div>' +
+      '<div class="reg-dato"><div class="reg-lbl">Monto</div><div class="reg-val" style="color:var(--am);">$'+(o.monto?.toFixed(0)||0)+'</div></div>' +
+      '<div class="reg-dato"><div class="reg-lbl">Inicio</div><div class="reg-val">'+(o.fi||'—')+'</div></div>' +
+      '<div class="reg-dato"><div class="reg-lbl">Días</div><div class="reg-val">'+(o.di||'—')+'</div></div>' +
+      '<div class="reg-dato"><div class="reg-lbl">Contratista</div><div class="reg-val">'+(ct?ct.nom:'Sin asignar')+'</div></div>' +
+      '</div>' +
+      (o.cp?'<div style="margin-top:8px;"><button class="btn g2b sm" onclick="simDl(\''+o.cp+'\',\'Contrato\')">📄 Descargar Contrato Prop.</button></div>':'')+
+      (canEdit&&ct?'<div class="al al-z" style="margin-top:10px;font-size:11px;">Al guardar, el contrato pasa a revisión de Steffi (abogada).</div>':'')+
+      contratoHtml+
+      '</div>' +
+      '</div>';
   }).join('');
+}
+function togReg(id){document.getElementById('reg-'+id)?.classList.toggle('open');}
+function editarReg(id){
+  const card=document.getElementById('card-nueva-sol');card.style.display='block';
+  const sel=document.getElementById('sol-obra-sel');sel.value=id;selObraForm(String(id));
+  card.scrollIntoView({behavior:'smooth'});
+}
+function selObraForm(idStr){
+  const body=document.getElementById('sol-form-body');if(!idStr){body.style.display='none';return;}
+  body.style.display='block';
 }
 
 // ══════════════════════════════════════════════════
-// EDICIÓN CON IA — INTEGRADA CON SUPABASE
+// IA INTEGRADA — MEJORA v35
 // ══════════════════════════════════════════════════
 async function editarContratoConIA(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
   if(ct.firm){alert('Contrato firmado — no puede editarse.');return;}
-  if(ct.contrato_bloqueado){alert('Contrato bloqueado (3 ediciones). Pedile al admin que lo desbloquee.');return;}
-  
-  const instruccion=prompt('¿Qué cambios hacer?\nEj: "cambia plazo a 90 días", "agrega garantía de 6 meses"');
+  if(ct.contrato_bloqueado){alert('Contrato bloqueado. Pedile al admin que lo desbloquee.');return;}
+  const instruccion=prompt('¿Qué cambiar?\nEj: "cambia plazo a 90 días", "agrega garantía de 6 meses", "modifica el pago al 40/40/20%"');
   if(!instruccion)return;
-  
   const btn=document.getElementById('btn-ia-'+ctId);
   if(btn){btn.disabled=true;btn.textContent='⏳ IA procesando...';}
-  
   try{
-    // Obtener API key desde app_config en Supabase
     const {data:cfg,error:errCfg}=await sb.from('app_config').select('value').eq('key','anthropic_api_key').single();
-    if(errCfg||!cfg?.value){alert('⚠️ API key no configurada en Supabase.');throw new Error('No API key');}
-    
-    const apiKey=cfg.value;
+    if(errCfg||!cfg?.value){alert('⚠️ API key no configurada en app_config de Supabase.');throw new Error('No API key');}
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01'
-      },
+      headers:{'Content-Type':'application/json','x-api-key':cfg.value,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
-        model:'claude-haiku-4-5',
-        max_tokens:4000,
-        system:`Eres especialista legal en contratos de construcción bolivianos. 
-Recibirás un contrato y una instrucción de cambio. 
-Devuelve SOLO el texto completo del contrato modificado, sin explicaciones, sin markdown, sin comillas extra.
-Mantén el formato y estructura original. Todos los montos en USD y Bs.`,
-        messages:[{
-          role:'user',
-          content:`CONTRATO ACTUAL:\n\n${ct.texto_contrato}\n\nINSTRUCCIÓN:\n${instruccion}\n\nDevuelve el contrato completo modificado:`
-        }]
+        model:'claude-haiku-4-5',max_tokens:4000,
+        system:'Eres especialista legal en contratos de construcción bolivianos. Recibirás un contrato y una instrucción. Devuelve SOLO el texto completo modificado, sin explicaciones, sin markdown, sin comillas extra. Mantén formato y estructura. Todos los montos en USD y Bs (T.C. 6.96).',
+        messages:[{role:'user',content:'CONTRATO:\n\n'+ct.texto_contrato+'\n\nINSTRUCCIÓN:\n'+instruccion+'\n\nDevuelve el contrato completo modificado:'}]
       })
     });
-    
-    if(!resp.ok){const err=await resp.text();throw new Error('Error API: '+resp.status+' '+err);}
+    if(!resp.ok){const err=await resp.text();throw new Error('Error API '+resp.status+': '+err);}
     const data=await resp.json();
     const nuevoTexto=data.content[0].text;
-    
-    const ta=document.getElementById('ct-txt-'+ctId);
-    if(ta)ta.value=nuevoTexto;
-    
-    alert('✅ IA aplicó el cambio.\nRevisa el contrato y toca Guardar si estás conforme.');
-  }catch(e){
-    alert('❌ Error con IA: '+e.message);
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='🤖 Editar con IA';}
-  }
+    const ta=document.getElementById('ct-txt-'+ctId);if(ta)ta.value=nuevoTexto;
+    alert('✅ IA aplicó el cambio.\nRevisá y tocá "Guardar Cambios" si estás conforme.');
+  }catch(e){alert('❌ Error con IA: '+e.message);}
+  finally{if(btn){btn.disabled=false;btn.textContent='🤖 Editar con IA';}}
 }
 
 async function guardarTextoContrato(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
   if(ct.firm){alert('Contrato firmado — no puede editarse.');return;}
   if(ct.contrato_bloqueado){alert('Bloqueado. Pedile al admin que desbloquee.');return;}
-  
-  const ediciones=ct.ediciones_count||0;
-  if(ediciones>=3){ct.contrato_bloqueado=true;sbGuardarContrato(ct);alert('Límite 3 ediciones alcanzado. Contrato bloqueado.');renderContratos();return;}
-  
+  const ed=ct.ediciones_count||0;
+  if(ed>=3){ct.contrato_bloqueado=true;sbGuardarContrato(ct);alert('Límite 3 ediciones alcanzado. Bloqueado.');renderContratos();return;}
   const ta=document.getElementById('ct-txt-'+ctId);if(!ta)return;
   const ahora=new Date().toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  
-  ct.texto_contrato=ta.value;
-  ct.ediciones_count=(ediciones+1);
+  ct.texto_contrato=ta.value;ct.ediciones_count=ed+1;
   if(!ct.est_contrato||ct.est_contrato==='generado')ct.est_contrato='revisado';
-  
-  const hist=ct.historial_cambios||[];
-  hist.push({n:CU.n,f:ahora,e:ct.ediciones_count});
-  ct.historial_cambios=hist;
-  
-  sbGuardarContrato(ct);
-  log('Contrato editado ('+ct.ediciones_count+'/3): '+ct.nom);
+  const hist=ct.historial_cambios||[];hist.push({n:CU.n,f:ahora,e:ct.ediciones_count});ct.historial_cambios=hist;
+  await sbGuardarContrato(ct);
+  log('Contrato ed.'+ct.ediciones_count+'/3: '+ct.nom);
   renderContratos();
   alert('✅ Guardado. Edición '+ct.ediciones_count+' de 3.');
 }
 
 function desbloquearContrato(ctId){
   if(CU.r!=='admin'){alert('Solo admin puede desbloquear.');return;}
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(!confirm('¿Desbloquear contrato de '+ct.nom+'? Reset contador.'))return;
+  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  if(!confirm('¿Desbloquear contrato de '+ct.nom+'? Se resetea el contador.'))return;
   ct.contrato_bloqueado=false;ct.ediciones_count=0;ct.historial_cambios=[];
-  sbGuardarContrato(ct);renderContratos();
-  log('Contrato desbloqueado: '+ct.nom);
+  sbGuardarContrato(ct);renderContratos();log('Contrato desbloqueado: '+ct.nom);
 }
 
 function aprobarContratoSol(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
   if(!confirm('APROBAR contrato de '+ct.nom+'?'))return;
-  ct.est_contrato='aprobado';
-  ct.aprobado_por=CU.n;
-  ct.aprobado_fecha=new Date().toISOString();
-  sbGuardarContrato(ct);
-  log('Contrato aprobado: '+ct.nom);
-  renderContratos();
-  alert('✅ Aprobado. Ahora puedes imprimirlo para firma.');
+  ct.est_contrato='aprobado';ct.aprobado_por=CU.n;ct.aprobado_fecha=new Date().toISOString();
+  sbGuardarContrato(ct);sbLog(CU.n,'Contrato aprobado: '+ct.nom);log('Contrato aprobado: '+ct.nom);renderContratos();
+  alert('✅ Aprobado. Podés imprimirlo para firma.');
 }
 
-function imprimirContrato(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
+function imprimirContratoSol(ctId){
+  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  const texto=ct.texto_contrato||'Sin contrato.';
+  const tam=confirm('Tamaño: OK=Oficio  Cancelar=Carta')?'oficio':'carta';
+  const pageSize=tam==='oficio'?'216mm 330mm':'216mm 279mm';
+  const margin=tam==='oficio'?'25mm 20mm 25mm 25mm':'20mm 18mm 20mm 18mm';
   const win=window.open('','_blank');
-  const style=`@page{size:A4;margin:20mm;}
-    body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.6;color:#000;}
-    h2{text-align:center;font-size:14pt;margin-bottom:10px;}
-    .firma{display:flex;justify-content:space-between;margin-top:80px;}
-    .firma-col{text-align:center;width:45%;}
-    .firma-linea{border-top:1px solid #000;padding-top:5px;}`;
-  win.document.write(`<!DOCTYPE html><html><head><style>${style}</style></head><body>
-    <h2>GEAT</h2>
-    <p style="text-align:center;font-size:10pt;color:#666;">GAMBARTE ARQUITECTURA S.R.L.</p>
-    <hr>
-    <pre style="white-space:pre-wrap;font-family:Arial;font-size:11pt;line-height:1.6;">${ct.texto_contrato}</pre>
-    <div class="firma">
-      <div class="firma-col"><div class="firma-linea"><strong>${ct.nom}</strong><br>C.I. ${ct.ci_n}<br>Contratista</div></div>
-      <div class="firma-col"><div class="firma-linea"><strong>JOSÉ MIGUEL GAMBARTE</strong><br>C.I. 7714413 SC<br>GAMBARTE ARQUITECTURA S.R.L.</div></div>
-    </div>
-    <script>window.onload=function(){window.print();}<\/script>
-  </body></html>`);
-  win.document.close();
-  log('Contrato impreso: '+ct.nom);
+  win.document.write('<!DOCTYPE html><html><head><style>@page{size:'+pageSize+';margin:'+margin+';}body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.65;color:#000;margin:0;}h1{font-size:13pt;text-align:center;}.hdr{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;}.firmas{display:flex;justify-content:space-between;margin-top:60px;}.firma-col{text-align:center;width:45%;}.firma-linea{border-top:1px solid #000;padding-top:5px;font-size:10pt;}@media print{button{display:none;}}</style></head><body><div class="hdr"><div style="font-size:15pt;font-weight:900;letter-spacing:3px;">GEAT</div><div style="font-size:9pt;color:#444;">GAMBARTE ARQUITECTURA S.R.L.</div></div><pre style="white-space:pre-wrap;font-family:Arial,sans-serif;font-size:11pt;line-height:1.65;">'+texto+'</pre><script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();log('Contrato impreso: '+ct.nom);
+}
+
+async function sFirm(cid,inp){
+  if(!inp.files[0])return;
+  const ct=contratos.find(function(x){return x.id===cid;});if(!ct)return;
+  const archivo=inp.files[0];
+  const path=buildStoragePath('contratos',cid,'firmado',archivo.name);
+  try{
+    const {error}=await sb.storage.from(BUCKET).upload(path,archivo,{upsert:true});
+    if(error)throw error;
+    ct.firm=path;ct.est='apto_para_obra';ct.fec=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+    sbGuardarContrato(ct);sbLog(CU.n,'Contrato firmado subido #'+cid);log('Firmado: '+archivo.name+' → APTO');
+    alert('✅ CONTRATISTA APTO PARA OBRA\n'+archivo.name);renderContratos();renderCardActivar();uStats();
+  }catch(e){alert('❌ Error al subir firmado: '+e.message);}
+}
+
+// Contrato propietario
+async function subirCP(oId,campo,inp){
+  if(!inp.files[0])return;
+  const o=obras.find(function(x){return x.id===oId;});if(!o)return;
+  const archivo=inp.files[0],path=buildStoragePath('obras',oId,campo,archivo.name);
+  try{
+    const {error}=await sb.storage.from(BUCKET).upload(path,archivo,{upsert:true});
+    if(error)throw error;
+    o[campo]=path;sbGuardarObra(o);log('Contrato prop. subido en "'+o.nom+'": '+archivo.name);
+    renderContratos();renderObras();renderPendAPrb();alert('✅ '+archivo.name+' cargado.');
+  }catch(e){alert('❌ Error al subir: '+e.message);}
+}
+
+async function simDl(f,t){
+  if(!f){alert('Sin '+t+' cargado.');return;}
+  try{
+    const {data,error}=await sb.storage.from(BUCKET).createSignedUrl(f,120);
+    if(error)throw error;window.open(data.signedUrl,'_blank','noopener,noreferrer');
+  }catch(e){alert('No se pudo abrir: '+e.message);}
+}
+
+function renderPendAPrb(){
+  const c=document.getElementById('pend-aprob');if(!c)return;
+  if(CU.r!=='admin'){c.innerHTML='';return;}
+  const pend=obras.filter(function(o){return !o.aprobada&&(o.cp||o.cp_esc);});
+  if(!pend.length){c.innerHTML='';return;}
+  c.innerHTML=pend.map(function(o){
+    return '<div class="apb"><div class="apb-l"><div class="apb-ico">⏳</div><div class="apb-txt"><h4>Pendiente: '+o.nom+'</h4><p>'+o.cod+' · '+o.sup+'m² · '+(o.cp?'📄 CP digital ':'')+( o.cp_esc?'📸 Escaneado':'')+'</p></div></div><div class="apb-r"><button class="btn y sm" onclick="aprobOb('+o.id+')">✅ APROBAR</button><button class="btn rb sm" onclick="rzOb('+o.id+')">✕ Rechazar</button></div></div>';
+  }).join('');
+}
+
+// Nueva obra en Contratos
+function toggleFormSol(){
+  const card=document.getElementById('card-nueva-sol');if(!card)return;
+  const opening=card.style.display==='none'||card.style.display==='';
+  if(!opening){limpiarFormSol();return;}
+  cpNewDig=null;cpNewEsc=null;cpNewDigFile=null;cpNewEscFile=null;
+  const nomEl=document.getElementById('sol-nom'),codEl=document.getElementById('sol-cod');
+  if(nomEl)nomEl.value='';if(codEl)codEl.value='';
+  const bDig=document.getElementById('box-dig'),bEsc=document.getElementById('box-esc');
+  const tDig=document.getElementById('txt-dig'),tEsc=document.getElementById('txt-esc');
+  if(bDig){bDig.style.borderColor='rgba(255,255,255,.2)';bDig.style.background='rgba(0,0,0,.3)';}
+  if(bEsc){bEsc.style.borderColor='rgba(255,255,255,.2)';bEsc.style.background='rgba(0,0,0,.3)';}
+  if(tDig)tDig.textContent='Subir PDF';if(tEsc)tEsc.textContent='Subir Foto';
+  card.style.display='block';card.scrollIntoView({behavior:'smooth'});
+}
+function limpiarFormSol(){
+  document.getElementById('card-nueva-sol').style.display='none';
+  cpNewDig=null;cpNewEsc=null;cpNewDigFile=null;cpNewEscFile=null;
+}
+function hCPNew(tipo,inp){
+  if(!inp.files||!inp.files[0])return;
+  const file=inp.files[0],fn=file.name.replace(/\.[^.]+$/,'');
+  if(tipo==='dig'){cpNewDigFile=file;cpNewDig=file.name;const box=document.getElementById('box-dig'),txt=document.getElementById('txt-dig');if(box){box.style.borderColor='#4ade80';box.style.background='rgba(0,200,80,.08)';}if(txt)txt.textContent='✓ '+file.name.slice(0,28);}
+  else{cpNewEscFile=file;cpNewEsc=file.name;const box=document.getElementById('box-esc'),txt=document.getElementById('txt-esc');if(box){box.style.borderColor='#4ade80';box.style.background='rgba(0,200,80,.08)';}if(txt)txt.textContent='✓ '+file.name.slice(0,28);}
+  const nomEl=document.getElementById('sol-nom'),codEl=document.getElementById('sol-cod');
+  if(nomEl&&!nomEl.value){const limpio=fn.replace(/contrato|propietario|prop|cp_|_cp|cp-|-cp/gi,'').replace(/[_\-\.]+/g,' ').trim().toUpperCase();if(limpio.length>2)nomEl.value=limpio;}
+  if(codEl&&!codEl.value&&nomEl&&nomEl.value){const ini=nomEl.value.split(' ').map(function(p){return p[0]||'';}).join('').slice(0,3);codEl.value=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
+}
+async function guardarSolicitud(){
+  let nom=document.getElementById('sol-nom').value.trim(),cod=document.getElementById('sol-cod').value.trim();
+  if(!nom&&cpNewDigFile)nom=cpNewDigFile.name.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim().toUpperCase();
+  if(!nom&&cpNewEscFile)nom=cpNewEscFile.name.replace(/\.[^.]+$/,'').replace(/[_\-]+/g,' ').trim().toUpperCase();
+  if(!nom){alert('Subí al menos un archivo o ingresá el nombre.');return;}
+  if(!cod){const ini=nom.split(' ').map(function(p){return p[0]||'';}).join('').slice(0,3);cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
+  let o=obras.find(function(x){return x.cod.toLowerCase()===cod.toLowerCase();});
+  let esNueva=false;
+  if(!o){esNueva=true;o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,mn:0,est:'pendiente',fi:'',di:0,not:'',obj:'',inc:'',exc:'',cp:null,cp_esc:null,aprobada:false,mods:[],contrato_firmado_contratista:null};obras.push(o);}
+  else{o.nom=nom;o.cod=cod;}
+  await sbGuardarObra(o);
+  if(cpNewDigFile){try{const p=buildStoragePath('obras',o.id,'cp',cpNewDigFile.name);const {error}=await sb.storage.from(BUCKET).upload(p,cpNewDigFile,{upsert:true});if(!error){o.cp=p;await sbGuardarObra(o);}}catch(e){console.warn(e);}}
+  if(cpNewEscFile){try{const p=buildStoragePath('obras',o.id,'cp_esc',cpNewEscFile.name);const {error}=await sb.storage.from(BUCKET).upload(p,cpNewEscFile,{upsert:true});if(!error){o.cp_esc=p;await sbGuardarObra(o);}}catch(e){console.warn(e);}}
+  log(esNueva?'Nueva obra: '+o.nom:'Obra actualizada: '+o.nom);
+  renderContratos();renderObras();renderObrasPendCompleto();uStats();limpiarFormSol();
+  alert(esNueva?'Obra "'+o.nom+'" registrada.':'Obra "'+o.nom+'" actualizada.');
 }
 
 // ══════════════════════════════════════════════════
-// PERFIL & UTILIDADES
+// SUPERVISIÓN — COMPLETA
 // ══════════════════════════════════════════════════
+function calcFechaFinTexto(fi,di){
+  if(!fi||!di)return '—';
+  try{const d=new Date(fi);d.setDate(d.getDate()+parseInt(di));return d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});}catch(e){return '—';}
+}
+function renderSup(){
+  const cont=document.getElementById('sup-content'),sel=document.getElementById('sup-sel-obra-main');
+  if(!cont)return;
+  const activas=obras.filter(function(o){return o.aprobada;});
+  if(sel){sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+activas.map(function(o){return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+')</option>';}).join('');}
+  if(!activas.length){cont.innerHTML='<div style="text-align:center;padding:40px 24px;"><div style="font-size:32px;margin-bottom:12px;">🏗️</div><div style="font-weight:700;margin-bottom:6px;">Sin obras aprobadas</div><div style="font-size:11px;color:var(--ws);">Las obras aparecerán aquí una vez aprobadas.</div></div>';}
+  else{cont.innerHTML='';}
+}
+function selSupObraMain(oid){
+  const prev=document.getElementById('sup-obra-preview');
+  if(!oid){if(prev)prev.style.display='none';document.getElementById('sup-content').innerHTML='';return;}
+  const o=obras.find(function(x){return x.id==oid;});if(!o)return;
+  const ct=contratos.find(function(x){return x.oid==oid&&x.est==='en_ejecucion';})||contratos.find(function(x){return x.oid==oid;});
+  if(prev){prev.style.display='block';prev.innerHTML='<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:rgba(255,255,255,.7);"><span>📐 '+o.sup+'m²</span><span>👥 '+o.cuad+' personas</span><span>📅 '+(o.fi||'—')+'</span><span>⏱ '+(o.di||'—')+' días</span><span>👷 '+(ct?ct.nom:'Sin contratista')+'</span></div>';}
+  renderSupObra(oid);
+}
+function renderSupObra(oid){
+  const c=document.getElementById('sup-content');if(!c)return;
+  if(!oid){c.innerHTML='';return;}
+  const o=obras.find(function(x){return x.id==oid;});if(!o)return;
+  const ct=contratos.find(function(x){return x.oid==oid&&x.est==='en_ejecucion';})||contratos.find(function(x){return x.oid==oid;});
+  var diasRestantes='—',pctTiempo=0,colorBarra='var(--am)';
+  if(o.fi&&o.di){
+    const inicio=new Date(o.fi),fin=new Date(inicio);fin.setDate(fin.getDate()+parseInt(o.di));
+    const hoy=new Date(),totalMs=fin-inicio,transcMs=hoy-inicio;
+    pctTiempo=Math.min(100,Math.max(0,Math.round(transcMs/totalMs*100)));
+    colorBarra=pctTiempo>90?'#f87171':pctTiempo>70?'#fb923c':'var(--am)';
+    const restMs=fin-hoy;
+    diasRestantes=restMs>0?Math.ceil(restMs/86400000)+' días restantes':'⚠️ PLAZO VENCIDO hace '+Math.abs(Math.ceil(restMs/86400000))+' días';
+  }
+  c.innerHTML='<div id="sup-paquete">'+
+    '<div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:10px;">'+
+    '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISIÓN</div>'+
+    '<div style="font-size:20px;font-weight:900;color:var(--am);margin-top:3px;">'+o.nom+'</div>'+
+    '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">'+o.cod+' · '+o.sup+'m² · '+o.cuad+' personas</div></div>'+
+    '<button class="btn y sm" onclick="imprimirSupervision()" style="font-weight:900;">🖨️ IMPRIMIR</button></div>'+
+    (o.fi&&o.di?'<div><div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px;"><span>📅 Inicio: '+o.fi+'</span><span>'+diasRestantes+'</span><span>🏁 Fin: '+calcFechaFinTexto(o.fi,o.di)+'</span></div>'+
+    '<div style="background:rgba(255,255,255,.1);border-radius:100px;height:7px;"><div style="background:'+colorBarra+';width:'+pctTiempo+'%;height:7px;border-radius:100px;"></div></div>'+
+    '<div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:3px;text-align:right;">'+pctTiempo+'% del plazo · '+o.di+' días totales</div></div>':'')+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'+
+    '<div class="sup-section"><div class="sup-section-tit">📐 Datos de Obra</div>'+
+    '<div class="sup-dato">Código: <b>'+o.cod+'</b></div><div class="sup-dato">Superficie: <b>'+o.sup+'m²</b></div>'+
+    '<div class="sup-dato">Cuadrilla: <b>'+o.cuad+' personas</b></div><div class="sup-dato">Inicio: <b>'+(o.fi||'—')+'</b></div>'+
+    '<div class="sup-dato">Plazo: <b>'+(o.di||'—')+' días</b></div><div class="sup-dato">Fin estimado: <b>'+calcFechaFinTexto(o.fi,o.di)+'</b></div>'+
+    (o.map?'<div style="margin-top:8px;"><a href="'+o.map+'" target="_blank" class="btn g2b sm" style="text-decoration:none;">📍 Ver en Maps</a></div>':'')+
+    '</div>'+
+    '<div class="sup-section"><div class="sup-section-tit">👷 Contratista</div>'+
+    (ct?'<div style="font-size:13px;font-weight:700;margin-bottom:4px;">'+ct.nom+'</div>'+
+    '<div class="sup-dato">📱 <b>'+(ct.tel||'—')+'</b></div><div class="sup-dato">📍 '+(ct.dir||'—')+'</div>'+
+    '<div class="sup-dato" style="margin-top:6px;">'+(ct.est==='en_ejecucion'?'<span class="est e-ej">🔵 En Ejecución</span>':ct.est==='apto_para_obra'?'<span class="est e-apto">✅ Apto</span>':'<span class="est e-gen">⏳ En proceso</span>')+'</div>'+
+    (ct.tel?'<div style="margin-top:8px;"><a href="https://wa.me/591'+ct.tel+'" target="_blank" class="btn sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;">💬 WhatsApp</a></div>':'')
+    :'<div class="sup-dato" style="color:var(--ws);">Sin contratista asignado.</div>')+
+    '</div></div>'+
+    (ct&&ct.cond?'<div class="sup-section" style="margin-bottom:10px;"><div class="sup-section-tit">📋 Condiciones Especiales</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">'+ct.cond+'</div></div>':'')+
+    (o.inc?'<div class="sup-section" style="margin-bottom:10px;border-color:var(--G);background:var(--Gbg);"><div class="sup-section-tit" style="color:var(--Gc);">✅ Qué está INCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);">'+o.inc+'</div></div>':'')+
+    (o.exc?'<div class="sup-section" style="margin-bottom:10px;border-color:var(--R);background:var(--Rbg);"><div class="sup-section-tit" style="color:var(--Rc);">❌ Qué NO está incluido</div><div style="font-size:11px;line-height:1.8;color:var(--wd);">'+o.exc+'</div></div>':'')+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">'+
+    '<div class="sup-section" style="border-color:var(--G);background:var(--Gbg);">'+
+    '<div class="sup-section-tit" style="color:var(--Gc);">💰 Forma de Pago</div>'+
+    '<div class="sup-dato">1er pago: <b style="color:var(--Gc);">30% al inicio</b></div>'+
+    '<div class="sup-dato">2do pago: <b style="color:var(--Gc);">40% al 50% avance</b></div>'+
+    '<div class="sup-dato">3er pago: <b style="color:var(--Gc);">30% a la entrega</b></div>'+
+    '</div>'+
+    '<div class="sup-section" style="border-color:var(--Z);background:var(--Zbg);">'+
+    '<div class="sup-section-tit" style="color:var(--Zc);">✅ Obligaciones clave</div>'+
+    '<div class="sup-dato">✓ Limpieza diaria</div><div class="sup-dato">✓ Reporte semanal</div>'+
+    '<div class="sup-dato">✓ SOAT-C en 3 días</div><div class="sup-dato">✓ No modificar sin autorización</div>'+
+    '</div></div>'+
+    '<div class="sup-section" style="border-color:var(--R);background:var(--Rbg);margin-bottom:10px;">'+
+    '<div class="sup-section-tit" style="color:var(--Rc);">⚠️ Penalidades</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:11px;color:var(--wd);">'+
+    '<div>• Retraso: 0.5%/día</div><div>• Sin SOAT-C: Bs 50/día</div>'+
+    '<div>• Hurto: rescisión + penal</div><div>• Abandono: retención total</div>'+
+    '</div></div>'+
+    '<div class="sup-section"><div class="sup-section-tit">🧱 Módulos a Ejecutar — '+(o.mods?.length||0)+' total</div>'+
+    (o.mods?.length?'<div class="sup-mods-grid">'+o.mods.map(function(m,i){return '<div class="sup-mod-item"><b style="color:var(--am);">M'+String(i+1).padStart(2,'0')+'</b> '+m+'</div>';}).join('')+'</div>':'<div style="font-size:11px;color:var(--ws);">Sin módulos.</div>')+
+    '</div>'+
+    '</div>';
+}
+function imprimirSupervision(){
+  const el=document.getElementById('sup-paquete');if(!el)return;
+  const oidVal=document.getElementById('sup-sel-obra-main').value;
+  const o=obras.find(function(x){return x.id==oidVal;});
+  const ct=o?(contratos.find(function(x){return x.oid==o.id&&x.est==='en_ejecucion';})||contratos.find(function(x){return x.oid==o.id;})):null;
+  if(!o){win&&win.close();return;}
+  const win=window.open('','_blank');
+  win.document.body.innerHTML='<h2>PAQUETE DE SUPERVISIÓN — '+o.nom+'</h2><p style="color:#666;font-size:9pt;">GEAT · '+new Date().toLocaleDateString('es-BO')+'</p><hr>'+
+    '<div><h3>Datos de Obra</h3><p>Obra: <b>'+o.nom+'</b> | Código: <b>'+o.cod+'</b> | Superficie: <b>'+o.sup+'m²</b> | Cuadrilla: <b>'+o.cuad+' personas</b></p><p>Inicio: <b>'+(o.fi||'—')+'</b> · Plazo: <b>'+o.di+' días</b> · Fin: <b>'+calcFechaFinTexto(o.fi,o.di)+'</b></p></div>'+
+    (ct?'<div><h3>Contratista</h3><p>Nombre: <b>'+ct.nom+'</b> | Tel: <b>'+(ct.tel||'—')+'</b> | C.I.: <b>'+(ct.ci_n||'—')+'</b></p></div>':'')+
+    '<div><h3>Módulos</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">'+
+    (o.mods||[]).map(function(m,i){return '<div style="border:1px solid #ccc;padding:3px 6px;font-size:9pt;"><b>M'+String(i+1).padStart(2,'0')+'</b> '+m+'</div>';}).join('')+
+    '</div></div>'+
+    '<div><h3>Forma de Pago</h3><p>• <b>30%</b> anticipo al inicio · <b>40%</b> al 50% de avance · <b>30%</b> a la entrega final</p></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-top:60px;"><div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Arq. Raí</strong><br>Supervisor de Obra</div></div><div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Fátima</strong><br>Responsable Administrativa</div></div></div>';
+  win.document.head.innerHTML='<style>body{font-family:Arial,sans-serif;font-size:10pt;}h2{font-size:13pt;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:10px 0 5px;}@media print{}</style>';
+  win.document.close();win.focus();win.print();
+  log('Supervisión impresa: '+o.nom);
+}
+
+// ══════════════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════════════
+function renderAdmin(){
+  const tb=document.getElementById('a-tb');
+  if(tb){
+    tb.innerHTML=obras.map(function(o){
+      const ct=contratos.find(function(c){return c.oid===o.id;});
+      const docs=ct?[ct.ci,ct.ag,ct.lz].filter(Boolean).length:0;
+      const estContrato=ct?.est_contrato||'—';
+      const estLabel={generado:'🟡 Generado',revisado:'🔵 Revisado',aprobado:'✅ Aprobado'}[estContrato]||estContrato;
+      return '<tr><td>'+o.nom+'<br><span style="font-size:9px;color:var(--ws);">'+o.cod+'</span></td>'+
+        '<td>'+(ct?ct.nom:'<span style="color:var(--ws);">Sin asignar</span>')+'</td>'+
+        '<td>'+(ct?.tel||'—')+'</td>'+
+        '<td>'+docs+'/3 docs '+(ct?.firm?'+ ✅ firmado':'')+'</td>'+
+        '<td>'+estLabel+'</td>'+
+        '<td>'+(EL[ct?.est]||'<span style="color:var(--ws);">—</span>')+'</td>'+
+        '<td style="color:var(--am);font-weight:700;">'+(o.aprobada?'$'+o.monto.toFixed(2):'<span style="color:var(--ws);">Pend.</span>')+'</td></tr>';
+    }).join('');
+  }
+  const ap=document.getElementById('adm-pend-apro');
+  if(ap){
+    const pend=obras.filter(function(o){return !o.aprobada&&o.cp;});
+    ap.innerHTML=pend.length?pend.map(function(o){
+      return '<div class="apb" style="margin-bottom:8px;"><div class="apb-l"><div class="apb-ico">⏳</div><div class="apb-txt"><h4>'+o.nom+'</h4><p>'+o.cod+' · '+o.sup+'m²</p></div></div><div class="apb-r"><button class="btn y sm" onclick="aprobOb('+o.id+')">✅ Aprobar</button><button class="btn rb sm" onclick="rzOb('+o.id+')">✕</button></div></div>';
+    }).join(''):'<p style="color:var(--ws);font-size:12px;">Sin pendientes.</p>';
+  }
+  const leg=document.getElementById('adm-pend-legal');
+  if(leg){
+    const pleg=contratos.filter(function(c){return !c.est_contrato||c.est_contrato==='generado';});
+    leg.innerHTML=pleg.length?pleg.map(function(c){const o=gO(c.oid);return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--p2);border:1px solid var(--bd);border-radius:3px;margin-bottom:6px;"><div><b>'+c.nom+'</b> <span style="font-size:11px;color:var(--ws);">→ '+(o.nom||'?')+'</span></div><span style="font-size:10px;color:var(--Ac);">⏳ Sin revisar por Steffi</span></div>';}).join(''):'<p style="color:var(--ws);font-size:12px;">Sin contratos pendientes.</p>';
+  }
+  const props=document.getElementById('adm-props');
+  if(props){
+    props.innerHTML=obras.map(function(o){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--p2);border:1px solid var(--bd);border-radius:3px;margin-bottom:6px;">'+
+        '<div><b>'+o.nom+'</b> <span style="font-size:11px;color:var(--ws);">'+o.cod+'</span></div>'+
+        (o.cp?'<button class="btn g2b sm" onclick="simDl(\''+o.cp+'\',\'Contrato Propietario\')">📋 Ver</button>':'<span style="font-size:10px;color:var(--Rc);">⚠️ Sin contrato propietario</span>')+
+        '</div>';
+    }).join('');
+  }
+  const al=document.getElementById('a-log');
+  if(al)al.innerHTML=logs_.slice().reverse().map(function(l){return '<div>● '+l+'</div>';}).join('');
+  const montoUSD=obras.filter(function(o){return o.aprobada;}).reduce(function(s,o){return s+o.monto;},0);
+  const montoBs=Math.round(montoUSD*6.96);
+  const elMon=document.getElementById('a-mon'),elBs=document.getElementById('a-mon-bs'),elObr=document.getElementById('a-obr');
+  if(elMon)elMon.textContent='$'+montoUSD.toLocaleString('en-US',{minimumFractionDigits:0});
+  if(elBs)elBs.textContent='Bs '+montoBs.toLocaleString('es-BO');
+  if(elObr)elObr.textContent=obras.filter(function(o){return o.aprobada;}).length;
+}
+function uStats(){renderAdmin();}
+
+// PERFIL
 function abrirPerfil(){
   const body=document.getElementById('m-perfil-body');
-  body.innerHTML=`
-    <div style="background:var(--p2);border:1px solid var(--bd);border-radius:4px;padding:14px;margin-bottom:12px;">
-      <div style="font-size:14px;font-weight:800;color:var(--am);">${CU.icon||'👤'} ${CU.n}</div>
-      <div style="font-size:11px;color:var(--wd);margin-top:4px;">Rol: ${CU.r.toUpperCase()} · PIN: ••••</div>
-    </div>
-    <div class="brow" style="margin-top:14px;">
-      <button class="btn rb sm" onclick="logout()">🚪 Cerrar Sesión</button>
-    </div>`;
+  const isAdmin=CU.r==='admin';
+  body.innerHTML='<div class="perfil-info"><div class="nombre">'+(CU.icon||'👤')+' '+CU.n+'</div><div class="rol">Rol: '+CU.r.toUpperCase()+' · PIN: ••••</div></div>'+
+    (isAdmin?'<p style="font-size:10px;color:var(--ws);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">Accesos rápidos</p>'+
+    '<div class="perfil-grid">'+
+    '<div class="perfil-btn" onclick="cOv(\'perfil\');goPanel(\'obra\')"><div class="ico">📝</div><div class="lbl">Requerimiento</div></div>'+
+    '<div class="perfil-btn" onclick="cOv(\'perfil\');goPanel(\'contratista\')"><div class="ico">👷</div><div class="lbl">Contratista</div></div>'+
+    '<div class="perfil-btn" onclick="cOv(\'perfil\');goPanel(\'contratos\')"><div class="ico">📋</div><div class="lbl">Contratos</div></div>'+
+    '<div class="perfil-btn" onclick="cOv(\'perfil\');goPanel(\'sup\')"><div class="ico">🏗️</div><div class="lbl">Supervisión</div></div>'+
+    '<div class="perfil-btn" onclick="cOv(\'perfil\');goPanel(\'admin\')"><div class="ico">🔧</div><div class="lbl">Admin</div></div>'+
+    '<div class="perfil-btn" onclick="cOv(\'perfil\');goPanel(\'contratos\')"><div class="ico">✅</div><div class="lbl">Aprobaciones</div><div class="sub">'+obras.filter(function(o){return !o.aprobada&&o.cp;}).length+' pendientes</div></div>'+
+    '</div>':'<p style="font-size:12px;color:var(--wd);">Bienvenido, '+CU.n+'.</p>')+
+    '<div class="brow" style="margin-top:14px;"><button class="btn rb sm" onclick="logout()">🚪 Cerrar Sesión</button></div>';
   aOv('perfil');
 }
+
+// OVERLAYS
 function aOv(n){document.getElementById('ov-'+n).classList.add('on');}
 function cOv(n){document.getElementById('ov-'+n).classList.remove('on');}
-function uStats(){
-  const tot=contratos.filter(c=>c.est==='apto_para_obra').length;
-  console.log('Estadísticas: '+tot+' aptos');
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===e.currentTarget)cOv(o.id.replace('ov-',''));});});
+
+// OBRAS AUX
+function renderObrasPendCompleto(){const c=document.getElementById('obras-pend-comp');if(c)c.innerHTML='';}
+function renderReqSelector(){
+  const sel=document.getElementById('req-sel-obra');if(!sel)return;
+  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+obras.map(function(o){return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+')'+(o.aprobada?' ✅':' ⏳')+'</option>';}).join('');
 }
-function log(m){
-  const h=new Date().toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit',hour12:false});
-  logs_.push(`[${h}] ${m}`);
-  if(CU) sbLog(CU.n, m).catch(()=>{});
+function cargarReqObra(oid){
+  const info=document.getElementById('req-obra-info');
+  if(!oid){if(info)info.style.display='none';return;}
+  const o=obras.find(function(x){return x.id==oid;});
+  if(o&&info){info.style.display='block';info.innerHTML='📐 '+o.sup+'m² · 👥 '+o.cuad+' personas · 💰 $'+o.monto.toFixed(0)+' USD';}
 }
 
-// OVERLAY
-document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)cOv(o.id.replace('ov-',''));}));
+// LOG
+function log(m){
+  const h=new Date().toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit',hour12:false});
+  logs_.push('['+h+'] '+m);
+  if(CU)sbLog(CU.n,m).catch(function(){});
+}
 </script>
 </body>
 </html>
