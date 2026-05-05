@@ -645,6 +645,34 @@ async function storageUrl(path){
         <div id="adm-auditoria" style="font-size:10px;color:var(--wd);line-height:2;max-height:240px;overflow-y:auto;"></div>
         <button class="btn btn-o btn-sm" onclick="admCargarAuditoria()" style="margin-top:10px;">🔄 Actualizar</button>
       </div>
+      <div class="card" style="border-color:var(--Z);background:linear-gradient(135deg,rgba(30,64,175,.06),var(--p1));">
+        <div class="ct" style="color:var(--Zc);">💾 BACKUP Y EXPORT — Migración de Información</div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Descargá toda la información del sistema para respaldar, migrar a otro lugar o analizar en Excel/Sheets. Cada descarga queda registrada en el historial.</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
+          <div style="background:var(--p2);border-radius:6px;padding:14px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--Zc);font-weight:700;margin-bottom:8px;">📊 EXPORT EXCEL/SHEETS</div>
+            <div style="font-size:11px;color:var(--wd);margin-bottom:10px;">Descarga en CSV — abrí directo en Excel, Google Sheets o cualquier hoja de cálculo.</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <button type="button" class="btn btn-o btn-sm" onclick="admExportCSV('obras')">📋 Obras (CSV)</button>
+              <button type="button" class="btn btn-o btn-sm" onclick="admExportCSV('contratos')">📄 Contratos (CSV)</button>
+              <button type="button" class="btn btn-o btn-sm" onclick="admExportCSV('auditoria')">📝 Auditoría (CSV)</button>
+            </div>
+          </div>
+          <div style="background:var(--p2);border-radius:6px;padding:14px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--Pc);font-weight:700;margin-bottom:8px;">🗄️ BACKUP COMPLETO</div>
+            <div style="font-size:11px;color:var(--wd);margin-bottom:10px;">Backup en JSON — incluye obras, contratos e historial. Importable en cualquier sistema.</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <button type="button" class="btn btn-y btn-sm" onclick="admBackupCompleto()" style="font-weight:900;">💾 BACKUP COMPLETO (JSON)</button>
+              <button type="button" class="btn btn-o btn-sm" onclick="admReporteEjecutivo()">📑 Reporte Ejecutivo (HTML)</button>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(245,196,0,.05);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📚 HISTORIAL DE CONSULTAS Y DESCARGAS</div>
+          <div id="adm-historial-export" style="font-size:10px;color:var(--wd);max-height:160px;overflow-y:auto;"></div>
+          <button type="button" class="btn btn-o btn-sm" onclick="admCargarHistorialExport()" style="margin-top:8px;">🔄 Actualizar historial</button>
+        </div>
+      </div>
       <div class="card" style="border-color:var(--R);">
         <div class="ct" style="color:var(--Rc);">🗑️ Zona de Gestión Avanzada</div>
         <div class="al al-r" style="margin-bottom:14px;">⚠️ Acciones irreversibles.</div>
@@ -1833,6 +1861,7 @@ function renderAdmFull(){
     }
   }
   admCargarAuditoria();
+  admCargarHistorialExport();
 }
 
 async function admDesbloquear(ctId){
@@ -1888,6 +1917,182 @@ async function admCargarAuditoria(){
     }).join('');
   }catch(e){el.innerHTML='<span style="color:var(--Rc);">Error: '+e.message+'</span>';}
 }
+// ============================================================
+// EXPORT / BACKUP / HISTORIAL DESCARGAS
+// ============================================================
+function _admDescargarArchivo(nombre, contenido, mime){
+  var blob=new Blob([contenido],{type:mime});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=nombre;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+
+function _csvEscape(v){
+  if(v===null||v===undefined)return '';
+  var s=String(v);
+  if(s.indexOf(',')!==-1||s.indexOf('"')!==-1||s.indexOf('\n')!==-1){
+    return '"'+s.replace(/"/g,'""')+'"';
+  }
+  return s;
+}
+
+async function admExportCSV(tipo){
+  try{
+    var rows=[],headers=[],filename='';
+    var fecha=new Date().toISOString().slice(0,10);
+    if(tipo==='obras'){
+      var res=await sb.from('rec_obras').select('*').order('created_at');
+      if(!res.data||!res.data.length){alert('Sin obras para exportar.');return;}
+      headers=['ID','Nombre','Codigo','Superficie_m2','Precio_USD_m2','Monto_USD','Monto_Bs','Cuadrilla','Dias','Fecha_Inicio','Estado','Aprobada','Modulos','Maps','Notas','Tiene_Contrato_Prop'];
+      rows=res.data.map(function(o){
+        return [o.id,o.nombre,o.codigo,o.superficie,o.precio_usd,o.monto_usd,
+          Math.round((o.monto_usd||0)*6.96),o.cuadrilla,o.dias_ejecucion,o.fecha_inicio,
+          o.estado,o.aprobada?'Si':'No',
+          (o.modulos||[]).join(' | '),o.maps_link,o.notas,
+          (o.contrato_propietario_nombre||o.contrato_propietario_escaneado)?'Si':'No'];
+      });
+      filename='GEAT_obras_'+fecha+'.csv';
+    } else if(tipo==='contratos'){
+      var res=await sb.from('rec_contratos').select('*').order('created_at');
+      if(!res.data||!res.data.length){alert('Sin contratos para exportar.');return;}
+      var obrasMap={};
+      var oRes=await sb.from('rec_obras').select('id,nombre,codigo,monto_usd');
+      (oRes.data||[]).forEach(function(o){obrasMap[o.id]=o;});
+      headers=['ID','Obra','Codigo_Obra','Monto_USD','Contratista','CI','Telefono','Direccion','Estado','Estado_Contrato','Ediciones','Bloqueado','Firmado','Fecha_Registro','Aprobado_Por','Condiciones','Negociacion'];
+      rows=res.data.map(function(c){
+        var o=obrasMap[c.obra_id]||{};
+        return [c.id,o.nombre||'',o.codigo||'',o.monto_usd||'',
+          c.nombre_contratista,c.ci_numero,c.telefono,c.direccion,
+          c.estado,c.estado_contrato,c.ediciones_count,c.contrato_bloqueado?'Si':'No',
+          c.contrato_firmado_nombre?'Si':'No',c.fecha_registro,c.aprobado_por,
+          c.condiciones,c.negociacion];
+      });
+      filename='GEAT_contratos_'+fecha+'.csv';
+    } else if(tipo==='auditoria'){
+      var res=await sb.from('rec_auditoria').select('*').order('created_at',{ascending:false}).limit(2000);
+      if(!res.data||!res.data.length){alert('Sin registros de auditoria.');return;}
+      headers=['Fecha','Usuario','Accion'];
+      rows=res.data.map(function(r){
+        return [new Date(r.created_at).toLocaleString('es-BO'),r.usuario,r.accion];
+      });
+      filename='GEAT_auditoria_'+fecha+'.csv';
+    }
+    var csv=headers.map(_csvEscape).join(',')+'\n';
+    csv+=rows.map(function(row){return row.map(_csvEscape).join(',');}).join('\n');
+    csv='\uFEFF'+csv;
+    _admDescargarArchivo(filename,csv,'text/csv;charset=utf-8;');
+    dbLog(CU.n,'Export CSV: '+tipo+' ('+rows.length+' registros)');
+    setTimeout(admCargarHistorialExport,500);
+  }catch(e){alert('Error en export: '+e.message);}
+}
+
+async function admBackupCompleto(){
+  if(!confirm('Generar BACKUP COMPLETO en JSON?\nIncluye obras, contratos y auditoria.'))return;
+  try{
+    var oRes=await sb.from('rec_obras').select('*').order('created_at');
+    var cRes=await sb.from('rec_contratos').select('*').order('created_at');
+    var aRes=await sb.from('rec_auditoria').select('*').order('created_at',{ascending:false}).limit(1000);
+    var backup={
+      generado:new Date().toISOString(),
+      generado_por:CU.n,
+      version_sistema:'GEAT Contratistas v37',
+      proyecto_supabase:'jsacnpgpnvoslrpurfxc',
+      totales:{
+        obras:(oRes.data||[]).length,
+        contratos:(cRes.data||[]).length,
+        registros_auditoria:(aRes.data||[]).length
+      },
+      datos:{
+        obras:oRes.data||[],
+        contratos:cRes.data||[],
+        auditoria:aRes.data||[]
+      }
+    };
+    var json=JSON.stringify(backup,null,2);
+    var fecha=new Date().toISOString().slice(0,16).replace(/[:T]/g,'-');
+    _admDescargarArchivo('GEAT_BACKUP_'+fecha+'.json',json,'application/json;charset=utf-8;');
+    dbLog(CU.n,'BACKUP COMPLETO generado ('+backup.totales.obras+' obras, '+backup.totales.contratos+' contratos)');
+    setTimeout(admCargarHistorialExport,500);
+    alert('Backup descargado: '+(json.length/1024).toFixed(1)+' KB');
+  }catch(e){alert('Error backup: '+e.message);}
+}
+
+async function admReporteEjecutivo(){
+  try{
+    var oRes=await sb.from('rec_obras').select('*').order('created_at');
+    var cRes=await sb.from('rec_contratos').select('*').order('created_at');
+    var os=oRes.data||[],cs=cRes.data||[];
+    var totalUSD=os.reduce(function(s,o){return s+(parseFloat(o.monto_usd)||0);},0);
+    var totalBs=Math.round(totalUSD*6.96);
+    var fechaHoy=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+    var html='';
+    html+='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte GEAT - '+fechaHoy+'</title>';
+    html+='<style>body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.6;color:#000;padding:30px;max-width:1100px;margin:0 auto;}';
+    html+='h1{font-size:18pt;text-align:center;border-bottom:3px solid #f5c400;padding-bottom:10px;}';
+    html+='h2{font-size:13pt;background:#f5c400;color:#000;padding:6px 12px;margin-top:20px;}';
+    html+='table{width:100%;border-collapse:collapse;margin:10px 0;}';
+    html+='th{background:#333;color:#fff;padding:8px;text-align:left;font-size:10pt;}';
+    html+='td{border:1px solid #ddd;padding:6px;font-size:10pt;}';
+    html+='.kpi{display:inline-block;background:#f5c400;padding:8px 14px;margin:4px;border-radius:4px;font-weight:700;}';
+    html+='@media print{button{display:none;}}</style></head><body>';
+    html+='<h1>GEAT - REPORTE EJECUTIVO</h1>';
+    html+='<p style="text-align:center;color:#666;">Generado: '+fechaHoy+' por '+CU.n+'</p>';
+    html+='<h2>Indicadores Clave</h2>';
+    html+='<div class="kpi">Obras: '+os.length+'</div>';
+    html+='<div class="kpi">Contratos: '+cs.length+'</div>';
+    html+='<div class="kpi">Total USD: $'+totalUSD.toLocaleString('en-US')+'</div>';
+    html+='<div class="kpi">Total Bs: '+totalBs.toLocaleString('es-BO')+'</div>';
+    html+='<h2>Detalle de Obras</h2>';
+    html+='<table><thead><tr><th>Obra</th><th>Codigo</th><th>Sup m2</th><th>USD</th><th>Bs</th><th>Estado</th><th>Contratista</th></tr></thead><tbody>';
+    for(var i=0;i<os.length;i++){
+      var o=os[i];
+      var ct=cs.find(function(c){return c.obra_id===o.id;});
+      html+='<tr><td><b>'+o.nombre+'</b></td><td>'+o.codigo+'</td><td>'+(o.superficie||'-')+'</td>';
+      html+='<td>$'+(o.monto_usd?parseFloat(o.monto_usd).toLocaleString('en-US'):'-')+'</td>';
+      html+='<td>'+(o.monto_usd?Math.round(parseFloat(o.monto_usd)*6.96).toLocaleString('es-BO'):'-')+'</td>';
+      html+='<td>'+(o.estado||'-')+'</td><td>'+(ct?ct.nombre_contratista:'Sin asignar')+'</td></tr>';
+    }
+    html+='</tbody></table>';
+    html+='<h2>Contratos Activos</h2>';
+    html+='<table><thead><tr><th>Contratista</th><th>Telefono</th><th>Obra</th><th>Estado</th><th>Ediciones</th><th>Firmado</th></tr></thead><tbody>';
+    for(var j=0;j<cs.length;j++){
+      var c=cs[j];
+      var ob=os.find(function(o){return o.id===c.obra_id;});
+      html+='<tr><td><b>'+c.nombre_contratista+'</b></td><td>'+c.telefono+'</td>';
+      html+='<td>'+(ob?ob.nombre:'-')+'</td><td>'+c.estado_contrato+'</td>';
+      html+='<td>'+c.ediciones_count+'/3</td><td>'+(c.contrato_firmado_nombre?'Si':'No')+'</td></tr>';
+    }
+    html+='</tbody></table>';
+    html+='<p style="margin-top:30px;font-size:9pt;color:#999;text-align:center;">GAMBARTE ARQUITECTURA S.R.L. - Documento confidencial</p>';
+    html+='<button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:10px 20px;background:#f5c400;border:none;border-radius:5px;font-weight:700;cursor:pointer;">Imprimir / PDF</button>';
+    html+='</body></html>';
+    var fecha=new Date().toISOString().slice(0,10);
+    _admDescargarArchivo('GEAT_Reporte_'+fecha+'.html',html,'text/html;charset=utf-8;');
+    dbLog(CU.n,'Reporte ejecutivo HTML generado');
+    setTimeout(admCargarHistorialExport,500);
+  }catch(e){alert('Error reporte: '+e.message);}
+}
+
+async function admCargarHistorialExport(){
+  var el=document.getElementById('adm-historial-export');if(!el)return;
+  el.innerHTML='<span style="color:var(--ws);">Cargando...</span>';
+  try{
+    var res=await sb.from('rec_auditoria').select('usuario,accion,created_at').or('accion.like.%Export%,accion.like.%BACKUP%,accion.like.%Reporte%,accion.like.%Descarg%,accion.like.%Consulta%').order('created_at',{ascending:false}).limit(20);
+    var data=res.data||[];
+    if(!data.length){el.innerHTML='<span style="color:var(--ws);">Sin descargas registradas aun.</span>';return;}
+    el.innerHTML=data.map(function(r){
+      var fecha=new Date(r.created_at).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      var icon='💾';
+      if(r.accion.indexOf('CSV')>=0)icon='📊';
+      else if(r.accion.indexOf('Reporte')>=0)icon='📑';
+      else if(r.accion.indexOf('BACKUP')>=0)icon='🗄️';
+      return '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;gap:8px;"><span>'+icon+' <b style="color:var(--am);">'+r.usuario+'</b> · '+r.accion+'</span><span style="color:var(--ws);font-size:9px;white-space:nowrap;">'+fecha+'</span></div>';
+    }).join('');
+  }catch(e){el.innerHTML='<span style="color:var(--Rc);">Error: '+e.message+'</span>';}
+}
+
 </script>
 </body>
 </html>
