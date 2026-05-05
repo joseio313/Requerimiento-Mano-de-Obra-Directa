@@ -34,11 +34,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .pin-dot.error{background:var(--R);border-color:var(--R);}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:220px;margin:0 auto 16px;}
 .nk{background:var(--p2);border:1px solid var(--bd);color:var(--w);font-size:18px;font-weight:700;
-  padding:14px;border-radius:5px;cursor:pointer;transition:all .15s;user-select:none;}
+  padding:14px;border-radius:5px;cursor:pointer;transition:all .15s;user-select:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;}
 .nk:hover{background:var(--p3);border-color:var(--am);}
-.nk:active{transform:scale(.94);}
+.nk:active{transform:scale(.94);background:var(--p3);}
 .nk.del{font-size:14px;color:var(--ws);}
 .nk.zero{grid-column:2;}
+.nk.delk{grid-column:3;}
 .pin-hint{font-size:11px;color:var(--ws);}
 .pin-error{color:var(--Rc);font-size:11px;margin-top:10px;min-height:18px;}
 
@@ -302,14 +305,20 @@ async function storageUrl(path){
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="numpad">
-      <button class="nk" onclick="pin(1)">1</button><button class="nk" onclick="pin(2)">2</button><button class="nk" onclick="pin(3)">3</button>
-      <button class="nk" onclick="pin(4)">4</button><button class="nk" onclick="pin(5)">5</button><button class="nk" onclick="pin(6)">6</button>
-      <button class="nk" onclick="pin(7)">7</button><button class="nk" onclick="pin(8)">8</button><button class="nk" onclick="pin(9)">9</button>
-      <button class="nk zero" onclick="pin(0)">0</button>
-      <button class="nk del" onclick="delPin()">⌫</button>
+      <button type="button" class="nk" onclick="pin(1)">1</button>
+      <button type="button" class="nk" onclick="pin(2)">2</button>
+      <button type="button" class="nk" onclick="pin(3)">3</button>
+      <button type="button" class="nk" onclick="pin(4)">4</button>
+      <button type="button" class="nk" onclick="pin(5)">5</button>
+      <button type="button" class="nk" onclick="pin(6)">6</button>
+      <button type="button" class="nk" onclick="pin(7)">7</button>
+      <button type="button" class="nk" onclick="pin(8)">8</button>
+      <button type="button" class="nk" onclick="pin(9)">9</button>
+      <button type="button" class="nk zero" onclick="pin(0)">0</button>
+      <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v36 · FLUJO REAL</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v37 · ADMIN FULL</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -595,13 +604,9 @@ async function storageUrl(path){
     </div>
 
 
-    <!-- ══════════════════════════════════════════
-         PANEL ADMIN FULL — Control Total CEO
-    ══════════════════════════════════════════ -->
+    <!-- PANEL ADMIN FULL — Control Total CEO -->
     <div class="panel" id="panel-adm-full">
-
-      <!-- KPIs ejecutivos -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;" id="adm-kpis">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p1));border:1px solid var(--am);border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:26px;font-weight:900;color:var(--am);" id="kpi-obras">—</div>
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Obras Totales</div>
@@ -619,52 +624,32 @@ async function storageUrl(path){
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Acciones Pendientes</div>
         </div>
       </div>
-
-      <!-- Alertas activas -->
       <div id="adm-alertas" style="margin-bottom:14px;"></div>
-
-      <!-- Tabla maestra COMPLETA — todas las obras con estado del flujo -->
       <div class="card">
-        <div class="ct">📊 Estado de Todas las Obras — Vista Completa</div>
+        <div class="ct">📊 Estado Completo — Todas las Obras</div>
         <div class="tw">
-          <table id="adm-tabla-full">
-            <thead><tr>
-              <th>Obra</th><th>Paso actual</th><th>Contratista</th>
-              <th>Monto USD</th><th>Monto Bs</th><th>Contrato</th><th>Acciones</th>
-            </tr></thead>
-            <tbody id="adm-tbody-full"></tbody>
-          </table>
+          <table><thead><tr><th>Obra</th><th>Estado</th><th>Contratista</th><th>USD</th><th>Bs</th><th>Contrato</th><th>Acción</th></tr></thead>
+          <tbody id="adm-tbody-full"></tbody></table>
         </div>
       </div>
-
-      <!-- Desglose financiero -->
       <div class="card">
-        <div class="ct">💰 Desglose Financiero por Obra</div>
+        <div class="ct">💰 Desglose Financiero</div>
         <div id="adm-financiero"></div>
       </div>
-
-      <!-- Auditoría reciente -->
       <div class="card">
-        <div class="ct">📋 Auditoría Reciente</div>
-        <div id="adm-auditoria" style="font-size:10px;color:var(--wd);line-height:2.2;max-height:220px;overflow-y:auto;"></div>
-        <div style="margin-top:10px;">
-          <button class="btn btn-o btn-sm" onclick="admCargarAuditoria()">🔄 Actualizar log</button>
-        </div>
-      </div>
-
-      <!-- Gestión de contratos firmados -->
-      <div class="card">
-        <div class="ct">📝 Gestión de Contratos — Acciones Admin</div>
+        <div class="ct">📝 Gestión de Contratos</div>
         <div id="adm-contratos-lista"></div>
       </div>
-
-      <!-- Eliminar obras / contratistas -->
+      <div class="card">
+        <div class="ct">📋 Auditoría del Sistema</div>
+        <div id="adm-auditoria" style="font-size:10px;color:var(--wd);line-height:2;max-height:240px;overflow-y:auto;"></div>
+        <button class="btn btn-o btn-sm" onclick="admCargarAuditoria()" style="margin-top:10px;">🔄 Actualizar</button>
+      </div>
       <div class="card" style="border-color:var(--R);">
         <div class="ct" style="color:var(--Rc);">🗑️ Zona de Gestión Avanzada</div>
-        <div class="al al-r" style="margin-bottom:14px;">⚠️ Acciones irreversibles. Usar con cuidado.</div>
+        <div class="al al-r" style="margin-bottom:14px;">⚠️ Acciones irreversibles.</div>
         <div id="adm-zona-peligro"></div>
       </div>
-
     </div>
 
   </main>
@@ -1644,187 +1629,171 @@ function abrirPerfil(){
 }
 
 // ═══════════════════════════════════════════════════
-// PANEL ADMIN FULL — Control Total CEO
+// PANEL ADMIN FULL
 // ═══════════════════════════════════════════════════
 function renderAdmFull(){
-  _admFull_kpis();
-  _admFull_alertas();
-  _admFull_tabla();
-  _admFull_financiero();
-  _admFull_contratos();
-  _admFull_peligro();
-  admCargarAuditoria();
-}
-
-function _admFull_kpis(){
-  const totalObras=obras.length;
-  const montoUSD=obras.filter(o=>o.monto>0).reduce((s,o)=>s+o.monto,0);
-  const totalCt=contratos.length;
-  const pendientes=_admFull_calcPendientes();
-  const k=id=>document.getElementById(id);
+  var k=function(id){return document.getElementById(id);};
+  var totalObras=obras.length;
+  var montoUSD=obras.filter(function(o){return o.monto>0;}).reduce(function(s,o){return s+o.monto;},0);
+  var totalCt=contratos.length;
+  var pendientes=0;
+  obras.forEach(function(o){
+    var ct=gCByObra(o.id);
+    if(!o.cp_dig&&!o.cp_esc)pendientes++;
+    else if(!o.sup)pendientes++;
+    else if(!ct)pendientes++;
+    else if(ct.est_ct==='generado')pendientes++;
+    else if(ct.est_ct==='aprobado'&&!ct.firm_scan)pendientes++;
+  });
   if(k('kpi-obras'))k('kpi-obras').textContent=totalObras;
   if(k('kpi-monto'))k('kpi-monto').textContent='$'+montoUSD.toLocaleString('en-US',{maximumFractionDigits:0});
   if(k('kpi-contratos'))k('kpi-contratos').textContent=totalCt;
   if(k('kpi-pendientes'))k('kpi-pendientes').textContent=pendientes;
-}
-
-function _admFull_calcPendientes(){
-  let n=0;
-  obras.forEach(o=>{
-    const ct=gCByObra(o.id);
-    if(!o.cp_dig&&!o.cp_esc)n++;
-    else if(!o.sup)n++;
-    else if(!ct)n++;
-    else if(ct.est_ct==='generado')n++;
-    else if(ct.est_ct==='aprobado'&&!ct.firm_scan)n++;
-  });
-  return n;
-}
-
-function _admFull_alertas(){
-  const el=document.getElementById('adm-alertas');if(!el)return;
-  const alerts=[];
-  obras.forEach(o=>{
-    const ct=gCByObra(o.id);
-    const nom='<b>'+o.nom+'</b>';
-    if(!o.cp_dig&&!o.cp_esc) alerts.push({t:'r',m:'⚠️ '+nom+' — Sin contrato propietario (Steffi debe cargarlo)'});
-    else if(!o.sup) alerts.push({t:'n',m:'📋 '+nom+' — Esperando datos técnicos de Fátima'});
-    else if(!ct) alerts.push({t:'n',m:'👷 '+nom+' — Lista para asignar contratista'});
-    else if(ct.est_ct==='generado') alerts.push({t:'p',m:'⚖️ '+nom+' — Contrato generado, Steffi debe revisar y aprobar'});
-    else if(ct.est_ct==='aprobado'&&!ct.firm_scan) alerts.push({t:'z',m:'🖨️ '+nom+' — Contrato aprobado, falta firma y escaneo'});
-    else if(ct.est_ct==='firmado') alerts.push({t:'g',m:'✅ '+nom+' — Proceso completo con '+ct.nom});
-  });
-  if(!alerts.length){el.innerHTML='<div class="al al-g">✅ Sin acciones pendientes. Todo al día.</div>';return;}
-  el.innerHTML=alerts.map(a=>'<div class="al al-'+a.t+'" style="margin-bottom:6px;">'+a.m+'</div>').join('');
-}
-
-function _admFull_tabla(){
-  const tb=document.getElementById('adm-tbody-full');if(!tb)return;
-  if(!obras.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ws);padding:20px;">Sin obras.</td></tr>';return;}
-  tb.innerHTML=obras.map(function(o){
-    const ct=gCByObra(o.id);
-    const est=estadoObra(o);
-    const montoBs=Math.round(o.monto*6.96);
-    const acciones=[];
-    if(!o.cp_dig&&!o.cp_esc) acciones.push('<span style="font-size:10px;color:var(--Rc);">Steffi: cargar prop.</span>');
-    if(o.cp_dig&&!o.sup) acciones.push('<span style="font-size:10px;color:var(--Nc);">Fátima: datos</span>');
-    if(o.sup&&!ct) acciones.push('<button class="btn btn-y btn-sm" onclick="goPanel('admin')">Asignar CT</button>');
-    if(ct&&ct.est_ct==='generado') acciones.push('<span style="font-size:10px;color:var(--Pc);">Steffi: aprobar</span>');
-    if(ct&&ct.est_ct==='aprobado'&&!ct.firm_scan) acciones.push('<span style="font-size:10px;color:var(--Zc);">Steffi: subir firmado</span>');
-    if(ct&&ct.firm_scan) acciones.push('<span style="font-size:10px;color:var(--Gc);">✅ Completo</span>');
-    return '<tr>'+
-      '<td data-label="Obra">'+o.nom+'<br><span style="font-size:9px;color:var(--ws);">'+o.cod+'</span></td>'+
-      '<td data-label="Paso"><span class="badge '+est.cls+'">'+est.lab+'</span></td>'+
-      '<td data-label="Contratista">'+(ct?ct.nom+'<br><span style="font-size:9px;color:var(--ws);">📱 '+ct.tel+'</span>':'<span style="color:var(--ws);">—</span>')+'</td>'+
-      '<td data-label="USD" style="color:var(--am);font-weight:700;">'+(o.monto?'$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0}):'—')+'</td>'+
-      '<td data-label="Bs" style="color:var(--wd);">'+(montoBs?'Bs '+montoBs.toLocaleString('es-BO'):'—')+'</td>'+
-      '<td data-label="Contrato">'+(ct?'<span style="font-size:9px;background:var(--p2);padding:2px 8px;border-radius:20px;">'+ct.est_ct+'</span>':'—')+'</td>'+
-      '<td data-label="Acción" style="font-size:10px;">'+acciones.join('<br>')+'</td>'+
-      '</tr>';
-  }).join('');
-}
-
-function _admFull_financiero(){
-  const el=document.getElementById('adm-financiero');if(!el)return;
-  const conMonto=obras.filter(o=>o.monto>0);
-  if(!conMonto.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin datos financieros aún.</p>';return;}
-  const totalUSD=conMonto.reduce((s,o)=>s+o.monto,0);
-  const totalBs=Math.round(totalUSD*6.96);
-  const p1=totalUSD*.30,p2=totalUSD*.40,p3=totalUSD*.30;
-  el.innerHTML=
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">'+
-    '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total USD</div><div style="font-size:20px;font-weight:900;color:var(--am);">$'+totalUSD.toLocaleString('en-US',{maximumFractionDigits:0})+'</div></div>'+
-    '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Total Bs</div><div style="font-size:20px;font-weight:900;color:var(--am);">Bs '+totalBs.toLocaleString('es-BO')+'</div></div>'+
-    '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Obras</div><div style="font-size:20px;font-weight:900;color:var(--Gc);">'+conMonto.length+'</div></div>'+
-    '</div>'+
-    '<div style="background:var(--p2);border-radius:6px;padding:14px;margin-bottom:14px;">'+
-    '<div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Cuotas totales proyectadas (30/40/30)</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">'+
-    '<div style="text-align:center;background:rgba(4,120,86,.1);border-radius:4px;padding:10px;"><div style="font-size:9px;color:var(--Gc);font-weight:700;margin-bottom:3px;">Cuota 1 — 30%</div><div style="font-size:14px;font-weight:900;">$'+p1.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+Math.round(p1*6.96).toLocaleString('es-BO')+'</div></div>'+
-    '<div style="text-align:center;background:rgba(4,120,86,.1);border-radius:4px;padding:10px;"><div style="font-size:9px;color:var(--Gc);font-weight:700;margin-bottom:3px;">Cuota 2 — 40%</div><div style="font-size:14px;font-weight:900;">$'+p2.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+Math.round(p2*6.96).toLocaleString('es-BO')+'</div></div>'+
-    '<div style="text-align:center;background:rgba(4,120,86,.1);border-radius:4px;padding:10px;"><div style="font-size:9px;color:var(--Gc);font-weight:700;margin-bottom:3px;">Cuota 3 — 30%</div><div style="font-size:14px;font-weight:900;">$'+p3.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+Math.round(p3*6.96).toLocaleString('es-BO')+'</div></div>'+
-    '</div></div>'+
-    '<div style="font-size:9px;color:var(--ws);margin-bottom:6px;">Desglose por obra:</div>'+
-    conMonto.map(function(o){
-      const ct=gCByObra(o.id);
-      const bs=Math.round(o.monto*6.96);
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);">'+
-        '<div><div style="font-size:12px;font-weight:700;">'+o.nom+'</div><div style="font-size:10px;color:var(--ws);">'+(ct?'👷 '+ct.nom:'Sin contratista')+' · '+o.sup+'m² · '+o.di+'d</div></div>'+
-        '<div style="text-align:right;"><div style="font-size:14px;font-weight:900;color:var(--am);">$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+bs.toLocaleString('es-BO')+'</div></div>'+
-        '</div>';
-    }).join('');
-}
-
-function _admFull_contratos(){
-  const el=document.getElementById('adm-contratos-lista');if(!el)return;
-  if(!contratos.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin contratos generados aún.</p>';return;}
-  el.innerHTML=contratos.map(function(ct){
-    const o=gO(ct.oid);
-    const bloq=ct.bloqueado||false;
-    const ed=ct.ed_count||0;
-    const hist=ct.historial||[];
-    return '<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:14px;margin-bottom:10px;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px;">'+
-      '<div><div style="font-size:13px;font-weight:800;">'+ct.nom+'</div>'+
-      '<div style="font-size:10px;color:var(--wd);">📋 '+(o.nom||'?')+' · 📱 '+(ct.tel||'—')+' · C.I. '+(ct.ci_n||'—')+'</div></div>'+
-      '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">'+
-      '<span style="font-size:9px;background:var(--p3);padding:2px 8px;border-radius:20px;">'+ct.est_ct+'</span>'+
-      '<span style="font-size:9px;color:'+(bloq?'var(--Rc)':ed>=2?'var(--Nc)':'var(--Gc)')+';">📝 '+ed+'/3'+(bloq?' 🔒':'')+'</span></div></div>'+
-      (hist.length?'<div style="font-size:9px;color:var(--ws);margin-bottom:8px;">'+hist.map(function(h){return 'Ed.'+h.e+' · '+h.n+' · '+h.f;}).join(' / ')+'</div>':'')+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
-      (bloq?'<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>':'')+
-      (ct.texto?'<button class="btn btn-o btn-sm" onclick="admVerContrato('+ct.id+')">👁️ Ver contrato</button>':'')+
-      (ct.firm_scan?'<button class="btn btn-g btn-sm" onclick="admDescargarFirmado('+ct.id+')">📥 Firmado</button>':'')+
-      '<button class="btn btn-r btn-sm" onclick="admEliminarContratista('+ct.id+')" style="margin-left:auto;">🗑️ Eliminar</button>'+
-      '</div></div>';
-  }).join('');
-}
-
-function _admFull_peligro(){
-  const el=document.getElementById('adm-zona-peligro');if(!el)return;
-  if(!obras.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras.</p>';return;}
-  el.innerHTML=obras.map(function(o){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2);border-radius:4px;margin-bottom:6px;">'+
-      '<div><b>'+o.nom+'</b> <span style="font-size:10px;color:var(--ws);">'+o.cod+'</span></div>'+
-      '<button class="btn btn-r btn-sm" onclick="admEliminarObra('+o.id+')">🗑️ Eliminar obra</button>'+
-      '</div>';
-  }).join('');
+  // Alertas
+  var elA=k('adm-alertas');
+  if(elA){
+    var alerts=[];
+    obras.forEach(function(o){
+      var ct=gCByObra(o.id);
+      var nom='<b>'+o.nom+'</b>';
+      if(!o.cp_dig&&!o.cp_esc)alerts.push({t:'r',m:'⚠️ '+nom+' — Sin contrato propietario'});
+      else if(!o.sup)alerts.push({t:'n',m:'📋 '+nom+' — Esperando datos técnicos de Fátima'});
+      else if(!ct)alerts.push({t:'n',m:'👷 '+nom+' — Lista para asignar contratista'});
+      else if(ct.est_ct==='generado')alerts.push({t:'p',m:'⚖️ '+nom+' — Contrato listo para revisar por Steffi'});
+      else if(ct.est_ct==='aprobado'&&!ct.firm_scan)alerts.push({t:'z',m:'🖨️ '+nom+' — Aprobado, falta firma y escaneo'});
+      else if(ct.est_ct==='firmado')alerts.push({t:'g',m:'✅ '+nom+' — Proceso completo con '+ct.nom});
+    });
+    if(!alerts.length){elA.innerHTML='<div class="al al-g">✅ Sin acciones pendientes.</div>';}
+    else{elA.innerHTML=alerts.map(function(a){return '<div class="al al-'+a.t+'" style="margin-bottom:6px;">'+a.m+'</div>';}).join('');}
+  }
+  // Tabla
+  var tb=k('adm-tbody-full');
+  if(tb){
+    if(!obras.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ws);padding:20px;">Sin obras.</td></tr>';}
+    else{
+      tb.innerHTML=obras.map(function(o){
+        var ct=gCByObra(o.id);
+        var est=estadoObra(o);
+        var bs=Math.round(o.monto*6.96);
+        var acc='';
+        if(o.sup&&!ct)acc='<button class="btn btn-y btn-sm" onclick="goPanel('admin')">Asignar CT</button>';
+        else if(ct&&ct.bloqueado)acc='<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>';
+        else if(ct&&ct.firm_scan)acc='<span style="font-size:10px;color:var(--Gc);">✅ Completo</span>';
+        return '<tr>'+
+          '<td data-label="Obra">'+o.nom+'<br><span style="font-size:9px;color:var(--ws);">'+o.cod+'</span></td>'+
+          '<td data-label="Estado"><span class="badge '+est.cls+'">'+est.lab+'</span></td>'+
+          '<td data-label="Contratista">'+(ct?ct.nom+'<br><span style="font-size:9px;color:var(--ws);">📱 '+ct.tel+'</span>':'<span style="color:var(--ws);">—</span>')+'</td>'+
+          '<td data-label="USD" style="color:var(--am);font-weight:700;">'+(o.monto?'$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0}):'—')+'</td>'+
+          '<td data-label="Bs" style="color:var(--wd);">'+(bs?'Bs '+bs.toLocaleString('es-BO'):'—')+'</td>'+
+          '<td data-label="Contrato">'+(ct?ct.est_ct:'—')+'</td>'+
+          '<td data-label="Acción">'+acc+'</td>'+
+          '</tr>';
+      }).join('');
+    }
+  }
+  // Financiero
+  var elF=k('adm-financiero');
+  if(elF){
+    var conMonto=obras.filter(function(o){return o.monto>0;});
+    if(!conMonto.length){elF.innerHTML='<p style="color:var(--ws);">Sin datos financieros.</p>';}
+    else{
+      var tUSD=conMonto.reduce(function(s,o){return s+o.monto;},0);
+      var tBs=Math.round(tUSD*6.96);
+      elF.innerHTML=
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">TOTAL USD</div><div style="font-size:20px;font-weight:900;color:var(--am);">$'+tUSD.toLocaleString('en-US',{maximumFractionDigits:0})+'</div></div>'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">TOTAL Bs</div><div style="font-size:20px;font-weight:900;color:var(--am);">Bs '+tBs.toLocaleString('es-BO')+'</div></div>'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">OBRAS</div><div style="font-size:20px;font-weight:900;color:var(--Gc);">'+conMonto.length+'</div></div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">'+
+        ['30% — Cuota 1','40% — Cuota 2','30% — Cuota 3'].map(function(lbl,i){
+          var pcts=[0.30,0.40,0.30];var v=tUSD*pcts[i];
+          return '<div style="text-align:center;background:rgba(4,120,86,.1);border:1px solid var(--G);border-radius:4px;padding:10px;">'+
+            '<div style="font-size:9px;color:var(--Gc);font-weight:700;margin-bottom:4px;">'+lbl+'</div>'+
+            '<div style="font-size:14px;font-weight:900;">$'+v.toLocaleString('en-US',{maximumFractionDigits:0})+'</div>'+
+            '<div style="font-size:10px;color:var(--wd);">Bs '+Math.round(v*6.96).toLocaleString('es-BO')+'</div>'+
+            '</div>';
+        }).join('')+
+        '</div>'+
+        conMonto.map(function(o){
+          var ct=gCByObra(o.id);
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);">'+
+            '<div><div style="font-weight:700;">'+o.nom+'</div><div style="font-size:10px;color:var(--ws);">'+(ct?ct.nom:'Sin CT')+' · '+o.sup+'m²</div></div>'+
+            '<div style="text-align:right;"><div style="font-weight:900;color:var(--am);">$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+Math.round(o.monto*6.96).toLocaleString('es-BO')+'</div></div>'+
+            '</div>';
+        }).join('');
+    }
+  }
+  // Contratos lista
+  var elC=k('adm-contratos-lista');
+  if(elC){
+    if(!contratos.length){elC.innerHTML='<p style="color:var(--ws);">Sin contratos.</p>';}
+    else{
+      elC.innerHTML=contratos.map(function(ct){
+        var o=gO(ct.oid);
+        var ed=ct.ed_count||0,bloq=ct.bloqueado||false;
+        return '<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:14px;margin-bottom:10px;">'+
+          '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">'+
+          '<div><div style="font-size:13px;font-weight:800;">'+ct.nom+'</div>'+
+          '<div style="font-size:10px;color:var(--wd);">📋 '+(o.nom||'?')+' · 📱 '+(ct.tel||'—')+'</div></div>'+
+          '<div style="display:flex;gap:6px;align-items:center;">'+
+          '<span style="font-size:9px;background:var(--p3);padding:2px 8px;border-radius:20px;">'+ct.est_ct+'</span>'+
+          '<span style="font-size:9px;color:'+(bloq?'var(--Rc)':ed>=2?'var(--Nc)':'var(--Gc)')+';">'+ed+'/3'+(bloq?' 🔒':'')+'</span>'+
+          '</div></div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          (bloq?'<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>':'')+
+          (ct.texto?'<button class="btn btn-o btn-sm" onclick="admVerContrato('+ct.id+')">👁️ Ver</button>':'')+
+          (ct.firm_scan?'<button class="btn btn-g btn-sm" onclick="admDescargarFirmado('+ct.id+')">📥 Firmado</button>':'')+
+          '<button class="btn btn-r btn-sm" onclick="admEliminarContratista('+ct.id+')" style="margin-left:auto;">🗑️</button>'+
+          '</div></div>';
+      }).join('');
+    }
+  }
+  // Zona peligro
+  var elP=k('adm-zona-peligro');
+  if(elP){
+    if(!obras.length){elP.innerHTML='<p style="color:var(--ws);">Sin obras.</p>';}
+    else{
+      elP.innerHTML=obras.map(function(o){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2);border-radius:4px;margin-bottom:6px;">'+
+          '<div><b>'+o.nom+'</b> <span style="font-size:10px;color:var(--ws);">'+o.cod+'</span></div>'+
+          '<button class="btn btn-r btn-sm" onclick="admEliminarObra('+o.id+')">🗑️ Eliminar</button>'+
+          '</div>';
+      }).join('');
+    }
+  }
+  admCargarAuditoria();
 }
 
 async function admDesbloquear(ctId){
-  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
-  if(!confirm('¿Desbloquear contrato de '+ct.nom+'? Se resetea el contador.'))return;
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  if(!confirm('¿Desbloquear contrato de '+ct.nom+'?'))return;
   ct.bloqueado=false;ct.ed_count=0;ct.historial=[];
   await dbGuardarContrato(ct);renderAdmFull();
 }
-
 function admVerContrato(ctId){
-  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.texto)return;
-  const win=window.open('','_blank');
-  win.document.write('<html><head><style>body{font-family:Arial;font-size:11pt;padding:30px;color:#000;}pre{white-space:pre-wrap;font-family:Arial;}</style></head><body><pre>'+ct.texto+'</pre></body></html>');
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.texto)return;
+  var win=window.open('','_blank');
+  win.document.write('<html><head><style>body{font-family:Arial;font-size:11pt;padding:30px;color:#000;}pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;}</style></head><body><pre>'+ct.texto+'</pre></body></html>');
   win.document.close();
 }
-
 async function admDescargarFirmado(ctId){
-  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.firm_scan)return;
-  try{const url=await storageUrl(ct.firm_scan);window.open(url,'_blank','noopener');}
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.firm_scan)return;
+  try{var url=await storageUrl(ct.firm_scan);window.open(url,'_blank','noopener');}
   catch(e){alert('Error: '+e.message);}
 }
-
 async function admEliminarContratista(ctId){
-  const ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
   if(!confirm('¿Eliminar contratista "'+ct.nom+'"?'))return;
   try{
     await sb.from('rec_contratos').delete().eq('id',ctId);
     contratos=contratos.filter(function(x){return x.id!==ctId;});
-    dbLog(CU.n,'Contratista eliminado: '+ct.nom);
-    renderAdmFull();renderAdmin();
+    dbLog(CU.n,'CT eliminado: '+ct.nom);renderAdmFull();renderAdmin();
     alert('✅ Eliminado.');
   }catch(e){alert('Error: '+e.message);}
 }
-
 async function admEliminarObra(oid){
-  const o=obras.find(function(x){return x.id===oid;});if(!o)return;
+  var o=obras.find(function(x){return x.id===oid;});if(!o)return;
   if(!confirm('¿Eliminar obra "'+o.nom+'" y sus contratos?'))return;
   try{
     await sb.from('rec_contratos').delete().eq('obra_id',oid);
@@ -1836,20 +1805,19 @@ async function admEliminarObra(oid){
     alert('✅ Obra eliminada.');
   }catch(e){alert('Error: '+e.message);}
 }
-
 async function admCargarAuditoria(){
-  const el=document.getElementById('adm-auditoria');if(!el)return;
+  var el=document.getElementById('adm-auditoria');if(!el)return;
   el.innerHTML='<span style="color:var(--ws);">Cargando...</span>';
   try{
-    const {data}=await sb.from('rec_auditoria').select('usuario,accion,created_at').order('created_at',{ascending:false}).limit(40);
+    var res=await sb.from('rec_auditoria').select('usuario,accion,created_at').order('created_at',{ascending:false}).limit(40);
+    var data=res.data;
     if(!data||!data.length){el.innerHTML='<span style="color:var(--ws);">Sin registros.</span>';return;}
     el.innerHTML=data.map(function(r){
-      const fecha=new Date(r.created_at).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-      return '<div style="border-bottom:1px solid var(--bd);padding:3px 0;display:flex;justify-content:space-between;"><span><span style="color:var(--am);font-weight:700;">'+r.usuario+'</span> · '+r.accion+'</span><span style="color:var(--ws);font-size:9px;">'+fecha+'</span></div>';
+      var fecha=new Date(r.created_at).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return '<div style="border-bottom:1px solid var(--bd);padding:3px 0;display:flex;justify-content:space-between;"><span><b style="color:var(--am);">'+r.usuario+'</b> · '+r.accion+'</span><span style="color:var(--ws);font-size:9px;white-space:nowrap;margin-left:8px;">'+fecha+'</span></div>';
     }).join('');
   }catch(e){el.innerHTML='<span style="color:var(--Rc);">Error: '+e.message+'</span>';}
 }
-
 </script>
 </body>
 </html>
