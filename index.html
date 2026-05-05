@@ -34,11 +34,14 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .pin-dot.error{background:var(--R);border-color:var(--R);}
 .numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;max-width:220px;margin:0 auto 16px;}
 .nk{background:var(--p2);border:1px solid var(--bd);color:var(--w);font-size:18px;font-weight:700;
-  padding:14px;border-radius:5px;cursor:pointer;transition:all .15s;user-select:none;}
+  padding:14px;border-radius:5px;cursor:pointer;transition:all .15s;user-select:none;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  -webkit-user-select:none;user-select:none;}
 .nk:hover{background:var(--p3);border-color:var(--am);}
-.nk:active{transform:scale(.94);}
+.nk:active{transform:scale(.94);background:var(--p3);}
 .nk.del{font-size:14px;color:var(--ws);}
 .nk.zero{grid-column:2;}
+.nk.delk{grid-column:3;}
 .pin-hint{font-size:11px;color:var(--ws);}
 .pin-error{color:var(--Rc);font-size:11px;margin-top:10px;min-height:18px;}
 
@@ -68,58 +71,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .panel.on{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
-/* KPI CARDS */
-.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
-@media(min-width:600px){.kpi-grid{grid-template-columns:repeat(4,1fr);}}
-.kpi{background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:14px 12px;text-align:center;position:relative;overflow:hidden;}
-.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
-.kpi.k-gold::before{background:var(--am);}
-.kpi.k-green::before{background:var(--Gc);}
-.kpi.k-blue::before{background:#60a5fa;}
-.kpi.k-red::before{background:var(--Rc);}
-.kpi.k-purple::before{background:var(--Pc);}
-.kpi-val{font-size:28px;font-weight:900;line-height:1;margin-bottom:4px;}
-.kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ws);font-weight:700;}
-
-/* PANEL CEO TABS */
-.ceo-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:16px;overflow-x:auto;}
-.ceo-tab{background:transparent;border:none;color:var(--ws);padding:10px 14px;cursor:pointer;font-size:11px;font-weight:700;border-bottom:3px solid transparent;white-space:nowrap;letter-spacing:.5px;}
-.ceo-tab.on{color:var(--am);border-bottom-color:var(--am);}
-.ceo-tab:hover{color:var(--w);}
-.ceo-sub{display:none;}
-.ceo-sub.on{display:block;}
-
-/* SUP AVANCE */
-.avance-bar-wrap{background:var(--p3);border-radius:4px;height:8px;overflow:hidden;margin:4px 0 8px;}
-.avance-bar-fill{height:100%;background:linear-gradient(90deg,var(--G),var(--Gc));border-radius:4px;transition:width .4s;}
-
-/* FLUJO — oculto, reemplazado por paso-line */
-.flujo-bar{display:none!important;}
-
-/* SECTION HEADER — limpio, sin bloques pesados */
-.sh{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
-.sh-ico{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.sh-ico.gold{background:var(--amd);}
-.sh-ico.green{background:var(--Gbg);}
-.sh-ico.blue{background:var(--Zbg);}
-.sh-ico.purple{background:var(--Pbg);}
-.sh-t{font-size:15px;font-weight:800;color:var(--w);}
-.sh-s{font-size:11px;color:var(--ws);margin-top:1px;}
-
-/* PASO INDICATOR pequeño en línea */
-.paso-line{display:flex;align-items:center;gap:0;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
-.pl-item{display:flex;align-items:center;gap:0;flex-shrink:0;}
-.pl-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;border:2px solid var(--bd);color:var(--ws);background:var(--p2);flex-shrink:0;}
-.pl-dot.done{background:var(--Gbg);border-color:var(--Gc);color:var(--Gc);}
-.pl-dot.active{background:var(--amd);border-color:var(--am);color:var(--am);}
-.pl-lbl{font-size:9px;font-weight:600;color:var(--ws);margin:0 5px;white-space:nowrap;}
-.pl-lbl.active{color:var(--am);}
-.pl-lbl.done{color:var(--Gc);}
-.pl-sep{width:16px;height:2px;background:var(--bd);flex-shrink:0;}
-.pl-sep.done{background:var(--Gc);}
+/* FLUJO PROGRESS BAR */
+.flujo-bar{display:flex;margin-bottom:20px;border-radius:8px;overflow:hidden;}
+.flujo-paso{flex:1;padding:10px 6px;text-align:center;font-size:9px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.7px;border-right:2px solid var(--bg);
+  display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s;}
+.flujo-paso:last-child{border-right:none;}
+.flujo-paso .fp-ico{font-size:16px;}
+.flujo-paso .fp-num{font-size:8px;opacity:.6;}
+.flujo-paso.f-done{background:var(--Gbg);color:var(--Gc);}
+.flujo-paso.f-active{background:var(--amd);color:var(--am);box-shadow:inset 0 -3px 0 var(--am);}
+.flujo-paso.f-pend{background:var(--p2);color:var(--ws);}
 
 /* CARDS */
-.card{background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:12px;}
+.card{background:var(--p1);border:1px solid var(--bd);border-radius:6px;padding:18px;margin-bottom:14px;}
 .card-hero{border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;}
 .ct{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:var(--am);
   margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--bd);}
@@ -151,24 +116,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
 
 /* UPLOAD ZONES */
-.upload-zone{border:2px dashed var(--bd);border-radius:6px;padding:16px 12px;text-align:center;
+.upload-zone{border:2px dashed var(--bd);border-radius:6px;padding:20px 12px;text-align:center;
   cursor:pointer;transition:all .2s;position:relative;}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--am);background:var(--amd);}
 .upload-zone.ok{border-color:var(--G);border-style:solid;background:var(--Gbg);}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.uz-ico{font-size:22px;margin-bottom:4px;}
+.uz-ico{font-size:28px;margin-bottom:6px;}
 .uz-lbl{font-size:11px;font-weight:700;color:var(--wd);}
-.uz-sub{font-size:9px;color:var(--ws);margin-top:2px;}
+.uz-sub{font-size:9px;color:var(--ws);margin-top:3px;}
 .uz-ok{font-size:10px;color:var(--Gc);margin-top:4px;font-weight:700;word-break:break-all;}
-.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
-.upload-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.upload-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
 @media(max-width:600px){.upload-row,.upload-trio{grid-template-columns:1fr;}}
 
 /* OBRA CARDS */
-.obra-item{background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:12px 14px;
-  margin-bottom:8px;cursor:pointer;transition:all .2s;display:flex;justify-content:space-between;align-items:center;}
-.obra-item:hover{border-color:var(--am);}
-.oi-left h4{font-size:13px;font-weight:700;margin-bottom:2px;}
+.obra-item{background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:14px;
+  margin-bottom:10px;cursor:pointer;transition:all .2s;display:flex;justify-content:space-between;align-items:center;}
+.obra-item:hover{border-color:var(--am);background:var(--p3);}
+.oi-left h4{font-size:13px;font-weight:700;margin-bottom:3px;}
 .oi-left p{font-size:11px;color:var(--wd);}
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;}
 .b-pend{background:var(--Nbg);color:var(--Nc);}
@@ -178,21 +143,12 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .b-gen{background:var(--Pbg);color:var(--Pc);}
 
 /* ALERTS */
-.al{padding:8px 12px;border-radius:4px;font-size:11px;margin-bottom:10px;line-height:1.5;}
+.al{padding:10px 14px;border-radius:4px;font-size:11px;margin-bottom:12px;line-height:1.6;}
 .al-g{background:var(--Gbg);border:1px solid var(--G);color:var(--Gc);}
 .al-z{background:var(--Zbg);border:1px solid var(--Z);color:var(--Zc);}
 .al-n{background:var(--Nbg);border:1px solid var(--N);color:var(--Nc);}
 .al-r{background:var(--Rbg);border:1px solid var(--R);color:var(--Rc);}
 .al-p{background:var(--Pbg);border:1px solid var(--P);color:var(--Pc);}
-
-/* OPCIÓN CARDS */
-.opcion-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
-.opcion-card{background:var(--p2);border:2px solid var(--bd);border-radius:8px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s;}
-.opcion-card:hover{border-color:var(--am);background:var(--amd);}
-.opcion-card-ico{font-size:28px;margin-bottom:8px;}
-.opcion-card-t{font-size:13px;font-weight:800;color:var(--w);}
-.opcion-card-s{font-size:10px;color:var(--ws);margin-top:3px;}
-@media(max-width:500px){.opcion-cards{grid-template-columns:1fr;}}
 
 /* CONTRATO EDITOR */
 .ct-editor{width:100%;min-height:320px;background:#0d1117;border:1px solid var(--bd);color:var(--w);
@@ -243,6 +199,7 @@ tbody td:first-child{color:var(--w);font-weight:600;}
   .fg2,.fg3{grid-template-columns:1fr;}
   .main{padding:12px 10px;}
   .pin-box{width:90%;}
+  .flujo-paso .fp-label{display:none;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -348,14 +305,20 @@ async function storageUrl(path){
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
     </div>
     <div class="numpad">
-      <button class="nk" onclick="pin(1)">1</button><button class="nk" onclick="pin(2)">2</button><button class="nk" onclick="pin(3)">3</button>
-      <button class="nk" onclick="pin(4)">4</button><button class="nk" onclick="pin(5)">5</button><button class="nk" onclick="pin(6)">6</button>
-      <button class="nk" onclick="pin(7)">7</button><button class="nk" onclick="pin(8)">8</button><button class="nk" onclick="pin(9)">9</button>
-      <button class="nk zero" onclick="pin(0)">0</button>
-      <button class="nk del" onclick="delPin()">⌫</button>
+      <button type="button" class="nk" onclick="pin(1)">1</button>
+      <button type="button" class="nk" onclick="pin(2)">2</button>
+      <button type="button" class="nk" onclick="pin(3)">3</button>
+      <button type="button" class="nk" onclick="pin(4)">4</button>
+      <button type="button" class="nk" onclick="pin(5)">5</button>
+      <button type="button" class="nk" onclick="pin(6)">6</button>
+      <button type="button" class="nk" onclick="pin(7)">7</button>
+      <button type="button" class="nk" onclick="pin(8)">8</button>
+      <button type="button" class="nk" onclick="pin(9)">9</button>
+      <button type="button" class="nk zero" onclick="pin(0)">0</button>
+      <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v36 · FLUJO REAL</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v37 · ADMIN FULL</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -379,30 +342,26 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-steffi">
 
-      <!-- HEADER LIMPIO -->
-      <div class="sh">
-        <div class="sh-ico purple">⚖️</div>
-        <div><div class="sh-t">Panel Steffi</div><div class="sh-s">Registrar obras · Revisar y aprobar contratos</div></div>
+      <!-- BARRA DE FLUJO -->
+      <div class="flujo-bar">
+        <div class="flujo-paso f-active"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi carga obra</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">📋</div><div class="fp-num">PASO 2</div><div class="fp-label">Fátima completa</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Contrato firmado</div></div>
       </div>
 
       <!-- PASO 1: NUEVA OBRA -->
-      <div class="card">
-        <div class="paso-line">
-          <div class="pl-item"><div class="pl-dot active">1</div><span class="pl-lbl active">Registrar Obra</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">2</div><span class="pl-lbl">Fátima</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">3</div><span class="pl-lbl">Contratista</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">4</div><span class="pl-lbl">Aprobar</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
-        </div>
+      <div class="card" style="border-top:3px solid var(--am);">
+        <div class="ct">⚖️ PASO 1 — Registrar Nueva Obra (Steffi)</div>
+        <div class="al al-z" style="margin-bottom:16px;">📌 Steffi carga el contrato firmado con el propietario del terreno. El sistema crea la obra y queda lista para que Fátima complete los datos técnicos.</div>
 
+        <!-- Uploads -->
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Contrato con Propietario</div>
         <div class="upload-row">
           <div class="upload-zone" id="uz-dig" onclick="document.getElementById('fi-dig').click()">
             <div class="uz-ico">📋</div>
-            <div class="uz-lbl">Contrato Digital</div>
+            <div class="uz-lbl">Archivo Digital</div>
             <div class="uz-sub">PDF · DOC · DOCX</div>
             <div class="uz-ok" id="txt-dig"></div>
             <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="onUpNuevaObra('dig',this)">
@@ -416,33 +375,26 @@ async function storageUrl(path){
           </div>
         </div>
 
+        <!-- Datos básicos (Steffi sabe el nombre del propietario/obra) -->
         <div class="fg fg2" style="margin-bottom:14px;">
           <div class="f"><label>Nombre de la Obra *</label><input id="n-nom" placeholder="ej. OBRA FERNÁNDEZ-MONTERO"></div>
-          <div class="f"><label>Código (auto)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly></div>
+          <div class="f"><label>Código (se genera solo)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly></div>
         </div>
 
         <div class="brow">
-          <button class="btn btn-y" onclick="guardarNuevaObra()">💾 Registrar Obra</button>
-          <button class="btn btn-o btn-sm" onclick="limpiarNuevaObra()">Limpiar</button>
+          <button class="btn btn-y btn-lg" onclick="guardarNuevaObra()">💾 REGISTRAR OBRA</button>
+          <button class="btn btn-o" onclick="limpiarNuevaObra()">🔄 Limpiar</button>
         </div>
       </div>
 
-      <!-- PASO 4: REVISAR CONTRATOS -->
-      <div class="card">
-        <div class="paso-line">
-          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Obra</span></div>
-          <div class="pl-sep done"></div>
-          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Datos</span></div>
-          <div class="pl-sep done"></div>
-          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Contratista</span></div>
-          <div class="pl-sep done"></div>
-          <div class="pl-item"><div class="pl-dot active">4</div><span class="pl-lbl active">Revisar y Aprobar</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
-        </div>
+      <!-- PASO 4: LISTA OBRAS — revisar contratos -->
+      <div class="card" style="margin-top:6px;">
+        <div class="ct">⚖️ PASO 4 — Revisar y Aprobar Contratos</div>
+        <div class="al al-z" style="margin-bottom:14px;">Seleccioná una obra donde Josemiguel ya cargó el contratista. Verificá, editá (máx. 3 veces) y aprobá el contrato para imprimir y firmar.</div>
         <div id="steffi-obras-lista"></div>
       </div>
 
+      <!-- EDITOR de contrato (se muestra al seleccionar obra) -->
       <div id="steffi-editor-area" style="display:none;"></div>
 
     </div>
@@ -452,35 +404,31 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-fatima">
 
-      <div class="sh">
-        <div class="sh-ico blue">📋</div>
-        <div><div class="sh-t">Panel Fátima</div><div class="sh-s">Completar datos técnicos de la obra</div></div>
+      <div class="flujo-bar">
+        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi cargó</div></div>
+        <div class="flujo-paso f-active"><div class="fp-ico">📋</div><div class="fp-num">PASO 2</div><div class="fp-label">Fátima completa</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Firmado</div></div>
       </div>
 
-      <div class="card">
-        <div class="paso-line">
-          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Steffi</span></div>
-          <div class="pl-sep done"></div>
-          <div class="pl-item"><div class="pl-dot active">2</div><span class="pl-lbl active">Completar Datos</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">3</div><span class="pl-lbl">Contratista</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">4</div><span class="pl-lbl">Aprobar</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
-        </div>
+      <div class="card" style="border-top:3px solid #38bdf8;">
+        <div class="ct" style="color:#38bdf8;">📋 PASO 2 — Completar Datos Técnicos</div>
+        <div class="al al-z" style="margin-bottom:16px;">📌 Elegí la obra que Steffi registró y completá los datos técnicos: superficie, precio, módulos, fechas, ubicación. El sistema arma el contrato automáticamente con esta info.</div>
 
-        <div class="f" style="margin-bottom:14px;">
-          <label>Elegir Obra *</label>
+        <!-- Selector de obra -->
+        <div class="f" style="margin-bottom:16px;">
+          <label>Elegir Obra a Completar *</label>
           <select id="fat-sel-obra" onchange="fatSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
             <option value="">— Seleccioná una obra —</option>
           </select>
         </div>
 
         <div id="fat-form" style="display:none;">
-          <div class="al al-g" id="fat-info-prop" style="margin-bottom:12px;"></div>
+          <!-- Info auto-rellena desde propietario -->
+          <div class="al al-g" id="fat-info-prop" style="margin-bottom:14px;"></div>
 
-          <div class="fg fg2" style="margin-bottom:12px;">
+          <div class="fg fg2" style="margin-bottom:14px;">
             <div class="f"><label>Superficie m² *</label><input type="number" id="fat-sup" oninput="fatCalc()" placeholder="120"></div>
             <div class="f"><label>Precio USD/m²</label><input type="number" id="fat-pre" value="75" oninput="fatCalc()"></div>
             <div class="f"><label>Cuadrilla (auto)</label><input id="fat-cua" readonly></div>
@@ -491,37 +439,44 @@ async function storageUrl(path){
             <div class="f full"><label>📍 Link Google Maps *</label><input id="fat-map" placeholder="https://maps.google.com/maps?q=..."></div>
           </div>
 
+          <!-- Módulos -->
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Módulos de Obra</div>
           <div id="fat-mods-wrap">
             <div id="fat-mods-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;"></div>
-            <button class="btn btn-o btn-sm" onclick="fatAddMod()" style="margin-bottom:12px;">+ Agregar módulo</button>
+            <button class="btn btn-o btn-sm" onclick="fatAddMod()" style="margin-bottom:14px;">+ Agregar módulo</button>
           </div>
 
-          <div class="fg" style="margin-bottom:12px;gap:10px;">
+          <!-- Objeto / Inclusiones / Exclusiones — con texto GEAT por defecto -->
+          <div style="background:rgba(245,196,0,.06);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;margin-bottom:10px;">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:4px;">📋 Cláusulas del Contrato con el Contratista</div>
+            <div style="font-size:10px;color:var(--wd);">Texto pre-cargado con los estándares GEAT. Editá solo si hay condiciones especiales para esta obra.</div>
+          </div>
+          <div class="fg" style="margin-bottom:14px;gap:10px;">
             <div class="f">
-              <label>Objeto del Contrato <span style="color:var(--Gc);font-size:8px;">· pre-cargado GEAT</span></label>
-              <textarea id="fat-obj" rows="3"></textarea>
+              <label>Objeto del Contrato <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
+              <textarea id="fat-obj" rows="4"></textarea>
             </div>
             <div class="f">
-              <label>Incluido — Obligaciones del Contratista <span style="color:var(--Gc);font-size:8px;">· pre-cargado GEAT</span></label>
-              <textarea id="fat-inc" rows="5"></textarea>
+              <label>¿Qué está INCLUIDO? — Obligaciones del Contratista <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
+              <textarea id="fat-inc" rows="6"></textarea>
             </div>
             <div class="f">
-              <label>No incluido — Corre por cuenta de GEAT <span style="color:var(--Gc);font-size:8px;">· pre-cargado GEAT</span></label>
-              <textarea id="fat-exc" rows="4"></textarea>
+              <label>¿Qué NO está incluido? — Corre por cuenta de GEAT <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
+              <textarea id="fat-exc" rows="5"></textarea>
             </div>
-            <div class="f"><label>Notas adicionales</label><textarea id="fat-not" rows="2" placeholder="Condiciones de acceso, terreno, requerimientos especiales..."></textarea></div>
+            <div class="f"><label>Notas adicionales de la obra</label><textarea id="fat-not" rows="2" placeholder="Observaciones de acceso, condiciones del terreno, requerimientos especiales..."></textarea></div>
           </div>
 
           <div class="brow">
-            <button class="btn btn-y" onclick="fatGuardar()">💾 Guardar Datos Técnicos</button>
-            <button class="btn btn-o btn-sm" onclick="fatLimpiar()">Limpiar</button>
+            <button class="btn btn-y btn-lg" onclick="fatGuardar()">💾 GUARDAR DATOS TÉCNICOS</button>
+            <button class="btn btn-o" onclick="fatLimpiar()">🔄 Limpiar</button>
           </div>
         </div>
       </div>
 
+      <!-- Lista de obras ya completadas por Fátima -->
       <div class="card">
-        <div style="font-size:10px;font-weight:700;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Obras Completadas</div>
+        <div class="ct">📋 Obras con Datos Técnicos Completos</div>
         <div id="fat-completadas"></div>
       </div>
 
@@ -532,24 +487,19 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-admin">
 
-      <div class="sh">
-        <div class="sh-ico gold">👤</div>
-        <div><div class="sh-t">Asignar Contratista</div><div class="sh-s">Paso 3 del flujo — Elegir obra y asignar contratista</div></div>
+      <div class="flujo-bar">
+        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi cargó</div></div>
+        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 2</div><div class="fp-label">Fátima completó</div></div>
+        <div class="flujo-paso f-active"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
+        <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Firmado</div></div>
       </div>
 
-      <div class="card">
-        <div class="paso-line">
-          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Obra</span></div>
-          <div class="pl-sep done"></div>
-          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Datos</span></div>
-          <div class="pl-sep done"></div>
-          <div class="pl-item"><div class="pl-dot active">3</div><span class="pl-lbl active">Asignar Contratista</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">4</div><span class="pl-lbl">Aprobar</span></div>
-          <div class="pl-sep"></div>
-          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
-        </div>
+      <div class="card" style="border-top:3px solid var(--am);">
+        <div class="ct">👤 PASO 3 — Asignar Contratista a Obra</div>
+        <div class="al al-n" style="margin-bottom:14px;">📌 Elegí la obra lista (técnicamente completada por Fátima). Tenés dos opciones: <b>Activar búsqueda</b> en Facebook/Messenger, o <b>Cargar directamente</b> si ya tenés el contratista elegido.</div>
 
+        <!-- Selector de obra lista para contratista -->
         <div class="f" style="margin-bottom:14px;">
           <label>Elegir Obra Lista *</label>
           <select id="adm-sel-obra" onchange="admSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
@@ -557,65 +507,78 @@ async function storageUrl(path){
           </select>
         </div>
 
+        <!-- Preview datos técnicos de la obra -->
         <div id="adm-obra-preview" style="display:none;"></div>
 
+        <!-- Dos opciones -->
         <div id="adm-opciones" style="display:none;">
-          <div class="opcion-cards">
-            <div class="opcion-card" onclick="admOpcion('busqueda')">
-              <div class="opcion-card-ico">📢</div>
-              <div class="opcion-card-t">Activar Búsqueda</div>
-              <div class="opcion-card-s">Facebook · Messenger</div>
-            </div>
-            <div class="opcion-card" onclick="admOpcion('directo')">
-              <div class="opcion-card-ico">👷</div>
-              <div class="opcion-card-t">Cargar Directamente</div>
-              <div class="opcion-card-s">Ya elegiste al contratista</div>
-            </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <button class="btn btn-p btn-lg" style="justify-content:center;flex-direction:column;gap:4px;padding:16px;" onclick="admOpcion('busqueda')">
+              <div style="font-size:22px;">📢</div>
+              <div>Activar Búsqueda</div>
+              <div style="font-size:9px;opacity:.7;font-weight:400;">Facebook + Messenger</div>
+            </button>
+            <button class="btn btn-y btn-lg" style="justify-content:center;flex-direction:column;gap:4px;padding:16px;" onclick="admOpcion('directo')">
+              <div style="font-size:22px;">👷</div>
+              <div>Cargar Directamente</div>
+              <div style="font-size:9px;opacity:.7;font-weight:400;color:#333;">Ya elegiste el contratista</div>
+            </button>
           </div>
         </div>
 
+        <!-- Formulario carga directa -->
         <div id="adm-form-ct" style="display:none;">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;margin-top:4px;">Documentos de Identidad</div>
-          <div class="upload-trio">
-            <div class="upload-zone" id="uz-ci" onclick="document.getElementById('fi-ci').click()">
-              <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
-              <div class="uz-ok" id="txt-ci"></div>
-              <input type="file" id="fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ci',this)">
-            </div>
-            <div class="upload-zone" id="uz-ag" onclick="document.getElementById('fi-ag').click()">
-              <div class="uz-ico">💧</div><div class="uz-lbl">Aviso Agua</div>
-              <div class="uz-ok" id="txt-ag"></div>
-              <input type="file" id="fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ag',this)">
-            </div>
-            <div class="upload-zone" id="uz-lz" onclick="document.getElementById('fi-lz').click()">
-              <div class="uz-ico">⚡</div><div class="uz-lbl">Aviso Luz</div>
-              <div class="uz-ok" id="txt-lz"></div>
-              <input type="file" id="fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('lz',this)">
-            </div>
-          </div>
+          <div style="background:linear-gradient(135deg,rgba(245,196,0,.08),var(--p1));border:1px solid rgba(245,196,0,.3);border-radius:8px;padding:16px;margin-bottom:16px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:14px;">👷 DATOS DEL CONTRATISTA ELEGIDO</div>
 
-          <div class="fg fg3" style="margin-bottom:12px;">
-            <div class="f"><label>Nombre Completo *</label><input id="adm-ct-nom" placeholder="Juan Carlos Morales"></div>
-            <div class="f"><label>Teléfono *</label><input id="adm-ct-tel" placeholder="72345678"></div>
-            <div class="f"><label>N° C.I.</label><input id="adm-ct-ci" placeholder="14789456"></div>
-            <div class="f full"><label>Dirección</label><input id="adm-ct-dir" placeholder="Zona, calle, número"></div>
-          </div>
+            <!-- Documentos -->
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Documentos de Identidad</div>
+            <div class="upload-trio" style="margin-bottom:16px;">
+              <div class="upload-zone" id="uz-ci" onclick="document.getElementById('fi-ci').click()">
+                <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
+                <div class="uz-ok" id="txt-ci"></div>
+                <input type="file" id="fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ci',this)">
+              </div>
+              <div class="upload-zone" id="uz-ag" onclick="document.getElementById('fi-ag').click()">
+                <div class="uz-ico">💧</div><div class="uz-lbl">Aviso Agua</div>
+                <div class="uz-ok" id="txt-ag"></div>
+                <input type="file" id="fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ag',this)">
+              </div>
+              <div class="upload-zone" id="uz-lz" onclick="document.getElementById('fi-lz').click()">
+                <div class="uz-ico">⚡</div><div class="uz-lbl">Aviso Luz</div>
+                <div class="uz-ok" id="txt-lz"></div>
+                <input type="file" id="fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('lz',this)">
+              </div>
+            </div>
 
-          <div class="fg" style="margin-bottom:12px;gap:8px;">
-            <div class="f full"><label>Condiciones especiales pactadas</label><textarea id="adm-ct-cond" rows="2" placeholder="Condiciones de ejecución, materiales, herramientas..."></textarea></div>
-            <div class="f full"><label>Datos de negociación</label><textarea id="adm-ct-neg" rows="2" placeholder="Precio final, ajustes, acuerdos..."></textarea></div>
+            <!-- Datos personales -->
+            <div class="fg fg3" style="margin-bottom:14px;">
+              <div class="f"><label>Nombre Completo *</label><input id="adm-ct-nom" placeholder="Juan Carlos Morales"></div>
+              <div class="f"><label>Teléfono *</label><input id="adm-ct-tel" placeholder="72345678"></div>
+              <div class="f"><label>N° C.I.</label><input id="adm-ct-ci" placeholder="14789456"></div>
+              <div class="f full"><label>Dirección</label><input id="adm-ct-dir" placeholder="Zona, calle, número"></div>
+            </div>
+
+            <!-- Datos de negociación que cerró JoseMiguel -->
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;margin-top:6px;">Condiciones de Negociación Cerradas</div>
+            <div class="fg fg2" style="margin-bottom:14px;">
+              <div class="f full"><label>Condiciones especiales pactadas</label><textarea id="adm-ct-cond" rows="2" placeholder="Condiciones de ejecución, materiales a cargo, herramientas especiales..."></textarea></div>
+              <div class="f full"><label>Datos de negociación (precio final, ajustes, acuerdos)</label><textarea id="adm-ct-neg" rows="3" placeholder="ej: Se acordó precio de $8,500 USD por la obra completa. Se incluye movilización. Pago 30/40/30 según avance verificado por supervisor..."></textarea></div>
+            </div>
           </div>
 
           <div class="brow">
-            <button class="btn btn-y" onclick="admGuardarContratista()">💾 Guardar y Generar Contrato</button>
-            <button class="btn btn-o btn-sm" onclick="admLimpiar()">Limpiar</button>
+            <button class="btn btn-y btn-lg" onclick="admGuardarContratista()">💾 GUARDAR Y GENERAR CONTRATO</button>
+            <button class="btn btn-o" onclick="admLimpiar()">🔄 Limpiar</button>
           </div>
           <div id="adm-msg" style="margin-top:10px;"></div>
         </div>
+
       </div>
 
+      <!-- Resumen ejecutivo -->
       <div class="card">
-        <div style="font-size:10px;font-weight:700;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Resumen — Todas las Obras</div>
+        <div class="ct">📊 Resumen Ejecutivo — Todas las Obras</div>
         <div class="tw"><table>
           <thead><tr><th>Obra</th><th>Estado</th><th>Contratista</th><th>Monto</th><th>Contrato</th></tr></thead>
           <tbody id="adm-tabla"></tbody>
@@ -625,15 +588,11 @@ async function storageUrl(path){
     </div>
 
     <!-- ══════════════════════════════════════════
-         PANEL SUPERVISOR MEJORADO — Arq. Raí
+         PANEL SUPERVISOR — Solo lectura
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-sup">
-      <div class="sh">
-        <div class="sh-ico green">🏗️</div>
-        <div><div class="sh-t">Supervisión de Campo</div><div class="sh-s">Arq. Raí — Paquete completo por obra</div></div>
-      </div>
-
-      <div class="card">
+      <div class="card" style="border-top:3px solid var(--Gc);">
+        <div class="ct" style="color:var(--Gc);">🏗️ SUPERVISIÓN DE CAMPO</div>
         <div class="f" style="margin-bottom:14px;">
           <label>Seleccionar Obra</label>
           <select id="sup-sel" onchange="supSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
@@ -642,140 +601,55 @@ async function storageUrl(path){
         </div>
         <div id="sup-content"></div>
       </div>
-
-      <div class="card">
-        <div style="font-size:10px;font-weight:700;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Estado General de Obras</div>
-        <div id="sup-resumen-general"></div>
-      </div>
     </div>
 
-    <!-- ══════════════════════════════════════════
-         PANEL CEO / ADMIN JOSEMIGUEL
-         Con KPIs + acceso a todos los paneles
-    ══════════════════════════════════════════ -->
-    <div class="panel" id="panel-ceo">
 
-      <div class="sh">
-        <div class="sh-ico gold">📊</div>
-        <div><div class="sh-t">Dashboard CEO</div><div class="sh-s">Josemiguel — Vista ejecutiva + acceso completo</div></div>
-      </div>
-
-      <!-- KPIs ejecutivos -->
-      <div class="kpi-grid" id="ceo-kpis">
-        <div class="kpi k-gold"><div class="kpi-val" id="kpi-obras">—</div><div class="kpi-lbl">Obras Totales</div></div>
-        <div class="kpi k-green"><div class="kpi-val" id="kpi-contratos">—</div><div class="kpi-lbl">Contratos Firmados</div></div>
-        <div class="kpi k-blue"><div class="kpi-val" id="kpi-pendientes">—</div><div class="kpi-lbl">En Proceso</div></div>
-        <div class="kpi k-red"><div class="kpi-val" id="kpi-sin-ct">—</div><div class="kpi-lbl">Sin Contratista</div></div>
-      </div>
-      <div class="kpi-grid" style="margin-bottom:18px;">
-        <div class="kpi k-gold"><div class="kpi-val" id="kpi-m2">—</div><div class="kpi-lbl">m² activos</div></div>
-        <div class="kpi k-green"><div class="kpi-val" id="kpi-monto">—</div><div class="kpi-lbl">Monto USD</div></div>
-        <div class="kpi k-purple"><div class="kpi-val" id="kpi-rev-pendiente">—</div><div class="kpi-lbl">Revisar Steffi</div></div>
-        <div class="kpi k-blue"><div class="kpi-val" id="kpi-listo-firma">—</div><div class="kpi-lbl">Para Firma</div></div>
-      </div>
-
-      <!-- Tabs acceso completo -->
-      <div class="card" style="padding-top:12px;">
-        <div class="ceo-tabs">
-          <button class="ceo-tab on" onclick="ceoPestana('asignar')">⚙️ Asignar</button>
-          <button class="ceo-tab" onclick="ceoPestana('steffi')">⚖️ Legal</button>
-          <button class="ceo-tab" onclick="ceoPestana('fatima')">📋 Técnico</button>
-          <button class="ceo-tab" onclick="ceoPestana('supervisor')">🏗️ Campo</button>
-          <button class="ceo-tab" onclick="ceoPestana('auditoria')">🗒️ Auditoría</button>
+    <!-- PANEL ADMIN FULL — Control Total CEO -->
+    <div class="panel" id="panel-adm-full">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p1));border:1px solid var(--am);border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:26px;font-weight:900;color:var(--am);" id="kpi-obras">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Obras Totales</div>
         </div>
-
-        <!-- SUB: ASIGNAR -->
-        <div class="ceo-sub on" id="csub-asignar">
-          <div class="f" style="margin-bottom:14px;">
-            <label>Elegir Obra Lista *</label>
-            <select id="ceo-adm-sel-obra" onchange="ceoAdmSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
-              <option value="">— Seleccioná una obra —</option>
-            </select>
-          </div>
-          <div id="ceo-adm-obra-preview" style="display:none;"></div>
-          <div id="ceo-adm-opciones" style="display:none;">
-            <div class="opcion-cards">
-              <div class="opcion-card" onclick="ceoAdmOpcion('busqueda')">
-                <div class="opcion-card-ico">📢</div>
-                <div class="opcion-card-t">Activar Búsqueda</div>
-                <div class="opcion-card-s">Facebook · Messenger</div>
-              </div>
-              <div class="opcion-card" onclick="ceoAdmOpcion('directo')">
-                <div class="opcion-card-ico">👷</div>
-                <div class="opcion-card-t">Cargar Directamente</div>
-                <div class="opcion-card-s">Ya elegiste al contratista</div>
-              </div>
-            </div>
-          </div>
-          <div id="ceo-adm-form-ct" style="display:none;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;margin-top:4px;">Documentos de Identidad</div>
-              <div class="upload-trio" style="margin-bottom:16px;">
-                <div class="upload-zone" id="ceo-uz-ci" onclick="document.getElementById('ceo-fi-ci').click()">
-                  <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
-                  <div class="uz-ok" id="ceo-txt-ci"></div>
-                  <input type="file" id="ceo-fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="ceoOnUpCt('ci',this)">
-                </div>
-                <div class="upload-zone" id="ceo-uz-ag" onclick="document.getElementById('ceo-fi-ag').click()">
-                  <div class="uz-ico">💧</div><div class="uz-lbl">Aviso Agua</div>
-                  <div class="uz-ok" id="ceo-txt-ag"></div>
-                  <input type="file" id="ceo-fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="ceoOnUpCt('ag',this)">
-                </div>
-                <div class="upload-zone" id="ceo-uz-lz" onclick="document.getElementById('ceo-fi-lz').click()">
-                  <div class="uz-ico">⚡</div><div class="uz-lbl">Aviso Luz</div>
-                  <div class="uz-ok" id="ceo-txt-lz"></div>
-                  <input type="file" id="ceo-fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="ceoOnUpCt('lz',this)">
-                </div>
-              </div>
-              <div class="fg fg3" style="margin-bottom:12px;">
-                <div class="f"><label>Nombre Completo *</label><input id="ceo-adm-ct-nom" placeholder="Juan Carlos Morales"></div>
-                <div class="f"><label>Teléfono *</label><input id="ceo-adm-ct-tel" placeholder="72345678"></div>
-                <div class="f"><label>N° C.I.</label><input id="ceo-adm-ct-ci" placeholder="14789456"></div>
-                <div class="f full"><label>Dirección</label><input id="ceo-adm-ct-dir" placeholder="Zona, calle, número"></div>
-              </div>
-              <div class="fg" style="gap:8px;margin-bottom:12px;">
-                <div class="f full"><label>Condiciones especiales</label><textarea id="ceo-adm-ct-cond" rows="2" placeholder="Condiciones de ejecución..."></textarea></div>
-                <div class="f full"><label>Datos de negociación</label><textarea id="ceo-adm-ct-neg" rows="2" placeholder="Precio final, ajustes, acuerdos..."></textarea></div>
-              </div>
-            <div class="brow">
-              <button class="btn btn-y" onclick="ceoAdmGuardarContratista()">💾 Guardar y Generar Contrato</button>
-              <button class="btn btn-o btn-sm" onclick="ceoAdmLimpiar()">Limpiar</button>
-            </div>
-            <div id="ceo-adm-msg" style="margin-top:10px;"></div>
-          </div>
-          <div class="tw" style="margin-top:14px;"><table>
-            <thead><tr><th>Obra</th><th>Estado</th><th>Contratista</th><th>Monto</th><th>Contrato</th></tr></thead>
-            <tbody id="ceo-adm-tabla"></tbody>
-          </table></div>
+        <div style="background:linear-gradient(135deg,rgba(4,120,86,.15),var(--p1));border:1px solid var(--G);border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:26px;font-weight:900;color:var(--Gc);" id="kpi-monto">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">USD Comprometido</div>
         </div>
-
-        <!-- SUB: REVISIÓN STEFFI -->
-        <div class="ceo-sub" id="csub-steffi">
-          <div id="ceo-steffi-obras-lista"></div>
-          <div id="ceo-steffi-editor-area" style="display:none;"></div>
+        <div style="background:linear-gradient(135deg,rgba(30,64,175,.15),var(--p1));border:1px solid var(--Z);border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:26px;font-weight:900;color:var(--Zc);" id="kpi-contratos">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Contratos Activos</div>
         </div>
-
-        <!-- SUB: DATOS TÉCNICOS FÁTIMA -->
-        <div class="ceo-sub" id="csub-fatima">
-          <div id="ceo-fat-lista"></div>
-        </div>
-
-        <!-- SUB: SUPERVISIÓN -->
-        <div class="ceo-sub" id="csub-supervisor">
-          <div class="f" style="margin-bottom:14px;">
-            <label>Seleccionar Obra</label>
-            <select id="ceo-sup-sel" onchange="ceoSupSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
-              <option value="">— Seleccioná una obra —</option>
-            </select>
-          </div>
-          <div id="ceo-sup-content"></div>
-        </div>
-
-        <!-- SUB: AUDITORÍA -->
-        <div class="ceo-sub" id="csub-auditoria">
-          <div id="ceo-audit-lista"></div>
+        <div style="background:linear-gradient(135deg,rgba(91,33,182,.15),var(--p1));border:1px solid var(--P);border-radius:8px;padding:14px;text-align:center;">
+          <div style="font-size:26px;font-weight:900;color:var(--Pc);" id="kpi-pendientes">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);">Acciones Pendientes</div>
         </div>
       </div>
-
+      <div id="adm-alertas" style="margin-bottom:14px;"></div>
+      <div class="card">
+        <div class="ct">📊 Estado Completo — Todas las Obras</div>
+        <div class="tw">
+          <table><thead><tr><th>Obra</th><th>Estado</th><th>Contratista</th><th>USD</th><th>Bs</th><th>Contrato</th><th>Acción</th></tr></thead>
+          <tbody id="adm-tbody-full"></tbody></table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">💰 Desglose Financiero</div>
+        <div id="adm-financiero"></div>
+      </div>
+      <div class="card">
+        <div class="ct">📝 Gestión de Contratos</div>
+        <div id="adm-contratos-lista"></div>
+      </div>
+      <div class="card">
+        <div class="ct">📋 Auditoría del Sistema</div>
+        <div id="adm-auditoria" style="font-size:10px;color:var(--wd);line-height:2;max-height:240px;overflow-y:auto;"></div>
+        <button class="btn btn-o btn-sm" onclick="admCargarAuditoria()" style="margin-top:10px;">🔄 Actualizar</button>
+      </div>
+      <div class="card" style="border-color:var(--R);">
+        <div class="ct" style="color:var(--Rc);">🗑️ Zona de Gestión Avanzada</div>
+        <div class="al al-r" style="margin-bottom:14px;">⚠️ Acciones irreversibles.</div>
+        <div id="adm-zona-peligro"></div>
+      </div>
     </div>
 
   </main>
@@ -807,27 +681,6 @@ const USERS={
   '3343':{n:'Steffi Villarpando',r:'steffi',icon:'⚖️'},
   '6677':{n:'Arq. Raí',r:'supervisor',icon:'🏗️'}
 };
-// Cache de PINs cargados desde Supabase
-let pinsCache=null;
-
-async function cargarPins(){
-  if(pinsCache)return pinsCache;
-  try{
-    const {data,error}=await sb.from('app_config').select('key,value').like('key','pin_%');
-    if(error||!data?.length)return USERS;
-    const m={};
-    data.forEach(r=>{
-      // clave esperada: pin_admin, pin_fatima, pin_steffi, pin_supervisor
-      const pin=r.value?.toString().trim();
-      const rol=r.key.replace('pin_','');
-      const base=Object.values(USERS).find(u=>u.r===rol||u.n.toLowerCase()===rol);
-      if(pin&&base)m[pin]={...base};
-    });
-    // Si el map quedó vacío (claves no encontradas), devolver USERS original
-    pinsCache=Object.keys(m).length?m:USERS;
-    return pinsCache;
-  }catch(e){return USERS;}
-}
 
 let CU=null,pinBuf='',obras=[],contratos=[];
 let nueObraFiles={dig:null,esc:null};
@@ -842,10 +695,8 @@ let admObraId=null;
 function pin(n){if(pinBuf.length>=4)return;pinBuf+=n;updDots();if(pinBuf.length===4)setTimeout(tryLogin,150);}
 function delPin(){pinBuf=pinBuf.slice(0,-1);updDots();document.getElementById('pin-err').textContent='';document.querySelectorAll('.pin-dot').forEach(d=>d.classList.remove('error'));}
 function updDots(){for(let i=0;i<4;i++)document.getElementById('d'+i).classList.toggle('filled',i<pinBuf.length);}
-async function tryLogin(){
-  // Intentar primero contra Supabase, fallback a USERS local
-  const users=await cargarPins();
-  const u=users[pinBuf]||USERS[pinBuf];
+function tryLogin(){
+  const u=USERS[pinBuf];
   if(!u){
     document.querySelectorAll('.pin-dot').forEach(d=>{d.classList.remove('filled');d.classList.add('error');});
     document.getElementById('pin-err').textContent='PIN incorrecto.';
@@ -861,8 +712,8 @@ async function tryLogin(){
   dbCargar();
   dbLog(u.n,'Sesión iniciada');
 }
-function logout(){CU=null;pinBuf='';pinsCache=null;document.getElementById('screen-login').style.display='flex';document.getElementById('app').style.display='none';updDots();}
-function panelInicial(){return{admin:'ceo',steffi:'steffi',fatima:'fatima',supervisor:'sup'}[CU.r]||'ceo';}
+function logout(){CU=null;pinBuf='';document.getElementById('screen-login').style.display='flex';document.getElementById('app').style.display='none';updDots();}
+function panelInicial(){return{admin:'adm-full',steffi:'steffi',fatima:'fatima',supervisor:'sup'}[CU.r]||'adm-full';}
 
 // ═══════════════════════════════════════════════════
 // NAV POR ROL
@@ -871,10 +722,10 @@ function buildNav(){
   const nav=document.getElementById('nav');nav.innerHTML='';
   const maps={
     admin:[
-      {id:'ceo',l:'📊 Dashboard CEO'},
-      {id:'admin',l:'⚙️ Asignar Contratista'},
-      {id:'steffi',l:'⚖️ Revisión Legal'},
-      {id:'fatima',l:'📋 Datos Técnicos'},
+      {id:'adm-full',l:'🔧 Control Total'},
+      {id:'admin',l:'👷 Contratista'},
+      {id:'steffi',l:'⚖️ Contratos'},
+      {id:'fatima',l:'📋 Datos Obra'},
       {id:'sup',l:'🏗️ Supervisión'}
     ],
     steffi:[{id:'steffi',l:'⚖️ Mi Panel'}],
@@ -894,8 +745,8 @@ function goPanel(id){
   if(id==='steffi')renderSteffii();
   if(id==='fatima')renderFatima();
   if(id==='admin')renderAdmin();
+  if(id==='adm-full')renderAdmFull();
   if(id==='sup')renderSup();
-  if(id==='ceo')renderCeo();
 }
 
 // ═══════════════════════════════════════════════════
@@ -907,7 +758,7 @@ function gCByObra(oid){return contratos.find(c=>c.oid===oid);}
 function aOv(n){document.getElementById('ov-'+n).classList.add('on');}
 function cOv(n){document.getElementById('ov-'+n).classList.remove('on');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)cOv(o.id.replace('ov-',''));}));
-function renderTodo(){renderSteffii();renderFatima();renderAdmin();renderSup();renderCeo();}
+function renderTodo(){renderSteffii();renderFatima();renderAdmin();renderAdmFull();renderSup();}
 function fechaFin(fi,di){if(!fi||!di)return '—';try{const d=new Date(fi);d.setDate(d.getDate()+parseInt(di));return d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});}catch(e){return '—';}}
 function estadoObra(o){
   const ct=gCByObra(o.id);
@@ -997,56 +848,144 @@ function renderSteffii(){
 }
 
 function steffAbrirEditor(oid){
-  const o=obras.find(x=>x.id===oid);if(!o)return;
-  const ct=gCByObra(oid);if(!ct||!ct.texto)return;
-  const area=document.getElementById('steffi-editor-area');if(!area)return;
-  const ed=ct.ed_count||0,bloq=ct.bloqueado||false,hist=ct.historial||[];
-  const cntCls=bloq?'ed-danger':ed>=2?'ed-warn':'ed-ok';
-  const cntLbl=bloq?'🔒 BLOQUEADO':ed+'/3 ediciones';
-  const isFirmado=ct.est_ct==='firmado',isAprobado=ct.est_ct==='aprobado';
+  var o=obras.find(function(x){return x.id===oid;});if(!o)return;
+  var ct=gCByObra(oid);if(!ct||!ct.texto)return;
+  var area=document.getElementById('steffi-editor-area');if(!area)return;
+  var ed=ct.ed_count||0,bloq=ct.bloqueado||false,hist=ct.historial||[];
+  var cntCls=bloq?'ed-danger':ed>=2?'ed-warn':'ed-ok';
+  var cntLbl=bloq?'BLOQUEADO':ed+'/3 ediciones';
+  var isFirmado=ct.est_ct==='firmado',isAprobado=ct.est_ct==='aprobado';
+  // Contenedor principal
   area.style.display='block';
-  area.innerHTML=`<div class="card" style="border:2px solid var(--am);">
-    <div class="ct">⚖️ Editando contrato: ${o.nom} — ${ct.nom}</div>
-
-    <!-- PAGOS INFO -->
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
-      ${[['30% Anticipo inicio','0.30'],['40% Al 50% avance','0.40'],['30% Entrega final','0.30']].map((p,i)=>{
-        const usd=(o.monto*parseFloat(p[1])).toFixed(2),bs=Math.round(o.monto*parseFloat(p[1])*6.96);
-        return `<div style="background:var(--p2);border-radius:4px;padding:10px;text-align:center;">
-          <div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Pago ${i+1}: ${p[0]}</div>
-          <div style="font-size:14px;font-weight:900;color:var(--am);">$${usd}</div>
-          <div style="font-size:10px;color:var(--wd);">Bs ${bs.toLocaleString('es-BO')}</div>
-        </div>`;
-      }).join('')}
-    </div>
-
-    <div class="ed-counter ${cntCls}" style="margin-bottom:10px;">${cntLbl}</div>
-    ${hist.length?`<div class="historial"><div style="font-size:9px;color:var(--am);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">📋 Historial de cambios</div>${hist.map(h=>`<div class="hist-row"><b>Ed.${h.e}</b> · ${h.n} · ${h.f}</div>`).join('')}</div>`:''}
-
-    ${!isFirmado?`
-    <textarea class="ct-editor" id="ed-txt-${ct.id}">${ct.texto}</textarea>
-    <div class="brow">
-      ${!bloq?`<button class="btn btn-y" onclick="steffGuardar(${ct.id},${oid})">💾 Guardar Cambios</button>`:''}
-      ${!bloq?`<button class="btn btn-p" id="btn-ia-${ct.id}" onclick="steffIA(${ct.id})">🤖 Editar con IA</button>`:''}
-      ${!isAprobado&&!bloq?`<button class="btn btn-g" onclick="steffAprobar(${ct.id})">✅ APROBAR CONTRATO</button>`:''}
-      ${isAprobado?`<button class="btn btn-g" onclick="steffImprimir(${ct.id})">🖨️ IMPRIMIR PARA FIRMA</button>`:''}
-      ${bloq&&CU.r==='admin'?`<button class="btn btn-r btn-sm" onclick="steffDesbloquear(${ct.id})">🔓 Desbloquear</button>`:''}
-    </div>
-
-    <!-- PASO 5: subir escaneado firmado -->
-    ${isAprobado?`<div style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px;">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">PASO 5 — Cargar Contrato Firmado por Contratista</div>
-      <div class="upload-zone" onclick="document.getElementById('fi-firmado-${ct.id}').click()">
-        <div class="uz-ico">📝</div>
-        <div class="uz-lbl">Subir escaneado firmado</div>
-        <div class="uz-sub">PDF · JPG · PNG</div>
-        <input type="file" id="fi-firmado-${ct.id}" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="steffSubirFirmado(${ct.id},this)">
-      </div>
-    </div>`:''}
-    `:`<div class="al al-g">✅ Contrato firmado cargado. Proceso completado.</div>`}
-
-    <div style="margin-top:10px;"><button class="btn btn-o btn-sm" onclick="document.getElementById('steffi-editor-area').style.display='none'">↩ Cerrar editor</button></div>
-  </div>`;
+  area.innerHTML='';
+  var wrap=document.createElement('div');
+  wrap.className='card';
+  wrap.style.cssText='border:2px solid var(--am);';
+  // Titulo
+  var titulo=document.createElement('div');
+  titulo.className='ct';
+  titulo.textContent='Editando: '+o.nom+' - '+ct.nom;
+  wrap.appendChild(titulo);
+  // Pagos
+  var pagosDiv=document.createElement('div');
+  pagosDiv.style.cssText='display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;';
+  var pagos=[['30% Anticipo',0.30],['40% Avance 50%',0.40],['30% Entrega',0.30]];
+  for(var pi=0;pi<pagos.length;pi++){
+    var pusd=(o.monto*pagos[pi][1]).toFixed(2);
+    var pbs=Math.round(o.monto*pagos[pi][1]*6.96);
+    var pd=document.createElement('div');
+    pd.style.cssText='background:var(--p2);border-radius:4px;padding:10px;text-align:center;';
+    pd.innerHTML='<div style="font-size:9px;color:var(--ws);margin-bottom:4px;">Pago '+(pi+1)+': '+pagos[pi][0]+'</div>'
+      +'<div style="font-size:14px;font-weight:900;color:var(--am);">$'+pusd+'</div>'
+      +'<div style="font-size:10px;color:var(--wd);">Bs '+pbs.toLocaleString('es-BO')+'</div>';
+    pagosDiv.appendChild(pd);
+  }
+  wrap.appendChild(pagosDiv);
+  // Contador ediciones
+  var cnt=document.createElement('div');
+  cnt.className='ed-counter '+cntCls;
+  cnt.style.marginBottom='10px';
+  cnt.textContent=cntLbl;
+  wrap.appendChild(cnt);
+  // Historial
+  if(hist.length){
+    var hbox=document.createElement('div');
+    hbox.className='historial';
+    hbox.style.marginBottom='10px';
+    var htit=document.createElement('div');
+    htit.style.cssText='font-size:9px;color:var(--am);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;';
+    htit.textContent='Historial de cambios';
+    hbox.appendChild(htit);
+    for(var hi=0;hi<hist.length;hi++){
+      var hr=document.createElement('div');
+      hr.className='hist-row';
+      hr.innerHTML='<b>Ed.'+hist[hi].e+'</b> · '+hist[hi].n+' · '+hist[hi].f;
+      hbox.appendChild(hr);
+    }
+    wrap.appendChild(hbox);
+  }
+  // Contenido principal
+  if(!isFirmado){
+    // Textarea
+    var ta=document.createElement('textarea');
+    ta.className='ct-editor';
+    ta.id='ed-txt-'+ct.id;
+    ta.value=ct.texto;
+    wrap.appendChild(ta);
+    // Botones
+    var brow=document.createElement('div');
+    brow.className='brow';
+    brow.style.marginTop='8px';
+    if(!bloq){
+      var bGuardar=document.createElement('button');
+      bGuardar.type='button';bGuardar.className='btn btn-y';
+      bGuardar.textContent='Guardar Cambios';
+      bGuardar.onclick=(function(cid,oidv){return function(){steffGuardar(cid,oidv);};})(ct.id,oid);
+      brow.appendChild(bGuardar);
+      var bIA=document.createElement('button');
+      bIA.type='button';bIA.className='btn btn-p';bIA.id='btn-ia-'+ct.id;
+      bIA.textContent='Editar con IA';
+      bIA.onclick=(function(cid){return function(){steffIA(cid);};})(ct.id);
+      brow.appendChild(bIA);
+    }
+    if(!isAprobado&&!bloq){
+      var bAp=document.createElement('button');
+      bAp.type='button';bAp.className='btn btn-g';
+      bAp.textContent='APROBAR';
+      bAp.onclick=(function(cid){return function(){steffAprobar(cid);};})(ct.id);
+      brow.appendChild(bAp);
+    }
+    if(isAprobado){
+      var bImp=document.createElement('button');
+      bImp.type='button';bImp.className='btn btn-g';
+      bImp.textContent='IMPRIMIR PARA FIRMA';
+      bImp.onclick=(function(cid){return function(){steffImprimir(cid);};})(ct.id);
+      brow.appendChild(bImp);
+    }
+    if(bloq&&CU.r==='admin'){
+      var bDesl=document.createElement('button');
+      bDesl.type='button';bDesl.className='btn btn-r btn-sm';
+      bDesl.textContent='Desbloquear';
+      bDesl.onclick=(function(cid){return function(){steffDesbloquear(cid);};})(ct.id);
+      brow.appendChild(bDesl);
+    }
+    wrap.appendChild(brow);
+    // Zona subir firmado
+    if(isAprobado){
+      var zfirm=document.createElement('div');
+      zfirm.style.cssText='margin-top:16px;border-top:1px solid var(--bd);padding-top:14px;';
+      var ztit=document.createElement('div');
+      ztit.style.cssText='font-size:9px;text-transform:uppercase;color:var(--ws);margin-bottom:8px;font-weight:700;';
+      ztit.textContent='PASO 5 - Cargar Contrato Firmado';
+      zfirm.appendChild(ztit);
+      var uz=document.createElement('div');
+      uz.className='upload-zone';
+      var finp=document.createElement('input');
+      finp.type='file';finp.accept='.pdf,.jpg,.jpeg,.png,image/*';
+      finp.style.display='none';
+      finp.onchange=(function(cid){return function(){steffSubirFirmado(cid,this);};})(ct.id);
+      uz.onclick=function(){finp.click();};
+      uz.innerHTML='<div class="uz-ico">📝</div><div class="uz-lbl">Subir escaneado firmado</div><div class="uz-sub">PDF / JPG / PNG</div>';
+      uz.appendChild(finp);
+      zfirm.appendChild(uz);
+      wrap.appendChild(zfirm);
+    }
+  } else {
+    var firmMsg=document.createElement('div');
+    firmMsg.className='al al-g';
+    firmMsg.textContent='Contrato firmado cargado. Proceso completado.';
+    wrap.appendChild(firmMsg);
+  }
+  // Botón cerrar
+  var bcerrar=document.createElement('div');
+  bcerrar.style.marginTop='10px';
+  var btnCerrar=document.createElement('button');
+  btnCerrar.type='button';btnCerrar.className='btn btn-o btn-sm';
+  btnCerrar.textContent='Cerrar editor';
+  btnCerrar.onclick=function(){document.getElementById('steffi-editor-area').style.display='none';};
+  bcerrar.appendChild(btnCerrar);
+  wrap.appendChild(bcerrar);
+  area.appendChild(wrap);
   area.scrollIntoView({behavior:'smooth'});
 }
 
@@ -1346,8 +1285,7 @@ function admSelObra(oid){
       <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 2 — 40%</div><div style="font-size:12px;font-weight:900;">$${p2u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p2b.toLocaleString('es-BO')}</div></div>
       <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 3 — 30%</div><div style="font-size:12px;font-weight:900;">$${p3u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p3b.toLocaleString('es-BO')}</div></div>
     </div>
-    ${o.mods.length?`<div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Módulos confirmados por Fátima</div>
-    <div class="mods-grid">${o.mods.map((m,i)=>`<div class="mod-item"><span class="mod-num">M${String(i+1).padStart(2,'0')}</span> ${m}</div>`).join('')}</div>`:''}
+    '+(o.mods&&o.mods.length?'<div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Módulos confirmados por Fátima</div><div class="mods-grid">'+o.mods.map(function(m,i){return '<div class="mod-item"><span class="mod-num">M'+String(i+1).padStart(2,'0')+'</span> '+m+'</div>';}).join('')+'</div>':'')+'
   </div>`;
   opc.style.display='block';
   form.style.display='none';
@@ -1427,7 +1365,7 @@ function renderAdmTabla(){
       <td><span class="badge ${est.cls}">${est.lab}</span></td>
       <td>${ct?ct.nom:'<span style="color:var(--ws);">—</span>'}</td>
       <td style="color:var(--am);font-weight:700;">${o.sup?'$'+o.monto.toFixed(0):'<span style="color:var(--ws);">—</span>'}</td>
-      <td>${ct?`<span style="font-size:9px;">${ct.est_ct}</span>`:'<span style="color:var(--ws);">—</span>'}</td>
+      <td>${ct?'<span style="font-size:9px;">'+ct.est_ct+'</span>':'<span style="color:var(--ws);">—</span>'}</td>
     </tr>`;
   }).join('');
 }
@@ -1505,7 +1443,7 @@ NOTAS DE PAGO:
   • SOAT-C debe presentarse en máximo 3 días del primer pago
     (Multa por atraso: Bs 50/día)
 
-${neg?`ACUERDOS DE NEGOCIACIÓN ADICIONALES:\n${neg}`:''}
+${neg?'ACUERDOS DE NEGOCIACION ADICIONALES:\n'+neg:''}
 
 ════════════════════════════════════════════════════
 CLÁUSULA CUARTA — PLAZO DE EJECUCIÓN
@@ -1550,7 +1488,7 @@ CLÁUSULA SÉPTIMA — PENALIDADES
   • Abandono de obra: Retención total del pago pendiente
   • Divulgar planos o diseños: Responsabilidad civil y penal
 
-${cond?`════════════════════════════════════════════════════\nCLÁUSULA OCTAVA — CONDICIONES ESPECIALES\n════════════════════════════════════════════════════\n\n${cond}\n`:''}
+${cond?'=====================================\nCLAUSULA OCTAVA - CONDICIONES ESPECIALES\n=====================================\n\n'+cond+'\n':''}
 ════════════════════════════════════════════════════
 FIRMAS DE CONFORMIDAD
 ════════════════════════════════════════════════════
@@ -1568,572 +1506,180 @@ Contratista                          GAMBARTE ARQUITECTURA S.R.L.`;
 // ═══════════════════════════════════════════════════
 // PANEL SUPERVISOR
 // ═══════════════════════════════════════════════════
+function renderSup(){
+  const sel=document.getElementById('sup-sel');if(!sel)return;
+  const activas=obras.filter(o=>o.sup>0);
+  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+activas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
+}
 function supSelObra(oid){
-  const c=document.getElementById('sup-content');if(!c)return;
+  var c=document.getElementById('sup-content');if(!c)return;
   if(!oid){c.innerHTML='';return;}
-  const o=obras.find(x=>x.id==oid);if(!o)return;
-  const ct=gCByObra(o.id);
-  const monto=o.monto,montoBs=Math.round(monto*6.96);
-  const p1u=(monto*.30).toFixed(2),p1b=Math.round(monto*.30*6.96);
-  const p2u=(monto*.40).toFixed(2),p2b=Math.round(monto*.40*6.96);
-  const p3u=(monto*.30).toFixed(2),p3b=Math.round(monto*.30*6.96);
-  // Calcular progreso de tiempo
-  let barHtml='',diasInfo='';
+  var o=obras.find(function(x){return x.id==oid;});if(!o)return;
+  var ct=gCByObra(o.id);
+  var monto=o.monto||0;
+  var p1u=(monto*0.30).toFixed(2),p1b=Math.round(monto*0.30*6.96);
+  var p2u=(monto*0.40).toFixed(2),p2b=Math.round(monto*0.40*6.96);
+  var p3u=(monto*0.30).toFixed(2),p3b=Math.round(monto*0.30*6.96);
+  var diasRest='',pct=0,colorBarra='var(--am)';
   if(o.fi&&o.di){
-    const inicio=new Date(o.fi),fin=new Date(inicio);fin.setDate(fin.getDate()+parseInt(o.di));
-    const hoy=new Date(),total=fin-inicio,transc=hoy-inicio;
-    const pct=Math.min(100,Math.max(0,Math.round(transc/total*100)));
-    const color=pct>90?'#f87171':pct>70?'#fb923c':'var(--am)';
-    const rest=fin-hoy;
-    const diasRest=rest>0?Math.ceil(rest/86400000)+' días restantes':'⚠️ Plazo vencido hace '+Math.abs(Math.ceil(rest/86400000))+' días';
-    barHtml=`<div style="margin-bottom:12px;">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--wd);margin-bottom:4px;">
-        <span>📅 Inicio: ${o.fi}</span><span>${diasRest}</span><span>🏁 ${fechaFin(o.fi,o.di)}</span>
-      </div>
-      <div style="background:rgba(255,255,255,.1);border-radius:100px;height:8px;">
-        <div style="background:${color};width:${pct}%;height:8px;border-radius:100px;transition:width .4s;"></div>
-      </div>
-      <div style="font-size:9px;color:var(--ws);margin-top:3px;text-align:right;">${pct}% del plazo · ${o.di} días totales</div>
-    </div>`;
+    var ini=new Date(o.fi),fin=new Date(ini);fin.setDate(fin.getDate()+parseInt(o.di));
+    var hoy=new Date(),total=fin-ini,trans=hoy-ini;
+    pct=Math.min(100,Math.max(0,Math.round(trans/total*100)));
+    colorBarra=pct>90?'#f87171':pct>70?'#fb923c':'var(--am)';
+    var restMs=fin-hoy;
+    diasRest=restMs>0?Math.ceil(restMs/86400000)+' dias restantes':'PLAZO VENCIDO hace '+Math.abs(Math.ceil(restMs/86400000))+' dias';
   }
-
-  function seccion(color,titulo,contenido){
-    return `<div style="background:var(--p2);border:1px solid ${color};border-radius:6px;padding:12px;margin-bottom:10px;">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:${color};font-weight:700;margin-bottom:8px;">${titulo}</div>
-      ${contenido}
-    </div>`;
+  var html='<div id="sup-paquete" style="margin-top:14px;">';
+  // Header
+  html+='<div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:'+(o.fi&&o.di?10:0)+'px;">';
+  html+='<div>';
+  html+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISION</div>';
+  html+='<div style="font-size:22px;font-weight:900;color:var(--am);margin-top:3px;">'+o.nom+'</div>';
+  html+='<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">'+o.cod+' · '+o.sup+'m2 · '+o.cuad+' personas</div>';
+  html+='</div>';
+  html+='<button type="button" class="btn btn-g btn-sm" onclick="supImprimir()" style="font-weight:900;">Imprimir</button>';
+  html+='</div>';
+  if(o.fi&&o.di){
+    html+='<div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px;">';
+    html+='<span>Inicio: '+o.fi+'</span><span>'+diasRest+'</span><span>Fin: '+fechaFin(o.fi,o.di)+'</span>';
+    html+='</div>';
+    html+='<div style="background:rgba(255,255,255,.1);border-radius:100px;height:7px;">';
+    html+='<div style="background:'+colorBarra+';width:'+pct+'%;height:7px;border-radius:100px;"></div>';
+    html+='</div>';
+    html+='<div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:3px;text-align:right;">'+pct+'% del plazo · '+o.di+' dias totales</div>';
+    html+='</div>';
   }
-  function dato(label,val){return val?`<div style="font-size:11px;color:var(--wd);margin-bottom:4px;"><span style="color:var(--ws);font-size:9px;text-transform:uppercase;letter-spacing:.5px;">${label}:</span> <b style="color:var(--w);">${val}</b></div>`:''}
-
-  c.innerHTML=`
-  <!-- HERO -->
-  <div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISIÓN</div>
-    <div style="font-size:22px;font-weight:900;color:var(--am);margin:4px 0;">${o.nom}</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.5);">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
-    ${barHtml}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      ${o.map?`<a href="${o.map}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;">📍 Ver en Maps</a>`:''}
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.1);color:var(--w);" onclick="supImprimir(${o.id})">🖨️ Imprimir</button>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-    ${seccion('var(--am)','📐 Datos de Obra',
-      dato('Superficie',o.sup+'m²')+dato('Cuadrilla',o.cuad+' personas')+dato('Inicio',o.fi||'—')+
-      dato('Plazo',o.di+' días calendario')+dato('Fin estimado',fechaFin(o.fi,o.di))+
-      dato('Código',o.cod)
-    )}
-    ${ct?seccion('var(--Zc)','👷 Contratista',
-      `<div style="font-size:15px;font-weight:900;color:var(--w);margin-bottom:6px;">${ct.nom}</div>`+
-      dato('Teléfono','📱 '+ct.tel)+dato('C.I.',ct.ci_n)+dato('Dirección',ct.dir)+
-      (ct.tel?`<a href="https://wa.me/591${ct.tel}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;margin-top:8px;display:inline-flex;">💬 WhatsApp directo</a>`:'')
-    ):seccion('var(--Nc)','👷 Contratista','<div style="font-size:11px;color:var(--ws);">Sin contratista asignado aún.</div>')}
-  </div>
-
-  ${seccion('var(--Gc)','💰 Forma de Pago al Contratista',
-    `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;">
-        <div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Pago 1 — 30% INICIO</div>
-        <div style="font-size:16px;font-weight:900;color:var(--w);">$${p1u}</div>
-        <div style="font-size:10px;color:var(--wd);">Bs ${p1b.toLocaleString('es-BO')}</div>
-        <div style="font-size:9px;color:var(--ws);margin-top:3px;">Contra firma + SOAT-C</div>
-      </div>
-      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;">
-        <div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Pago 2 — 40% AVANCE</div>
-        <div style="font-size:16px;font-weight:900;color:var(--w);">$${p2u}</div>
-        <div style="font-size:10px;color:var(--wd);">Bs ${p2b.toLocaleString('es-BO')}</div>
-        <div style="font-size:9px;color:var(--ws);margin-top:3px;">Al 50% verificado</div>
-      </div>
-      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;">
-        <div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;margin-bottom:4px;">Pago 3 — 30% ENTREGA</div>
-        <div style="font-size:16px;font-weight:900;color:var(--w);">$${p3u}</div>
-        <div style="font-size:10px;color:var(--wd);">Bs ${p3b.toLocaleString('es-BO')}</div>
-        <div style="font-size:9px;color:var(--ws);margin-top:3px;">Entrega aceptada</div>
-      </div>
-    </div>`
-  )}
-
-  ${o.obj?seccion('var(--Zc)','📄 Objeto del Contrato',`<div style="font-size:11px;line-height:1.7;color:var(--wd);">${o.obj}</div>`):''}
-
-  ${o.inc?seccion('var(--Gc)','✅ INCLUIDO — Obligaciones del Contratista',`<div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">${o.inc}</div>`):''}
-
-  ${o.exc?seccion('var(--Rc)','❌ NO INCLUIDO — Corre por cuenta de GEAT',`<div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">${o.exc}</div>`):''}
-
-  ${ct&&ct.cond?seccion('var(--Pc)','📋 Condiciones Especiales Pactadas',`<div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">${ct.cond}</div>`):''}
-
-  ${seccion('var(--Rc)','⚠️ Penalidades — Conocé tus Responsabilidades',
-    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:11px;color:var(--wd);">
-      <div>• Retraso injustificado: 0.5%/día (máx. 10%)</div>
-      <div>• Sin SOAT-C en 3 días: Bs 50/día de multa</div>
-      <div>• Hurto/robo: Rescisión + acción penal</div>
-      <div>• Abandono de obra: Retención del pago pendiente</div>
-      <div>• Mod. sin autorización: Retención siguiente pago</div>
-      <div>• Divulgar planos: Responsabilidad civil y penal</div>
-    </div>`
-  )}
-
-  ${seccion('var(--Zbg)','✅ Obligaciones en Campo — Recordatorio diario',
-    `<div style="font-size:11px;color:var(--wd);line-height:1.8;">
-      ✓ Limpieza diaria del área de trabajo y retiro de escombros<br>
-      ✓ Reporte semanal escrito de avance al supervisor<br>
-      ✓ No realizar modificaciones sin autorización escrita<br>
-      ✓ Personal especialista para M. Sanitaria, Eléctrica, Hidráulica, Estructuras, Pintura<br>
-      ✓ SOAT-C de todo el personal vigente (presentar en máx. 3 días del 1er pago)<br>
-      ✓ Fotos de avance por módulo completado<br>
-      ✓ Respetar confidencialidad de planos y datos de la obra
-    </div>`
-  )}
-
-  ${o.mods.length?seccion('var(--am)','🧱 Módulos a Ejecutar — '+o.mods.length+' total',
-    `<div class="mods-grid">${o.mods.map((m,i)=>`<div class="mod-item"><span class="mod-num">M${String(i+1).padStart(2,'0')}</span> ${m}</div>`).join('')}</div>`
-  ):''}
-
-  ${o.not?seccion('var(--ws)','📝 Notas de la Obra',`<div style="font-size:11px;line-height:1.7;color:var(--wd);">${o.not}</div>`):''}
-  `;
+  html+='</div>';
+  // Grid datos + contratista
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Datos de Obra</div>';
+  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Codigo: <b style="color:var(--w);">'+o.cod+'</b></div>';
+  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Superficie: <b style="color:var(--w);">'+o.sup+'m2</b></div>';
+  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Cuadrilla: <b style="color:var(--w);">'+o.cuad+' personas</b></div>';
+  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Inicio: <b style="color:var(--w);">'+(o.fi||'—')+'</b></div>';
+  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Plazo: <b style="color:var(--w);">'+(o.di||'—')+' dias</b></div>';
+  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:8px;">Fin estimado: <b style="color:var(--w);">'+fechaFin(o.fi,o.di)+'</b></div>';
+  if(o.map) html+='<a href="'+o.map+'" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;">📍 Maps</a>';
+  html+='</div>';
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Contratista Asignado</div>';
+  if(ct){
+    html+='<div style="font-size:15px;font-weight:800;margin-bottom:5px;">'+ct.nom+'</div>';
+    html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Tel: <b style="color:var(--w);">'+(ct.tel||'—')+'</b></div>';
+    html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">C.I.: '+(ct.ci_n||'—')+'</div>';
+    html+='<div style="font-size:11px;color:var(--wd);margin-bottom:8px;">Dir: '+(ct.dir||'—')+'</div>';
+    if(ct.tel) html+='<a href="https://wa.me/591'+ct.tel+'" target="_blank" class="btn btn-sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">💬 WhatsApp</a>';
+  } else {
+    html+='<div style="font-size:11px;color:var(--ws);">Sin contratista asignado.</div>';
+  }
+  html+='</div>';
+  html+='</div>';
+  // Pagos
+  html+='<div style="background:rgba(4,120,86,.1);border:1px solid var(--G);border-radius:6px;padding:13px;margin-bottom:10px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Gc);margin-bottom:10px;">Forma de Pago</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
+  html+='<div style="text-align:center;background:rgba(0,0,0,.2);border-radius:4px;padding:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">Pago 1 - 30%</div><div style="font-size:14px;font-weight:900;">$'+p1u+'</div><div style="font-size:9px;color:var(--wd);">Bs '+p1b.toLocaleString('es-BO')+'</div></div>';
+  html+='<div style="text-align:center;background:rgba(0,0,0,.2);border-radius:4px;padding:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">Pago 2 - 40%</div><div style="font-size:14px;font-weight:900;">$'+p2u+'</div><div style="font-size:9px;color:var(--wd);">Bs '+p2b.toLocaleString('es-BO')+'</div></div>';
+  html+='<div style="text-align:center;background:rgba(0,0,0,.2);border-radius:4px;padding:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">Pago 3 - 30%</div><div style="font-size:14px;font-weight:900;">$'+p3u+'</div><div style="font-size:9px;color:var(--wd);">Bs '+p3b.toLocaleString('es-BO')+'</div></div>';
+  html+='</div>';
+  html+='<div style="font-size:10px;color:var(--ws);margin-top:8px;">SOAT-C obligatorio en max. 3 dias del primer pago. Multa: Bs 50/dia.</div>';
+  html+='</div>';
+  // Objeto
+  if(o.obj) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Objeto del Contrato</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">'+o.obj+'</div></div>';
+  // Inclusion / Exclusion
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+  if(o.inc) html+='<div style="background:rgba(4,120,86,.08);border:1px solid var(--G);border-radius:6px;padding:13px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Gc);margin-bottom:8px;">INCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">'+o.inc+'</div></div>';
+  if(o.exc) html+='<div style="background:rgba(220,38,38,.08);border:1px solid var(--R);border-radius:6px;padding:13px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Rc);margin-bottom:8px;">EXCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">'+o.exc+'</div></div>';
+  html+='</div>';
+  // Condiciones
+  if(ct&&ct.cond) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Condiciones Especiales</div><div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">'+ct.cond+'</div></div>';
+  // Obligaciones
+  html+='<div style="background:rgba(30,64,175,.1);border:1px solid var(--Z);border-radius:6px;padding:13px;margin-bottom:10px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Zc);margin-bottom:8px;">Obligaciones del Contratista</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--wd);">';
+  html+='<div>✓ Limpieza diaria</div><div>✓ Reporte semanal con fotos</div>';
+  html+='<div>✓ Herramientas menores propias</div><div>✓ SOAT-C en max. 3 dias</div>';
+  html+='<div>✓ No modificar planos sin autorizacion</div><div>✓ 50% de la madera</div>';
+  html+='</div></div>';
+  // Penalidades
+  html+='<div style="background:rgba(220,38,38,.08);border:1px solid var(--R);border-radius:6px;padding:13px;margin-bottom:10px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Rc);margin-bottom:8px;">Penalidades</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--wd);">';
+  html+='<div>Retraso: 0.5%/dia (max 10%)</div><div>Sin SOAT-C: Bs 50/dia</div>';
+  html+='<div>Hurto: rescision + proceso penal</div><div>Abandono: retencion total pago</div>';
+  html+='</div></div>';
+  // Modulos
+  if(o.mods&&o.mods.length){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;">';
+    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Modulos a Ejecutar ('+o.mods.length+')</div>';
+    html+='<div class="mods-grid">';
+    for(var mi=0;mi<o.mods.length;mi++){
+      html+='<div class="mod-item"><span class="mod-num">M'+String(mi+1).padStart(2,'0')+'</span> '+o.mods[mi]+'</div>';
+    }
+    html+='</div></div>';
+  }
+  // Notas
+  if(o.not) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Notas de Campo</div><div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">'+o.not+'</div></div>';
+  html+='</div>';
+  c.innerHTML=html;
 }
 
-function supImprimir(oid){
-  const o=obras.find(x=>x.id==oid);if(!o)return;
-  const ct=gCByObra(o.id);
-  const monto=o.monto;
-  const p1u=(monto*.30).toFixed(2),p1b=Math.round(monto*.30*6.96);
-  const p2u=(monto*.40).toFixed(2),p2b=Math.round(monto*.40*6.96);
-  const p3u=(monto*.30).toFixed(2),p3b=Math.round(monto*.30*6.96);
-  const win=window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><style>
-    @page{size:216mm 330mm;margin:20mm 18mm;}
-    body{font-family:Arial,sans-serif;font-size:10.5pt;color:#000;line-height:1.6;}
-    h2{font-size:14pt;margin-bottom:4px;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:14px 0 6px;padding-bottom:3px;}
-    .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-    .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
-    .box{border:1px solid #ccc;padding:8px;border-radius:4px;}
-    .mods{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-    .mod{border:1px solid #ccc;padding:3px 6px;font-size:9pt;}
-    .firmas{display:flex;justify-content:space-between;margin-top:60px;}
-    .fc{text-align:center;width:45%;}
-    .fl{border-top:1px solid #000;padding-top:5px;font-size:9pt;}
-    @media print{button{display:none;}}
-  </style></head><body>
-  <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:14px;">
-    <div style="font-size:16pt;font-weight:900;letter-spacing:3px;">GEAT</div>
-    <div style="font-size:9pt;color:#555;">GAMBARTE ARQUITECTURA S.R.L. · Paquete de Supervisión</div>
-  </div>
-  <h2>${o.nom}</h2><p style="color:#555;font-size:9pt;">${o.cod} · Generado: ${new Date().toLocaleDateString('es-BO')}</p>
-  <div class="g2">
-    <div class="box"><h3>Datos de Obra</h3>
-      <p>Superficie: <b>${o.sup}m²</b></p><p>Cuadrilla: <b>${o.cuad} personas</b></p>
-      <p>Inicio: <b>${o.fi||'—'}</b></p><p>Plazo: <b>${o.di} días</b></p>
-      <p>Fin: <b>${fechaFin(o.fi,o.di)}</b></p>
-      <p>Maps: ${o.map||'—'}</p>
-    </div>
-    <div class="box"><h3>Contratista</h3>
-      ${ct?`<p><b>${ct.nom}</b></p><p>Tel: ${ct.tel||'—'}</p><p>C.I.: ${ct.ci_n||'—'}</p><p>Dir.: ${ct.dir||'—'}</p>`:
-      '<p>Sin contratista asignado.</p>'}
-    </div>
-  </div>
-  <h3>Forma de Pago</h3>
-  <div class="g3">
-    <div class="box" style="text-align:center;"><b>Pago 1 — 30% inicio</b><br>$${p1u}<br>Bs ${p1b.toLocaleString('es-BO')}</div>
-    <div class="box" style="text-align:center;"><b>Pago 2 — 40% avance</b><br>$${p2u}<br>Bs ${p2b.toLocaleString('es-BO')}</div>
-    <div class="box" style="text-align:center;"><b>Pago 3 — 30% entrega</b><br>$${p3u}<br>Bs ${p3b.toLocaleString('es-BO')}</div>
-  </div>
-  ${o.obj?`<h3>Objeto del Contrato</h3><p>${o.obj}</p>`:''}
-  ${o.inc?`<h3>Incluido — Obligaciones del Contratista</h3><p style="white-space:pre-line;">${o.inc}</p>`:''}
-  ${o.exc?`<h3>No Incluido — Corre por cuenta de GEAT</h3><p style="white-space:pre-line;">${o.exc}</p>`:''}
-  ${ct&&ct.cond?`<h3>Condiciones Especiales</h3><p style="white-space:pre-line;">${ct.cond}</p>`:''}
-  <h3>Penalidades</h3>
-  <ul><li>Retraso: 0.5%/día (máx. 10%)</li><li>Sin SOAT-C en 3 días: Bs 50/día</li>
-  <li>Hurto/robo: Rescisión + acción penal</li><li>Abandono: Retención total pago pendiente</li></ul>
-  ${o.mods.length?`<h3>Módulos a Ejecutar (${o.mods.length})</h3><div class="mods">${o.mods.map((m,i)=>`<div class="mod"><b>M${String(i+1).padStart(2,'0')}</b> ${m}</div>`).join('')}</div>`:''}
-  ${o.not?`<h3>Notas de Obra</h3><p>${o.not}</p>`:''}
-  <div class="firmas">
-    <div class="fc"><div class="fl"><strong>Arq. Raí</strong><br>Supervisor de Obra<br>Fecha: ___/___/______</div></div>
-    <div class="fc"><div class="fl"><strong>Fátima</strong><br>Responsable Administrativa<br>Fecha: ___/___/______</div></div>
-  </div>
-  <script>window.onload=function(){window.print();}<\/script></body></html>`);
+function supImprimir(){
+  var selVal=document.getElementById('sup-sel').value;
+  var o=obras.find(function(x){return x.id==selVal;});if(!o)return;
+  var ct=gCByObra(o.id);
+  var monto=o.monto||0;
+  var p1u=(monto*0.30).toFixed(2),p1b=Math.round(monto*0.30*6.96);
+  var p2u=(monto*0.40).toFixed(2),p2b=Math.round(monto*0.40*6.96);
+  var p3u=(monto*0.30).toFixed(2),p3b=Math.round(monto*0.30*6.96);
+  var win=window.open('','_blank');
+  var body='';
+  body+='<h2>PAQUETE DE SUPERVISION - '+o.nom+'</h2>';
+  body+='<p style="color:#666;font-size:9pt;">GEAT Construccion y Consultoria · '+new Date().toLocaleDateString('es-BO')+'</p><hr>';
+  body+='<h3>Datos de Obra</h3>';
+  body+='<p><b>Obra:</b> '+o.nom+' | <b>Codigo:</b> '+o.cod+'</p>';
+  body+='<p><b>Superficie:</b> '+o.sup+'m2 | <b>Cuadrilla:</b> '+o.cuad+' personas</p>';
+  body+='<p><b>Inicio:</b> '+(o.fi||'—')+' | <b>Plazo:</b> '+o.di+' dias | <b>Fin:</b> '+fechaFin(o.fi,o.di)+'</p>';
+  if(o.map) body+='<p><b>Maps:</b> '+o.map+'</p>';
+  if(ct){
+    body+='<h3>Contratista</h3>';
+    body+='<p><b>Nombre:</b> '+ct.nom+' | <b>Tel:</b> '+(ct.tel||'—')+'</p>';
+    body+='<p><b>C.I.:</b> '+(ct.ci_n||'—')+' | <b>Dir.:</b> '+(ct.dir||'—')+'</p>';
+  }
+  body+='<h3>Forma de Pago</h3>';
+  body+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">';
+  body+='<div style="border:1px solid #ccc;padding:8px;text-align:center;"><b>30% Anticipo</b><br>$'+p1u+'<br>Bs '+p1b.toLocaleString('es-BO')+'</div>';
+  body+='<div style="border:1px solid #ccc;padding:8px;text-align:center;"><b>40% Avance 50%</b><br>$'+p2u+'<br>Bs '+p2b.toLocaleString('es-BO')+'</div>';
+  body+='<div style="border:1px solid #ccc;padding:8px;text-align:center;"><b>30% Entrega</b><br>$'+p3u+'<br>Bs '+p3b.toLocaleString('es-BO')+'</div>';
+  body+='</div>';
+  if(o.obj) body+='<h3>Objeto del Contrato</h3><p>'+o.obj+'</p>';
+  if(o.inc) body+='<h3>Incluido - Obligaciones del Contratista</h3><p style="white-space:pre-line;">'+o.inc+'</p>';
+  if(o.exc) body+='<h3>No Incluido - Corre por cuenta de GEAT</h3><p style="white-space:pre-line;">'+o.exc+'</p>';
+  if(ct&&ct.cond) body+='<h3>Condiciones Especiales</h3><p style="white-space:pre-line;">'+ct.cond+'</p>';
+  body+='<h3>Obligaciones</h3>';
+  body+='<p>✓ Limpieza diaria | ✓ Reporte semanal | ✓ SOAT-C en max 3 dias | ✓ No modificar sin autorizacion</p>';
+  body+='<h3>Penalidades</h3>';
+  body+='<p>Retraso: 0.5%/dia (max 10%) | Sin SOAT-C: Bs 50/dia | Hurto: rescision + penal | Abandono: retencion total</p>';
+  if(o.mods&&o.mods.length){
+    body+='<h3>Modulos ('+o.mods.length+')</h3>';
+    body+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">';
+    for(var mi=0;mi<o.mods.length;mi++){
+      body+='<div style="border:1px solid #ccc;padding:3px 6px;font-size:9pt;"><b>M'+String(mi+1).padStart(2,'0')+'</b> '+o.mods[mi]+'</div>';
+    }
+    body+='</div>';
+  }
+  if(o.not) body+='<h3>Notas</h3><p style="white-space:pre-line;">'+o.not+'</p>';
+  body+='<div style="display:flex;justify-content:space-between;margin-top:60px;">';
+  body+='<div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Arq. Rai</strong><br>Supervisor de Obra</div></div>';
+  body+='<div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>'+(ct?ct.nom:'Contratista')+'</strong><br>C.I. '+(ct?ct.ci_n:'___')+'</div></div>';
+  body+='</div>';
+  win.document.write('<!DOCTYPE html><html><head><style>@page{size:216mm 330mm;margin:20mm 18mm;}body{font-family:Arial,sans-serif;font-size:10.5pt;line-height:1.6;color:#000;}h2{font-size:14pt;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:12px 0 6px;padding-bottom:3px;}@media print{button{display:none;}}</style></head><body>'+body+'<script>window.onload=function(){window.print();}<\/script></body></html>');
   win.document.close();
 }
 
-
-// ═══════════════════════════════════════════════════
-// PANEL CEO — KPIs + gestión completa
-// ═══════════════════════════════════════════════════
-let ceoAdmObraId=null;
-let ceoCtFiles={ci:null,ag:null,lz:null};
-let ceoAuditData=[];
-
-function renderCeo(){
-  if(!CU||CU.r!=='admin')return;
-  // KPIs
-  const total=obras.length;
-  const firmados=contratos.filter(c=>c.est_ct==='firmado').length;
-  const enProceso=contratos.filter(c=>c.est_ct!=='firmado').length;
-  const sinCt=obras.filter(o=>o.sup>0&&!gCByObra(o.id)).length;
-  const m2Total=obras.filter(o=>o.sup>0).reduce((a,o)=>a+parseFloat(o.sup||0),0);
-  const montoTotal=obras.filter(o=>o.sup>0).reduce((a,o)=>a+parseFloat(o.monto||0),0);
-  const revPendiente=contratos.filter(c=>c.texto&&c.est_ct==='generado').length;
-  const listoFirma=contratos.filter(c=>c.est_ct==='aprobado').length;
-  document.getElementById('kpi-obras').textContent=total;
-  document.getElementById('kpi-contratos').textContent=firmados;
-  document.getElementById('kpi-pendientes').textContent=enProceso;
-  document.getElementById('kpi-sin-ct').textContent=sinCt;
-  document.getElementById('kpi-m2').textContent=m2Total.toLocaleString('es-BO',{maximumFractionDigits:0})+'m²';
-  document.getElementById('kpi-monto').textContent='$'+montoTotal.toLocaleString('es-BO',{maximumFractionDigits:0});
-  document.getElementById('kpi-rev-pendiente').textContent=revPendiente;
-  document.getElementById('kpi-listo-firma').textContent=listoFirma;
-  // Tab activo
-  ceoRenderSubActivo();
-}
-
-function ceoPestana(sub){
-  document.querySelectorAll('.ceo-tab').forEach(t=>t.classList.remove('on'));
-  document.querySelectorAll('.ceo-sub').forEach(s=>s.classList.remove('on'));
-  const subEl=document.getElementById('csub-'+sub);
-  if(subEl)subEl.classList.add('on');
-  // Activar tab correcto
-  const tabs=document.querySelectorAll('.ceo-tab');
-  const idx={'asignar':0,'steffi':1,'fatima':2,'supervisor':3,'auditoria':4}[sub]??0;
-  if(tabs[idx])tabs[idx].classList.add('on');
-  ceoRenderSub(sub);
-}
-
-function ceoRenderSubActivo(){
-  const sub=document.querySelector('.ceo-sub.on');
-  if(!sub)return;
-  const id=sub.id.replace('csub-','');
-  ceoRenderSub(id);
-}
-
-function ceoRenderSub(sub){
-  if(sub==='asignar')ceoRenderAsignar();
-  if(sub==='steffi')ceoRenderSteffii();
-  if(sub==='fatima')ceoRenderFatima();
-  if(sub==='supervisor')ceoRenderSupervisor();
-  if(sub==='auditoria')ceoRenderAuditoria();
-}
-
-function ceoRenderAsignar(){
-  const sel=document.getElementById('ceo-adm-sel-obra');if(!sel)return;
-  const listas=obras.filter(o=>o.sup>0&&!gCByObra(o.id));
-  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+listas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
-  ceoRenderAdmTabla();
-}
-
-function ceoRenderAdmTabla(){
-  const tb=document.getElementById('ceo-adm-tabla');if(!tb)return;
-  if(!obras.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--ws);">Sin obras.</td></tr>';return;}
-  tb.innerHTML=obras.map(o=>{
-    const ct=gCByObra(o.id);
-    const est=estadoObra(o);
-    return `<tr>
-      <td>${o.nom}<br><span style="font-size:9px;color:var(--ws);">${o.cod}</span></td>
-      <td><span class="badge ${est.cls}">${est.lab}</span></td>
-      <td>${ct?ct.nom:'<span style="color:var(--ws);">—</span>'}</td>
-      <td style="color:var(--am);font-weight:700;">${o.sup?'$'+o.monto.toFixed(0):'<span style="color:var(--ws);">—</span>'}</td>
-      <td>${ct?`<span style="font-size:9px;">${ct.est_ct}</span>`:'<span style="color:var(--ws);">—</span>'}</td>
-    </tr>`;
-  }).join('');
-}
-
-function ceoAdmSelObra(oid){
-  ceoAdmObraId=oid?parseInt(oid):null;
-  const prev=document.getElementById('ceo-adm-obra-preview');
-  const opc=document.getElementById('ceo-adm-opciones');
-  const form=document.getElementById('ceo-adm-form-ct');
-  if(!ceoAdmObraId){if(prev)prev.style.display='none';if(opc)opc.style.display='none';if(form)form.style.display='none';return;}
-  const o=obras.find(x=>x.id===ceoAdmObraId);if(!o)return;
-  const monto=o.monto,montoBs=Math.round(monto*6.96);
-  const p1u=(monto*.30).toFixed(2),p1b=Math.round(monto*.30*6.96);
-  const p2u=(monto*.40).toFixed(2),p2b=Math.round(monto*.40*6.96);
-  const p3u=(monto*.30).toFixed(2),p3b=Math.round(monto*.30*6.96);
-  prev.style.display='block';
-  prev.innerHTML=`<div style="background:var(--p2);border:1px solid var(--am);border-radius:8px;padding:14px;margin-bottom:14px;">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
-      <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--am);">${o.sup}m²</div><div style="font-size:9px;color:var(--ws);">SUPERFICIE</div></div>
-      <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--am);">$${monto.toFixed(0)}</div><div style="font-size:9px;color:var(--ws);">MONTO USD</div></div>
-      <div style="text-align:center;"><div style="font-size:18px;font-weight:900;color:var(--Gc);">${o.di}d</div><div style="font-size:9px;color:var(--ws);">PLAZO</div></div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-      <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 1 — 30%</div><div style="font-size:12px;font-weight:900;">$${p1u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p1b.toLocaleString('es-BO')}</div></div>
-      <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 2 — 40%</div><div style="font-size:12px;font-weight:900;">$${p2u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p2b.toLocaleString('es-BO')}</div></div>
-      <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 3 — 30%</div><div style="font-size:12px;font-weight:900;">$${p3u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p3b.toLocaleString('es-BO')}</div></div>
-    </div>
-  </div>`;
-  opc.style.display='block';
-  form.style.display='none';
-}
-
-function ceoAdmOpcion(tipo){
-  const form=document.getElementById('ceo-adm-form-ct');
-  if(tipo==='busqueda'){
-    if(!ceoAdmObraId){alert('Seleccioná una obra primero.');return;}
-    const o=obras.find(x=>x.id===ceoAdmObraId);
-    alert('📢 Búsqueda activada para "'+o.nom+'".\n\nCuando hayas seleccionado al contratista, cargá sus datos directamente.');
-  } else {
-    form.style.display='block';
-    form.scrollIntoView({behavior:'smooth'});
-  }
-}
-
-function ceoOnUpCt(tipo,inp){
-  if(!inp.files[0])return;
-  const f=inp.files[0];ceoCtFiles[tipo]=f;
-  document.getElementById('ceo-uz-'+tipo).classList.add('ok');
-  document.getElementById('ceo-txt-'+tipo).textContent='✓ '+f.name.slice(0,22);
-}
-
-async function ceoAdmGuardarContratista(){
-  if(!ceoAdmObraId){alert('Seleccioná una obra primero.');return;}
-  const nom=document.getElementById('ceo-adm-ct-nom').value.trim();
-  const tel=document.getElementById('ceo-adm-ct-tel').value.trim();
-  const ci_n=document.getElementById('ceo-adm-ct-ci').value.trim();
-  const dir=document.getElementById('ceo-adm-ct-dir').value.trim();
-  const cond=document.getElementById('ceo-adm-ct-cond').value;
-  const neg=document.getElementById('ceo-adm-ct-neg').value;
-  if(!nom||!tel){alert('⚠️ Nombre y Teléfono son obligatorios.');return;}
-  const o=obras.find(x=>x.id===ceoAdmObraId);if(!o)return;
-  const textoContrato=generarContrato(nom,ci_n,dir,o,cond,neg);
-  const ct={id:Date.now(),nom,tel,ci_n,dir,oid:ceoAdmObraId,
-    ci:ceoCtFiles.ci?.name||null,ag:ceoCtFiles.ag?.name||null,lz:ceoCtFiles.lz?.name||null,
-    cond,negociacion:neg,est:'generado',est_ct:'generado',
-    texto:textoContrato,firm_scan:null,aprobado_por:null,
-    ed_count:0,historial:[],bloqueado:false,
-    fec_iso:new Date().toISOString().slice(0,10)};
-  contratos.push(ct);
-  try{
-    await dbGuardarContrato(ct);
-    if(ceoCtFiles.ci){const p=storagePath('contratos',ct.id,'ci',ceoCtFiles.ci.name);await storageUpload(p,ceoCtFiles.ci);ct.ci=p;}
-    if(ceoCtFiles.ag){const p=storagePath('contratos',ct.id,'ag',ceoCtFiles.ag.name);await storageUpload(p,ceoCtFiles.ag);ct.ag=p;}
-    if(ceoCtFiles.lz){const p=storagePath('contratos',ct.id,'lz',ceoCtFiles.lz.name);await storageUpload(p,ceoCtFiles.lz);ct.lz=p;}
-    if(ceoCtFiles.ci||ceoCtFiles.ag||ceoCtFiles.lz)await dbGuardarContrato(ct);
-    dbLog(CU.n,'[CEO] Contratista asignado: '+nom+' → '+o.nom);
-    document.getElementById('ceo-adm-msg').innerHTML='<div class="al al-g">✅ Contratista "'+nom+'" asignado. Contrato generado → Steffi revisará y aprobará.</div>';
-    ceoAdmLimpiar();renderTodo();
-  }catch(e){alert('❌ Error: '+e.message);contratos=contratos.filter(x=>x.id!==ct.id);}
-}
-
-function ceoAdmLimpiar(){
-  ['ceo-adm-ct-nom','ceo-adm-ct-tel','ceo-adm-ct-ci','ceo-adm-ct-dir','ceo-adm-ct-cond','ceo-adm-ct-neg'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  ceoCtFiles={ci:null,ag:null,lz:null};
-  ['ci','ag','lz'].forEach(t=>{document.getElementById('ceo-uz-'+t)?.classList.remove('ok');const tx=document.getElementById('ceo-txt-'+t);if(tx)tx.textContent='';});
-  document.getElementById('ceo-adm-form-ct').style.display='none';
-  document.getElementById('ceo-adm-opciones').style.display='none';
-  document.getElementById('ceo-adm-obra-preview').style.display='none';
-  document.getElementById('ceo-adm-sel-obra').value='';ceoAdmObraId=null;
-}
-
-function ceoRenderSteffii(){
-  const el=document.getElementById('ceo-steffi-obras-lista');if(!el)return;
-  const cands=obras.filter(o=>{const ct=gCByObra(o.id);return ct&&ct.texto&&ct.est_ct!=='firmado';});
-  if(!cands.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;padding:8px 0;">Sin contratos pendientes de revisión.</p>';return;}
-  el.innerHTML=cands.map(o=>{
-    const ct=gCByObra(o.id);
-    const aprobado=ct.est_ct==='aprobado';
-    return `<div class="obra-item" onclick="ceoSteffAbrirEditor(${o.id})">
-      <div class="oi-left"><h4>${o.nom}</h4><p>${o.cod} · ${o.sup}m² · 👷 ${ct.nom||'Sin contratista'}</p></div>
-      <span class="badge ${aprobado?'b-active':'b-gen'}">${aprobado?'✅ Aprobado':'📝 Revisar'}</span>
-    </div>`;
-  }).join('');
-}
-
-function ceoSteffAbrirEditor(oid){
-  // Reusa la misma lógica de steffAbrirEditor pero apunta al contenedor CEO
-  const o=obras.find(x=>x.id===oid);if(!o)return;
-  const ct=gCByObra(oid);if(!ct||!ct.texto)return;
-  const area=document.getElementById('ceo-steffi-editor-area');if(!area)return;
-  const ed=ct.ed_count||0,bloq=ct.bloqueado||false,hist=ct.historial||[];
-  const cntCls=bloq?'ed-danger':ed>=2?'ed-warn':'ed-ok';
-  const cntLbl=bloq?'🔒 BLOQUEADO':ed+'/3 ediciones';
-  const isFirmado=ct.est_ct==='firmado',isAprobado=ct.est_ct==='aprobado';
-  area.style.display='block';
-  area.innerHTML=`<div class="card" style="border:2px solid var(--am);">
-    <div class="ct">⚖️ [CEO] Editando: ${o.nom} — ${ct.nom}</div>
-    <div class="ed-counter ${cntCls}" style="margin-bottom:10px;">${cntLbl}</div>
-    ${hist.length?`<div class="historial">${hist.map(h=>`<div class="hist-row"><b>Ed.${h.e}</b> · ${h.n} · ${h.f}</div>`).join('')}</div>`:''}
-    ${!isFirmado?`
-    <textarea class="ct-editor" id="ceo-ed-txt-${ct.id}">${ct.texto}</textarea>
-    <div class="brow">
-      ${!bloq?`<button class="btn btn-y" onclick="ceoSteffGuardar(${ct.id},${oid})">💾 Guardar</button>`:''}
-      ${!bloq?`<button class="btn btn-p" id="ceo-btn-ia-${ct.id}" onclick="ceoSteffIA(${ct.id})">🤖 Editar con IA</button>`:''}
-      ${!isAprobado&&!bloq?`<button class="btn btn-g" onclick="ceoSteffAprobar(${ct.id},${oid})">✅ APROBAR</button>`:''}
-      ${bloq?`<button class="btn btn-r btn-sm" onclick="steffDesbloquear(${ct.id})">🔓 Desbloquear</button>`:''}
-    </div>`:`<div class="al al-g">✅ Contrato firmado cargado.</div>`}
-    <div style="margin-top:10px;"><button class="btn btn-o btn-sm" onclick="document.getElementById('ceo-steffi-editor-area').style.display='none'">↩ Cerrar</button></div>
-  </div>`;
-  area.scrollIntoView({behavior:'smooth'});
-}
-
-async function ceoSteffGuardar(ctId,oid){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(ct.bloqueado){alert('Contrato bloqueado.');return;}
-  const ed=ct.ed_count||0;
-  if(ed>=3){ct.bloqueado=true;await dbGuardarContrato(ct);alert('Límite 3 ediciones. Bloqueado.');ceoSteffAbrirEditor(oid);return;}
-  const ta=document.getElementById('ceo-ed-txt-'+ctId);if(!ta)return;
-  const ahora=new Date().toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-  ct.texto=ta.value;ct.ed_count=ed+1;
-  if(ct.est_ct==='generado')ct.est_ct='revisado';
-  ct.historial=[...(ct.historial||[]),{n:CU.n,f:ahora,e:ct.ed_count}];
-  await dbGuardarContrato(ct);
-  dbLog(CU.n,'[CEO] Contrato editado ed.'+ct.ed_count+': '+ct.nom);
-  alert('✅ Guardado. Edición '+ct.ed_count+'/3.');
-  ceoSteffAbrirEditor(oid);
-}
-
-async function ceoSteffIA(ctId){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(ct.bloqueado){alert('Contrato bloqueado.');return;}
-  const instruccion=prompt('¿Qué cambiar?\nEj: "cambia plazo a 90 días", "agrega garantía de 6 meses"');
-  if(!instruccion)return;
-  const btn=document.getElementById('ceo-btn-ia-'+ctId);
-  if(btn){btn.disabled=true;btn.textContent='⏳ IA procesando...';}
-  try{
-    const {data:cfg,error}=await sb.from('app_config').select('value').eq('key','anthropic_api_key').single();
-    if(error||!cfg?.value)throw new Error('API key no configurada.');
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':cfg.value,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:4000,
-        system:'Especialista legal en contratos bolivianos. Devuelve SOLO el contrato modificado, sin markdown.',
-        messages:[{role:'user',content:'CONTRATO:\n\n'+ct.texto+'\n\nINSTRUCCIÓN:\n'+instruccion+'\n\nDevuelve el contrato completo modificado:'}]})
-    });
-    if(!resp.ok)throw new Error('Error API: '+resp.status);
-    const data=await resp.json();
-    const ta=document.getElementById('ceo-ed-txt-'+ctId);
-    if(ta)ta.value=data.content[0].text;
-    alert('✅ IA aplicó el cambio.\nRevisá y tocá "Guardar".');
-  }catch(e){alert('❌ Error IA: '+e.message);}
-  finally{if(btn){btn.disabled=false;btn.textContent='🤖 Editar con IA';}}
-}
-
-async function ceoSteffAprobar(ctId,oid){
-  const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(!confirm('¿APROBAR contrato de '+ct.nom+'?'))return;
-  ct.est_ct='aprobado';ct.aprobado_por=CU.n;
-  await dbGuardarContrato(ct);
-  dbLog(CU.n,'[CEO] Contrato aprobado: '+ct.nom);
-  alert('✅ Aprobado.');
-  ceoSteffAbrirEditor(oid);ceoRenderSteffii();
-}
-
-function ceoRenderFatima(){
-  const el=document.getElementById('ceo-fat-lista');if(!el)return;
-  const pendientes=obras.filter(o=>(o.cp_dig||o.cp_esc)&&!o.sup);
-  const completadas=obras.filter(o=>o.sup>0);
-  let html='';
-  if(pendientes.length){
-    html+='<div style="font-size:9px;color:var(--Nc);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">⏳ Pendientes de datos técnicos ('+pendientes.length+')</div>';
-    html+=pendientes.map(o=>`<div class="obra-item"><div class="oi-left"><h4>${o.nom}</h4><p>${o.cod} · Esperando datos de Fátima</p></div><span class="badge b-pend">Pendiente</span></div>`).join('');
-  }
-  if(completadas.length){
-    html+='<div style="font-size:9px;color:var(--Gc);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin:12px 0 8px;">✅ Completadas ('+completadas.length+')</div>';
-    html+=completadas.map(o=>{const est=estadoObra(o);return`<div class="obra-item"><div class="oi-left"><h4>${o.nom}</h4><p>${o.cod} · ${o.sup}m² · $${o.monto.toFixed(0)}</p></div><span class="badge ${est.cls}">${est.lab}</span></div>`;}).join('');
-  }
-  if(!html)html='<p style="color:var(--ws);font-size:12px;">Sin obras registradas.</p>';
-  el.innerHTML=html;
-}
-
-function ceoRenderSupervisor(){
-  const sel=document.getElementById('ceo-sup-sel');if(!sel)return;
-  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+obras.filter(o=>o.sup>0).map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
-}
-
-function ceoSupSelObra(oid){
-  if(!oid){document.getElementById('ceo-sup-content').innerHTML='';return;}
-  const tmpSel=document.getElementById('sup-sel');
-  const tmpCnt=document.getElementById('sup-content');
-  // Reutilizar supSelObra apuntando temporalmente al contenedor CEO
-  const o=obras.find(x=>x.id===parseInt(oid));if(!o)return;
-  // Renderizar paquete de supervisión directamente
-  const ct=gCByObra(o.id);
-  const monto=o.monto;
-  const p1u=(monto*.30).toFixed(2),p1b=Math.round(monto*.30*6.96);
-  const p2u=(monto*.40).toFixed(2),p2b=Math.round(monto*.40*6.96);
-  const p3u=(monto*.30).toFixed(2),p3b=Math.round(monto*.30*6.96);
-  const avPct=o.avance||0;
-  const c=document.getElementById('ceo-sup-content');
-  c.innerHTML=`<div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISIÓN</div>
-    <div style="font-size:22px;font-weight:900;color:var(--am);margin:4px 0;">${o.nom}</div>
-    <div style="font-size:11px;color:rgba(255,255,255,.5);">${o.cod} · ${o.sup}m² · ${o.cuad} personas</div>
-    ${o.map?`<a href="${o.map}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;margin-top:8px;">📍 Ver en Maps</a>`:''}
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-    <div style="background:var(--p2);border:1px solid var(--am);border-radius:6px;padding:12px;">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:8px;">📐 Datos de Obra</div>
-      <div style="font-size:11px;color:var(--wd);margin-bottom:4px;"><span style="color:var(--ws);font-size:9px;">SUPERFICIE:</span> <b style="color:var(--w);">${o.sup}m²</b></div>
-      <div style="font-size:11px;color:var(--wd);margin-bottom:4px;"><span style="color:var(--ws);font-size:9px;">CUADRILLA:</span> <b style="color:var(--w);">${o.cuad} personas</b></div>
-      <div style="font-size:11px;color:var(--wd);margin-bottom:4px;"><span style="color:var(--ws);font-size:9px;">INICIO:</span> <b style="color:var(--w);">${o.fi||'—'}</b></div>
-      <div style="font-size:11px;color:var(--wd);margin-bottom:4px;"><span style="color:var(--ws);font-size:9px;">PLAZO:</span> <b style="color:var(--w);">${o.di} días</b></div>
-      <div style="font-size:11px;color:var(--wd);"><span style="color:var(--ws);font-size:9px;">FIN ESTIMADO:</span> <b style="color:var(--w);">${fechaFin(o.fi,o.di)}</b></div>
-    </div>
-    ${ct?`<div style="background:var(--p2);border:1px solid #60a5fa;border-radius:6px;padding:12px;">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:#60a5fa;font-weight:700;margin-bottom:8px;">👷 Contratista</div>
-      <div style="font-size:15px;font-weight:900;color:var(--w);margin-bottom:6px;">${ct.nom}</div>
-      <div style="font-size:11px;color:var(--wd);margin-bottom:4px;">📱 ${ct.tel||'—'}</div>
-      <div style="font-size:11px;color:var(--wd);margin-bottom:4px;">C.I.: ${ct.ci_n||'—'}</div>
-      ${ct.tel?`<a href="https://wa.me/591${ct.tel}" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;margin-top:8px;display:inline-flex;">💬 WhatsApp</a>`:''}
-    </div>`:`<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:12px;"><div style="color:var(--ws);font-size:12px;">Sin contratista asignado.</div></div>`}
-  </div>
-  <div style="background:var(--p2);border:1px solid var(--Gc);border-radius:6px;padding:12px;margin-bottom:10px;">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--Gc);font-weight:700;margin-bottom:8px;">💰 Forma de Pago al Contratista</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
-      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--Gc);font-weight:700;">Pago 1 — 30% INICIO</div><div style="font-size:16px;font-weight:900;">$${p1u}</div><div style="font-size:10px;color:var(--wd);">Bs ${p1b.toLocaleString('es-BO')}</div></div>
-      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--Gc);font-weight:700;">Pago 2 — 40% AVANCE</div><div style="font-size:16px;font-weight:900;">$${p2u}</div><div style="font-size:10px;color:var(--wd);">Bs ${p2b.toLocaleString('es-BO')}</div></div>
-      <div style="background:var(--Gbg);border-radius:4px;padding:10px;text-align:center;"><div style="font-size:9px;color:var(--Gc);font-weight:700;">Pago 3 — 30% ENTREGA</div><div style="font-size:16px;font-weight:900;">$${p3u}</div><div style="font-size:10px;color:var(--wd);">Bs ${p3b.toLocaleString('es-BO')}</div></div>
-    </div>
-  </div>
-  ${o.mods&&o.mods.length?`<div style="background:var(--p2);border:1px solid var(--am);border-radius:6px;padding:12px;">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:8px;">🧱 Módulos a Ejecutar — ${o.mods.length} total</div>
-    <div class="mods-grid">${o.mods.map((m,i)=>`<div class="mod-item"><span class="mod-num">M${String(i+1).padStart(2,'0')}</span> ${m}</div>`).join('')}</div>
-  </div>`:''}`;
-}
-
-async function ceoRenderAuditoria(){
-  const el=document.getElementById('ceo-audit-lista');if(!el)return;
-  el.innerHTML='<p style="color:var(--ws);font-size:12px;">Cargando auditoría...</p>';
-  try{
-    const {data,error}=await sb.from('rec_auditoria').select('*').order('timestamp',{ascending:false}).limit(50);
-    if(error)throw error;
-    if(!data||!data.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin registros de auditoría.</p>';return;}
-    el.innerHTML=`<div class="tw"><table>
-      <thead><tr><th>Fecha/Hora</th><th>Usuario</th><th>Acción</th></tr></thead>
-      <tbody>${data.map(r=>`<tr>
-        <td style="font-size:10px;white-space:nowrap;">${r.timestamp?new Date(r.timestamp).toLocaleString('es-BO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—'}</td>
-        <td style="font-size:11px;">${r.usuario||r.usuario_pin||'—'}</td>
-        <td style="font-size:11px;">${r.accion||r.action||'—'}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>`;
-  }catch(e){el.innerHTML='<p style="color:var(--Rc);font-size:12px;">Error al cargar auditoría: '+e.message+'</p>';}
-}
-
-// ══ MEJORA PANEL SUPERVISOR: resumen general ══
-function renderSupResumenGeneral(){
-  const el=document.getElementById('sup-resumen-general');if(!el)return;
-  if(!obras.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras registradas.</p>';return;}
-  el.innerHTML=obras.filter(o=>o.sup>0).map(o=>{
-    const ct=gCByObra(o.id);
-    const est=estadoObra(o);
-    const avPct=o.avance||0;
-    return `<div class="obra-item" style="flex-direction:column;align-items:flex-start;gap:8px;">
-      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
-        <div><h4>${o.nom}</h4><p>${o.cod} · ${o.sup}m² · ${ct?'👷 '+ct.nom:'Sin contratista'}</p></div>
-        <span class="badge ${est.cls}">${est.lab}</span>
-      </div>
-      ${ct?`<div style="width:100%;">
-        <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--ws);margin-bottom:2px;"><span>Avance</span><span>${avPct}%</span></div>
-        <div class="avance-bar-wrap"><div class="avance-bar-fill" style="width:${avPct}%;"></div></div>
-      </div>`:''}
-    </div>`;
-  }).join('')||'<p style="color:var(--ws);font-size:12px;">Sin obras con datos técnicos.</p>';
-}
-
-// Mejorar panel supervisor con resumen general al renderizar
-function renderSup(){
-  const sel=document.getElementById('sup-sel');if(!sel)return;
-  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+obras.filter(o=>o.sup>0).map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
-  renderSupResumenGeneral();
-}
 
 // PERFIL
 function abrirPerfil(){
@@ -2145,13 +1691,203 @@ function abrirPerfil(){
   <div style="font-size:11px;color:var(--ws);margin-bottom:16px;">
     ${CU.r==='steffi'?'⚖️ Cargás obras (Paso 1) · Revisás y aprobás contratos (Paso 4) · Subís firmado (Paso 5)':
       CU.r==='fatima'?'📋 Completás datos técnicos de obra (Paso 2)':
-      CU.r==='admin'?'⚙️ CEO — Acceso completo: KPIs, asignación, revisión, supervisión, auditoría':
-      '🏗️ Supervisión de campo — Vista completa de obras y contratistas'}
+      CU.r==='admin'?'⚙️ Asignás contratistas y cerrás negociaciones (Paso 3)':
+      '🏗️ Supervisión de campo — Solo lectura'}
   </div>
   <button class="btn btn-r btn-sm" onclick="logout()">🚪 Cerrar Sesión</button>`;
   aOv('perfil');
 }
 
+// ═══════════════════════════════════════════════════
+// PANEL ADMIN FULL
+// ═══════════════════════════════════════════════════
+function renderAdmFull(){
+  var k=function(id){return document.getElementById(id);};
+  var totalObras=obras.length;
+  var montoUSD=obras.filter(function(o){return o.monto>0;}).reduce(function(s,o){return s+o.monto;},0);
+  var totalCt=contratos.length;
+  var pendientes=0;
+  obras.forEach(function(o){
+    var ct=gCByObra(o.id);
+    if(!o.cp_dig&&!o.cp_esc)pendientes++;
+    else if(!o.sup)pendientes++;
+    else if(!ct)pendientes++;
+    else if(ct.est_ct==='generado')pendientes++;
+    else if(ct.est_ct==='aprobado'&&!ct.firm_scan)pendientes++;
+  });
+  if(k('kpi-obras'))k('kpi-obras').textContent=totalObras;
+  if(k('kpi-monto'))k('kpi-monto').textContent='$'+montoUSD.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(k('kpi-contratos'))k('kpi-contratos').textContent=totalCt;
+  if(k('kpi-pendientes'))k('kpi-pendientes').textContent=pendientes;
+  // Alertas
+  var elA=k('adm-alertas');
+  if(elA){
+    var alerts=[];
+    obras.forEach(function(o){
+      var ct=gCByObra(o.id);
+      var nom='<b>'+o.nom+'</b>';
+      if(!o.cp_dig&&!o.cp_esc)alerts.push({t:'r',m:'⚠️ '+nom+' — Sin contrato propietario'});
+      else if(!o.sup)alerts.push({t:'n',m:'📋 '+nom+' — Esperando datos técnicos de Fátima'});
+      else if(!ct)alerts.push({t:'n',m:'👷 '+nom+' — Lista para asignar contratista'});
+      else if(ct.est_ct==='generado')alerts.push({t:'p',m:'⚖️ '+nom+' — Contrato listo para revisar por Steffi'});
+      else if(ct.est_ct==='aprobado'&&!ct.firm_scan)alerts.push({t:'z',m:'🖨️ '+nom+' — Aprobado, falta firma y escaneo'});
+      else if(ct.est_ct==='firmado')alerts.push({t:'g',m:'✅ '+nom+' — Proceso completo con '+ct.nom});
+    });
+    if(!alerts.length){elA.innerHTML='<div class="al al-g">✅ Sin acciones pendientes.</div>';}
+    else{elA.innerHTML=alerts.map(function(a){return '<div class="al al-'+a.t+'" style="margin-bottom:6px;">'+a.m+'</div>';}).join('');}
+  }
+  // Tabla
+  var tb=k('adm-tbody-full');
+  if(tb){
+    if(!obras.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ws);padding:20px;">Sin obras.</td></tr>';}
+    else{
+      tb.innerHTML=obras.map(function(o){
+        var ct=gCByObra(o.id);
+        var est=estadoObra(o);
+        var bs=Math.round(o.monto*6.96);
+        var acc='';
+        if(o.sup&&!ct)acc='<button class="btn btn-y btn-sm" onclick="goPanel(\"admin\")">Asignar CT</button>';
+        else if(ct&&ct.bloqueado)acc='<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>';
+        else if(ct&&ct.firm_scan)acc='<span style="font-size:10px;color:var(--Gc);">✅ Completo</span>';
+        return '<tr>'+
+          '<td data-label="Obra">'+o.nom+'<br><span style="font-size:9px;color:var(--ws);">'+o.cod+'</span></td>'+
+          '<td data-label="Estado"><span class="badge '+est.cls+'">'+est.lab+'</span></td>'+
+          '<td data-label="Contratista">'+(ct?ct.nom+'<br><span style="font-size:9px;color:var(--ws);">📱 '+ct.tel+'</span>':'<span style="color:var(--ws);">—</span>')+'</td>'+
+          '<td data-label="USD" style="color:var(--am);font-weight:700;">'+(o.monto?'$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0}):'—')+'</td>'+
+          '<td data-label="Bs" style="color:var(--wd);">'+(bs?'Bs '+bs.toLocaleString('es-BO'):'—')+'</td>'+
+          '<td data-label="Contrato">'+(ct?ct.est_ct:'—')+'</td>'+
+          '<td data-label="Acción">'+acc+'</td>'+
+          '</tr>';
+      }).join('');
+    }
+  }
+  // Financiero
+  var elF=k('adm-financiero');
+  if(elF){
+    var conMonto=obras.filter(function(o){return o.monto>0;});
+    if(!conMonto.length){elF.innerHTML='<p style="color:var(--ws);">Sin datos financieros.</p>';}
+    else{
+      var tUSD=conMonto.reduce(function(s,o){return s+o.monto;},0);
+      var tBs=Math.round(tUSD*6.96);
+      elF.innerHTML=
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">TOTAL USD</div><div style="font-size:20px;font-weight:900;color:var(--am);">$'+tUSD.toLocaleString('en-US',{maximumFractionDigits:0})+'</div></div>'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">TOTAL Bs</div><div style="font-size:20px;font-weight:900;color:var(--am);">Bs '+tBs.toLocaleString('es-BO')+'</div></div>'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">OBRAS</div><div style="font-size:20px;font-weight:900;color:var(--Gc);">'+conMonto.length+'</div></div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">'+
+        ['30% — Cuota 1','40% — Cuota 2','30% — Cuota 3'].map(function(lbl,i){
+          var pcts=[0.30,0.40,0.30];var v=tUSD*pcts[i];
+          return '<div style="text-align:center;background:rgba(4,120,86,.1);border:1px solid var(--G);border-radius:4px;padding:10px;">'+
+            '<div style="font-size:9px;color:var(--Gc);font-weight:700;margin-bottom:4px;">'+lbl+'</div>'+
+            '<div style="font-size:14px;font-weight:900;">$'+v.toLocaleString('en-US',{maximumFractionDigits:0})+'</div>'+
+            '<div style="font-size:10px;color:var(--wd);">Bs '+Math.round(v*6.96).toLocaleString('es-BO')+'</div>'+
+            '</div>';
+        }).join('')+
+        '</div>'+
+        conMonto.map(function(o){
+          var ct=gCByObra(o.id);
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);">'+
+            '<div><div style="font-weight:700;">'+o.nom+'</div><div style="font-size:10px;color:var(--ws);">'+(ct?ct.nom:'Sin CT')+' · '+o.sup+'m²</div></div>'+
+            '<div style="text-align:right;"><div style="font-weight:900;color:var(--am);">$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+Math.round(o.monto*6.96).toLocaleString('es-BO')+'</div></div>'+
+            '</div>';
+        }).join('');
+    }
+  }
+  // Contratos lista
+  var elC=k('adm-contratos-lista');
+  if(elC){
+    if(!contratos.length){elC.innerHTML='<p style="color:var(--ws);">Sin contratos.</p>';}
+    else{
+      elC.innerHTML=contratos.map(function(ct){
+        var o=gO(ct.oid);
+        var ed=ct.ed_count||0,bloq=ct.bloqueado||false;
+        return '<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:14px;margin-bottom:10px;">'+
+          '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">'+
+          '<div><div style="font-size:13px;font-weight:800;">'+ct.nom+'</div>'+
+          '<div style="font-size:10px;color:var(--wd);">📋 '+(o.nom||'?')+' · 📱 '+(ct.tel||'—')+'</div></div>'+
+          '<div style="display:flex;gap:6px;align-items:center;">'+
+          '<span style="font-size:9px;background:var(--p3);padding:2px 8px;border-radius:20px;">'+ct.est_ct+'</span>'+
+          '<span style="font-size:9px;color:'+(bloq?'var(--Rc)':ed>=2?'var(--Nc)':'var(--Gc)')+';">'+ed+'/3'+(bloq?' 🔒':'')+'</span>'+
+          '</div></div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          (bloq?'<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>':'')+
+          (ct.texto?'<button class="btn btn-o btn-sm" onclick="admVerContrato('+ct.id+')">👁️ Ver</button>':'')+
+          (ct.firm_scan?'<button class="btn btn-g btn-sm" onclick="admDescargarFirmado('+ct.id+')">📥 Firmado</button>':'')+
+          '<button class="btn btn-r btn-sm" onclick="admEliminarContratista('+ct.id+')" style="margin-left:auto;">🗑️</button>'+
+          '</div></div>';
+      }).join('');
+    }
+  }
+  // Zona peligro
+  var elP=k('adm-zona-peligro');
+  if(elP){
+    if(!obras.length){elP.innerHTML='<p style="color:var(--ws);">Sin obras.</p>';}
+    else{
+      elP.innerHTML=obras.map(function(o){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2);border-radius:4px;margin-bottom:6px;">'+
+          '<div><b>'+o.nom+'</b> <span style="font-size:10px;color:var(--ws);">'+o.cod+'</span></div>'+
+          '<button class="btn btn-r btn-sm" onclick="admEliminarObra('+o.id+')">🗑️ Eliminar</button>'+
+          '</div>';
+      }).join('');
+    }
+  }
+  admCargarAuditoria();
+}
+
+async function admDesbloquear(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  if(!confirm('¿Desbloquear contrato de '+ct.nom+'?'))return;
+  ct.bloqueado=false;ct.ed_count=0;ct.historial=[];
+  await dbGuardarContrato(ct);renderAdmFull();
+}
+function admVerContrato(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.texto)return;
+  var win=window.open('','_blank');
+  win.document.write('<html><head><style>body{font-family:Arial;font-size:11pt;padding:30px;color:#000;}pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;}</style></head><body><pre>'+ct.texto+'</pre></body></html>');
+  win.document.close();
+}
+async function admDescargarFirmado(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.firm_scan)return;
+  try{var url=await storageUrl(ct.firm_scan);window.open(url,'_blank','noopener');}
+  catch(e){alert('Error: '+e.message);}
+}
+async function admEliminarContratista(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  if(!confirm('¿Eliminar contratista "'+ct.nom+'"?'))return;
+  try{
+    await sb.from('rec_contratos').delete().eq('id',ctId);
+    contratos=contratos.filter(function(x){return x.id!==ctId;});
+    dbLog(CU.n,'CT eliminado: '+ct.nom);renderAdmFull();renderAdmin();
+    alert('✅ Eliminado.');
+  }catch(e){alert('Error: '+e.message);}
+}
+async function admEliminarObra(oid){
+  var o=obras.find(function(x){return x.id===oid;});if(!o)return;
+  if(!confirm('¿Eliminar obra "'+o.nom+'" y sus contratos?'))return;
+  try{
+    await sb.from('rec_contratos').delete().eq('obra_id',oid);
+    await sb.from('rec_obras').delete().eq('id',oid);
+    obras=obras.filter(function(x){return x.id!==oid;});
+    contratos=contratos.filter(function(x){return x.oid!==oid;});
+    dbLog(CU.n,'Obra eliminada: '+o.nom);
+    renderAdmFull();renderAdmin();renderFatima();renderSup();
+    alert('✅ Obra eliminada.');
+  }catch(e){alert('Error: '+e.message);}
+}
+async function admCargarAuditoria(){
+  var el=document.getElementById('adm-auditoria');if(!el)return;
+  el.innerHTML='<span style="color:var(--ws);">Cargando...</span>';
+  try{
+    var res=await sb.from('rec_auditoria').select('usuario,accion,created_at').order('created_at',{ascending:false}).limit(40);
+    var data=res.data;
+    if(!data||!data.length){el.innerHTML='<span style="color:var(--ws);">Sin registros.</span>';return;}
+    el.innerHTML=data.map(function(r){
+      var fecha=new Date(r.created_at).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return '<div style="border-bottom:1px solid var(--bd);padding:3px 0;display:flex;justify-content:space-between;"><span><b style="color:var(--am);">'+r.usuario+'</b> · '+r.accion+'</span><span style="color:var(--ws);font-size:9px;white-space:nowrap;margin-left:8px;">'+fecha+'</span></div>';
+    }).join('');
+  }catch(e){el.innerHTML='<span style="color:var(--Rc);">Error: '+e.message+'</span>';}
+}
 </script>
 </body>
 </html>
