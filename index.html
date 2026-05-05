@@ -80,7 +80,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .kpi.k-purple::before{background:var(--Pc);}
 .kpi-val{font-size:28px;font-weight:900;line-height:1;margin-bottom:4px;}
 .kpi-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ws);font-weight:700;}
-.kpi-sub{font-size:10px;color:var(--wd);margin-top:3px;}
 
 /* PANEL CEO TABS */
 .ceo-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:16px;overflow-x:auto;}
@@ -91,24 +90,36 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .ceo-sub.on{display:block;}
 
 /* SUP AVANCE */
-.avance-bar-wrap{background:var(--p3);border-radius:4px;height:10px;overflow:hidden;margin:6px 0;}
+.avance-bar-wrap{background:var(--p3);border-radius:4px;height:8px;overflow:hidden;margin:4px 0 8px;}
 .avance-bar-fill{height:100%;background:linear-gradient(90deg,var(--G),var(--Gc));border-radius:4px;transition:width .4s;}
-.fase-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;}
 
-/* FLUJO PROGRESS BAR */
-.flujo-bar{display:flex;margin-bottom:20px;border-radius:8px;overflow:hidden;}
-.flujo-paso{flex:1;padding:10px 6px;text-align:center;font-size:9px;font-weight:700;
-  text-transform:uppercase;letter-spacing:.7px;border-right:2px solid var(--bg);
-  display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s;}
-.flujo-paso:last-child{border-right:none;}
-.flujo-paso .fp-ico{font-size:16px;}
-.flujo-paso .fp-num{font-size:8px;opacity:.6;}
-.flujo-paso.f-done{background:var(--Gbg);color:var(--Gc);}
-.flujo-paso.f-active{background:var(--amd);color:var(--am);box-shadow:inset 0 -3px 0 var(--am);}
-.flujo-paso.f-pend{background:var(--p2);color:var(--ws);}
+/* FLUJO — oculto, reemplazado por paso-line */
+.flujo-bar{display:none!important;}
+
+/* SECTION HEADER — limpio, sin bloques pesados */
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bd);}
+.sh-ico{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.sh-ico.gold{background:var(--amd);}
+.sh-ico.green{background:var(--Gbg);}
+.sh-ico.blue{background:var(--Zbg);}
+.sh-ico.purple{background:var(--Pbg);}
+.sh-t{font-size:15px;font-weight:800;color:var(--w);}
+.sh-s{font-size:11px;color:var(--ws);margin-top:1px;}
+
+/* PASO INDICATOR pequeño en línea */
+.paso-line{display:flex;align-items:center;gap:0;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;}
+.pl-item{display:flex;align-items:center;gap:0;flex-shrink:0;}
+.pl-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;border:2px solid var(--bd);color:var(--ws);background:var(--p2);flex-shrink:0;}
+.pl-dot.done{background:var(--Gbg);border-color:var(--Gc);color:var(--Gc);}
+.pl-dot.active{background:var(--amd);border-color:var(--am);color:var(--am);}
+.pl-lbl{font-size:9px;font-weight:600;color:var(--ws);margin:0 5px;white-space:nowrap;}
+.pl-lbl.active{color:var(--am);}
+.pl-lbl.done{color:var(--Gc);}
+.pl-sep{width:16px;height:2px;background:var(--bd);flex-shrink:0;}
+.pl-sep.done{background:var(--Gc);}
 
 /* CARDS */
-.card{background:var(--p1);border:1px solid var(--bd);border-radius:6px;padding:18px;margin-bottom:14px;}
+.card{background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:16px;margin-bottom:12px;}
 .card-hero{border-radius:10px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden;}
 .ct{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2.5px;color:var(--am);
   margin-bottom:14px;padding-bottom:9px;border-bottom:1px solid var(--bd);}
@@ -140,24 +151,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .brow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
 
 /* UPLOAD ZONES */
-.upload-zone{border:2px dashed var(--bd);border-radius:6px;padding:20px 12px;text-align:center;
+.upload-zone{border:2px dashed var(--bd);border-radius:6px;padding:16px 12px;text-align:center;
   cursor:pointer;transition:all .2s;position:relative;}
 .upload-zone:hover,.upload-zone.drag{border-color:var(--am);background:var(--amd);}
 .upload-zone.ok{border-color:var(--G);border-style:solid;background:var(--Gbg);}
 .upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
-.uz-ico{font-size:28px;margin-bottom:6px;}
+.uz-ico{font-size:22px;margin-bottom:4px;}
 .uz-lbl{font-size:11px;font-weight:700;color:var(--wd);}
-.uz-sub{font-size:9px;color:var(--ws);margin-top:3px;}
+.uz-sub{font-size:9px;color:var(--ws);margin-top:2px;}
 .uz-ok{font-size:10px;color:var(--Gc);margin-top:4px;font-weight:700;word-break:break-all;}
-.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
-.upload-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.upload-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.upload-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
 @media(max-width:600px){.upload-row,.upload-trio{grid-template-columns:1fr;}}
 
 /* OBRA CARDS */
-.obra-item{background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:14px;
-  margin-bottom:10px;cursor:pointer;transition:all .2s;display:flex;justify-content:space-between;align-items:center;}
-.obra-item:hover{border-color:var(--am);background:var(--p3);}
-.oi-left h4{font-size:13px;font-weight:700;margin-bottom:3px;}
+.obra-item{background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:12px 14px;
+  margin-bottom:8px;cursor:pointer;transition:all .2s;display:flex;justify-content:space-between;align-items:center;}
+.obra-item:hover{border-color:var(--am);}
+.oi-left h4{font-size:13px;font-weight:700;margin-bottom:2px;}
 .oi-left p{font-size:11px;color:var(--wd);}
 .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;}
 .b-pend{background:var(--Nbg);color:var(--Nc);}
@@ -167,12 +178,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .b-gen{background:var(--Pbg);color:var(--Pc);}
 
 /* ALERTS */
-.al{padding:10px 14px;border-radius:4px;font-size:11px;margin-bottom:12px;line-height:1.6;}
+.al{padding:8px 12px;border-radius:4px;font-size:11px;margin-bottom:10px;line-height:1.5;}
 .al-g{background:var(--Gbg);border:1px solid var(--G);color:var(--Gc);}
 .al-z{background:var(--Zbg);border:1px solid var(--Z);color:var(--Zc);}
 .al-n{background:var(--Nbg);border:1px solid var(--N);color:var(--Nc);}
 .al-r{background:var(--Rbg);border:1px solid var(--R);color:var(--Rc);}
 .al-p{background:var(--Pbg);border:1px solid var(--P);color:var(--Pc);}
+
+/* OPCIÓN CARDS */
+.opcion-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.opcion-card{background:var(--p2);border:2px solid var(--bd);border-radius:8px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .2s;}
+.opcion-card:hover{border-color:var(--am);background:var(--amd);}
+.opcion-card-ico{font-size:28px;margin-bottom:8px;}
+.opcion-card-t{font-size:13px;font-weight:800;color:var(--w);}
+.opcion-card-s{font-size:10px;color:var(--ws);margin-top:3px;}
+@media(max-width:500px){.opcion-cards{grid-template-columns:1fr;}}
 
 /* CONTRATO EDITOR */
 .ct-editor{width:100%;min-height:320px;background:#0d1117;border:1px solid var(--bd);color:var(--w);
@@ -223,7 +243,6 @@ tbody td:first-child{color:var(--w);font-weight:600;}
   .fg2,.fg3{grid-template-columns:1fr;}
   .main{padding:12px 10px;}
   .pin-box{width:90%;}
-  .flujo-paso .fp-label{display:none;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -360,26 +379,30 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-steffi">
 
-      <!-- BARRA DE FLUJO -->
-      <div class="flujo-bar">
-        <div class="flujo-paso f-active"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi carga obra</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">📋</div><div class="fp-num">PASO 2</div><div class="fp-label">Fátima completa</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Contrato firmado</div></div>
+      <!-- HEADER LIMPIO -->
+      <div class="sh">
+        <div class="sh-ico purple">⚖️</div>
+        <div><div class="sh-t">Panel Steffi</div><div class="sh-s">Registrar obras · Revisar y aprobar contratos</div></div>
       </div>
 
       <!-- PASO 1: NUEVA OBRA -->
-      <div class="card" style="border-top:3px solid var(--am);">
-        <div class="ct">⚖️ PASO 1 — Registrar Nueva Obra (Steffi)</div>
-        <div class="al al-z" style="margin-bottom:16px;">📌 Steffi carga el contrato firmado con el propietario del terreno. El sistema crea la obra y queda lista para que Fátima complete los datos técnicos.</div>
+      <div class="card">
+        <div class="paso-line">
+          <div class="pl-item"><div class="pl-dot active">1</div><span class="pl-lbl active">Registrar Obra</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">2</div><span class="pl-lbl">Fátima</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">3</div><span class="pl-lbl">Contratista</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">4</div><span class="pl-lbl">Aprobar</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
+        </div>
 
-        <!-- Uploads -->
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Contrato con Propietario</div>
         <div class="upload-row">
           <div class="upload-zone" id="uz-dig" onclick="document.getElementById('fi-dig').click()">
             <div class="uz-ico">📋</div>
-            <div class="uz-lbl">Archivo Digital</div>
+            <div class="uz-lbl">Contrato Digital</div>
             <div class="uz-sub">PDF · DOC · DOCX</div>
             <div class="uz-ok" id="txt-dig"></div>
             <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="onUpNuevaObra('dig',this)">
@@ -393,26 +416,33 @@ async function storageUrl(path){
           </div>
         </div>
 
-        <!-- Datos básicos (Steffi sabe el nombre del propietario/obra) -->
         <div class="fg fg2" style="margin-bottom:14px;">
           <div class="f"><label>Nombre de la Obra *</label><input id="n-nom" placeholder="ej. OBRA FERNÁNDEZ-MONTERO"></div>
-          <div class="f"><label>Código (se genera solo)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly></div>
+          <div class="f"><label>Código (auto)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly></div>
         </div>
 
         <div class="brow">
-          <button class="btn btn-y btn-lg" onclick="guardarNuevaObra()">💾 REGISTRAR OBRA</button>
-          <button class="btn btn-o" onclick="limpiarNuevaObra()">🔄 Limpiar</button>
+          <button class="btn btn-y" onclick="guardarNuevaObra()">💾 Registrar Obra</button>
+          <button class="btn btn-o btn-sm" onclick="limpiarNuevaObra()">Limpiar</button>
         </div>
       </div>
 
-      <!-- PASO 4: LISTA OBRAS — revisar contratos -->
-      <div class="card" style="margin-top:6px;">
-        <div class="ct">⚖️ PASO 4 — Revisar y Aprobar Contratos</div>
-        <div class="al al-z" style="margin-bottom:14px;">Seleccioná una obra donde Josemiguel ya cargó el contratista. Verificá, editá (máx. 3 veces) y aprobá el contrato para imprimir y firmar.</div>
+      <!-- PASO 4: REVISAR CONTRATOS -->
+      <div class="card">
+        <div class="paso-line">
+          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Obra</span></div>
+          <div class="pl-sep done"></div>
+          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Datos</span></div>
+          <div class="pl-sep done"></div>
+          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Contratista</span></div>
+          <div class="pl-sep done"></div>
+          <div class="pl-item"><div class="pl-dot active">4</div><span class="pl-lbl active">Revisar y Aprobar</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
+        </div>
         <div id="steffi-obras-lista"></div>
       </div>
 
-      <!-- EDITOR de contrato (se muestra al seleccionar obra) -->
       <div id="steffi-editor-area" style="display:none;"></div>
 
     </div>
@@ -422,31 +452,35 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-fatima">
 
-      <div class="flujo-bar">
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi cargó</div></div>
-        <div class="flujo-paso f-active"><div class="fp-ico">📋</div><div class="fp-num">PASO 2</div><div class="fp-label">Fátima completa</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Firmado</div></div>
+      <div class="sh">
+        <div class="sh-ico blue">📋</div>
+        <div><div class="sh-t">Panel Fátima</div><div class="sh-s">Completar datos técnicos de la obra</div></div>
       </div>
 
-      <div class="card" style="border-top:3px solid #38bdf8;">
-        <div class="ct" style="color:#38bdf8;">📋 PASO 2 — Completar Datos Técnicos</div>
-        <div class="al al-z" style="margin-bottom:16px;">📌 Elegí la obra que Steffi registró y completá los datos técnicos: superficie, precio, módulos, fechas, ubicación. El sistema arma el contrato automáticamente con esta info.</div>
+      <div class="card">
+        <div class="paso-line">
+          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Steffi</span></div>
+          <div class="pl-sep done"></div>
+          <div class="pl-item"><div class="pl-dot active">2</div><span class="pl-lbl active">Completar Datos</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">3</div><span class="pl-lbl">Contratista</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">4</div><span class="pl-lbl">Aprobar</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
+        </div>
 
-        <!-- Selector de obra -->
-        <div class="f" style="margin-bottom:16px;">
-          <label>Elegir Obra a Completar *</label>
+        <div class="f" style="margin-bottom:14px;">
+          <label>Elegir Obra *</label>
           <select id="fat-sel-obra" onchange="fatSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
             <option value="">— Seleccioná una obra —</option>
           </select>
         </div>
 
         <div id="fat-form" style="display:none;">
-          <!-- Info auto-rellena desde propietario -->
-          <div class="al al-g" id="fat-info-prop" style="margin-bottom:14px;"></div>
+          <div class="al al-g" id="fat-info-prop" style="margin-bottom:12px;"></div>
 
-          <div class="fg fg2" style="margin-bottom:14px;">
+          <div class="fg fg2" style="margin-bottom:12px;">
             <div class="f"><label>Superficie m² *</label><input type="number" id="fat-sup" oninput="fatCalc()" placeholder="120"></div>
             <div class="f"><label>Precio USD/m²</label><input type="number" id="fat-pre" value="75" oninput="fatCalc()"></div>
             <div class="f"><label>Cuadrilla (auto)</label><input id="fat-cua" readonly></div>
@@ -457,44 +491,37 @@ async function storageUrl(path){
             <div class="f full"><label>📍 Link Google Maps *</label><input id="fat-map" placeholder="https://maps.google.com/maps?q=..."></div>
           </div>
 
-          <!-- Módulos -->
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Módulos de Obra</div>
           <div id="fat-mods-wrap">
             <div id="fat-mods-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;"></div>
-            <button class="btn btn-o btn-sm" onclick="fatAddMod()" style="margin-bottom:14px;">+ Agregar módulo</button>
+            <button class="btn btn-o btn-sm" onclick="fatAddMod()" style="margin-bottom:12px;">+ Agregar módulo</button>
           </div>
 
-          <!-- Objeto / Inclusiones / Exclusiones — con texto GEAT por defecto -->
-          <div style="background:rgba(245,196,0,.06);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;margin-bottom:10px;">
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:4px;">📋 Cláusulas del Contrato con el Contratista</div>
-            <div style="font-size:10px;color:var(--wd);">Texto pre-cargado con los estándares GEAT. Editá solo si hay condiciones especiales para esta obra.</div>
-          </div>
-          <div class="fg" style="margin-bottom:14px;gap:10px;">
+          <div class="fg" style="margin-bottom:12px;gap:10px;">
             <div class="f">
-              <label>Objeto del Contrato <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
-              <textarea id="fat-obj" rows="4"></textarea>
+              <label>Objeto del Contrato <span style="color:var(--Gc);font-size:8px;">· pre-cargado GEAT</span></label>
+              <textarea id="fat-obj" rows="3"></textarea>
             </div>
             <div class="f">
-              <label>¿Qué está INCLUIDO? — Obligaciones del Contratista <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
-              <textarea id="fat-inc" rows="6"></textarea>
+              <label>Incluido — Obligaciones del Contratista <span style="color:var(--Gc);font-size:8px;">· pre-cargado GEAT</span></label>
+              <textarea id="fat-inc" rows="5"></textarea>
             </div>
             <div class="f">
-              <label>¿Qué NO está incluido? — Corre por cuenta de GEAT <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
-              <textarea id="fat-exc" rows="5"></textarea>
+              <label>No incluido — Corre por cuenta de GEAT <span style="color:var(--Gc);font-size:8px;">· pre-cargado GEAT</span></label>
+              <textarea id="fat-exc" rows="4"></textarea>
             </div>
-            <div class="f"><label>Notas adicionales de la obra</label><textarea id="fat-not" rows="2" placeholder="Observaciones de acceso, condiciones del terreno, requerimientos especiales..."></textarea></div>
+            <div class="f"><label>Notas adicionales</label><textarea id="fat-not" rows="2" placeholder="Condiciones de acceso, terreno, requerimientos especiales..."></textarea></div>
           </div>
 
           <div class="brow">
-            <button class="btn btn-y btn-lg" onclick="fatGuardar()">💾 GUARDAR DATOS TÉCNICOS</button>
-            <button class="btn btn-o" onclick="fatLimpiar()">🔄 Limpiar</button>
+            <button class="btn btn-y" onclick="fatGuardar()">💾 Guardar Datos Técnicos</button>
+            <button class="btn btn-o btn-sm" onclick="fatLimpiar()">Limpiar</button>
           </div>
         </div>
       </div>
 
-      <!-- Lista de obras ya completadas por Fátima -->
       <div class="card">
-        <div class="ct">📋 Obras con Datos Técnicos Completos</div>
+        <div style="font-size:10px;font-weight:700;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Obras Completadas</div>
         <div id="fat-completadas"></div>
       </div>
 
@@ -505,19 +532,24 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-admin">
 
-      <div class="flujo-bar">
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi cargó</div></div>
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 2</div><div class="fp-label">Fátima completó</div></div>
-        <div class="flujo-paso f-active"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
-        <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Firmado</div></div>
+      <div class="sh">
+        <div class="sh-ico gold">👤</div>
+        <div><div class="sh-t">Asignar Contratista</div><div class="sh-s">Paso 3 del flujo — Elegir obra y asignar contratista</div></div>
       </div>
 
-      <div class="card" style="border-top:3px solid var(--am);">
-        <div class="ct">👤 PASO 3 — Asignar Contratista a Obra</div>
-        <div class="al al-n" style="margin-bottom:14px;">📌 Elegí la obra lista (técnicamente completada por Fátima). Tenés dos opciones: <b>Activar búsqueda</b> en Facebook/Messenger, o <b>Cargar directamente</b> si ya tenés el contratista elegido.</div>
+      <div class="card">
+        <div class="paso-line">
+          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Obra</span></div>
+          <div class="pl-sep done"></div>
+          <div class="pl-item"><div class="pl-dot done">✓</div><span class="pl-lbl done">Datos</span></div>
+          <div class="pl-sep done"></div>
+          <div class="pl-item"><div class="pl-dot active">3</div><span class="pl-lbl active">Asignar Contratista</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">4</div><span class="pl-lbl">Aprobar</span></div>
+          <div class="pl-sep"></div>
+          <div class="pl-item"><div class="pl-dot">5</div><span class="pl-lbl">Firma</span></div>
+        </div>
 
-        <!-- Selector de obra lista para contratista -->
         <div class="f" style="margin-bottom:14px;">
           <label>Elegir Obra Lista *</label>
           <select id="adm-sel-obra" onchange="admSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
@@ -525,78 +557,65 @@ async function storageUrl(path){
           </select>
         </div>
 
-        <!-- Preview datos técnicos de la obra -->
         <div id="adm-obra-preview" style="display:none;"></div>
 
-        <!-- Dos opciones -->
         <div id="adm-opciones" style="display:none;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-            <button class="btn btn-p btn-lg" style="justify-content:center;flex-direction:column;gap:4px;padding:16px;" onclick="admOpcion('busqueda')">
-              <div style="font-size:22px;">📢</div>
-              <div>Activar Búsqueda</div>
-              <div style="font-size:9px;opacity:.7;font-weight:400;">Facebook + Messenger</div>
-            </button>
-            <button class="btn btn-y btn-lg" style="justify-content:center;flex-direction:column;gap:4px;padding:16px;" onclick="admOpcion('directo')">
-              <div style="font-size:22px;">👷</div>
-              <div>Cargar Directamente</div>
-              <div style="font-size:9px;opacity:.7;font-weight:400;color:#333;">Ya elegiste el contratista</div>
-            </button>
+          <div class="opcion-cards">
+            <div class="opcion-card" onclick="admOpcion('busqueda')">
+              <div class="opcion-card-ico">📢</div>
+              <div class="opcion-card-t">Activar Búsqueda</div>
+              <div class="opcion-card-s">Facebook · Messenger</div>
+            </div>
+            <div class="opcion-card" onclick="admOpcion('directo')">
+              <div class="opcion-card-ico">👷</div>
+              <div class="opcion-card-t">Cargar Directamente</div>
+              <div class="opcion-card-s">Ya elegiste al contratista</div>
+            </div>
           </div>
         </div>
 
-        <!-- Formulario carga directa -->
         <div id="adm-form-ct" style="display:none;">
-          <div style="background:linear-gradient(135deg,rgba(245,196,0,.08),var(--p1));border:1px solid rgba(245,196,0,.3);border-radius:8px;padding:16px;margin-bottom:16px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:14px;">👷 DATOS DEL CONTRATISTA ELEGIDO</div>
-
-            <!-- Documentos -->
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Documentos de Identidad</div>
-            <div class="upload-trio" style="margin-bottom:16px;">
-              <div class="upload-zone" id="uz-ci" onclick="document.getElementById('fi-ci').click()">
-                <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
-                <div class="uz-ok" id="txt-ci"></div>
-                <input type="file" id="fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ci',this)">
-              </div>
-              <div class="upload-zone" id="uz-ag" onclick="document.getElementById('fi-ag').click()">
-                <div class="uz-ico">💧</div><div class="uz-lbl">Aviso Agua</div>
-                <div class="uz-ok" id="txt-ag"></div>
-                <input type="file" id="fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ag',this)">
-              </div>
-              <div class="upload-zone" id="uz-lz" onclick="document.getElementById('fi-lz').click()">
-                <div class="uz-ico">⚡</div><div class="uz-lbl">Aviso Luz</div>
-                <div class="uz-ok" id="txt-lz"></div>
-                <input type="file" id="fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('lz',this)">
-              </div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;margin-top:4px;">Documentos de Identidad</div>
+          <div class="upload-trio">
+            <div class="upload-zone" id="uz-ci" onclick="document.getElementById('fi-ci').click()">
+              <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
+              <div class="uz-ok" id="txt-ci"></div>
+              <input type="file" id="fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ci',this)">
             </div>
-
-            <!-- Datos personales -->
-            <div class="fg fg3" style="margin-bottom:14px;">
-              <div class="f"><label>Nombre Completo *</label><input id="adm-ct-nom" placeholder="Juan Carlos Morales"></div>
-              <div class="f"><label>Teléfono *</label><input id="adm-ct-tel" placeholder="72345678"></div>
-              <div class="f"><label>N° C.I.</label><input id="adm-ct-ci" placeholder="14789456"></div>
-              <div class="f full"><label>Dirección</label><input id="adm-ct-dir" placeholder="Zona, calle, número"></div>
+            <div class="upload-zone" id="uz-ag" onclick="document.getElementById('fi-ag').click()">
+              <div class="uz-ico">💧</div><div class="uz-lbl">Aviso Agua</div>
+              <div class="uz-ok" id="txt-ag"></div>
+              <input type="file" id="fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ag',this)">
             </div>
-
-            <!-- Datos de negociación que cerró JoseMiguel -->
-            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;margin-top:6px;">Condiciones de Negociación Cerradas</div>
-            <div class="fg fg2" style="margin-bottom:14px;">
-              <div class="f full"><label>Condiciones especiales pactadas</label><textarea id="adm-ct-cond" rows="2" placeholder="Condiciones de ejecución, materiales a cargo, herramientas especiales..."></textarea></div>
-              <div class="f full"><label>Datos de negociación (precio final, ajustes, acuerdos)</label><textarea id="adm-ct-neg" rows="3" placeholder="ej: Se acordó precio de $8,500 USD por la obra completa. Se incluye movilización. Pago 30/40/30 según avance verificado por supervisor..."></textarea></div>
+            <div class="upload-zone" id="uz-lz" onclick="document.getElementById('fi-lz').click()">
+              <div class="uz-ico">⚡</div><div class="uz-lbl">Aviso Luz</div>
+              <div class="uz-ok" id="txt-lz"></div>
+              <input type="file" id="fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('lz',this)">
             </div>
+          </div>
+
+          <div class="fg fg3" style="margin-bottom:12px;">
+            <div class="f"><label>Nombre Completo *</label><input id="adm-ct-nom" placeholder="Juan Carlos Morales"></div>
+            <div class="f"><label>Teléfono *</label><input id="adm-ct-tel" placeholder="72345678"></div>
+            <div class="f"><label>N° C.I.</label><input id="adm-ct-ci" placeholder="14789456"></div>
+            <div class="f full"><label>Dirección</label><input id="adm-ct-dir" placeholder="Zona, calle, número"></div>
+          </div>
+
+          <div class="fg" style="margin-bottom:12px;gap:8px;">
+            <div class="f full"><label>Condiciones especiales pactadas</label><textarea id="adm-ct-cond" rows="2" placeholder="Condiciones de ejecución, materiales, herramientas..."></textarea></div>
+            <div class="f full"><label>Datos de negociación</label><textarea id="adm-ct-neg" rows="2" placeholder="Precio final, ajustes, acuerdos..."></textarea></div>
           </div>
 
           <div class="brow">
-            <button class="btn btn-y btn-lg" onclick="admGuardarContratista()">💾 GUARDAR Y GENERAR CONTRATO</button>
-            <button class="btn btn-o" onclick="admLimpiar()">🔄 Limpiar</button>
+            <button class="btn btn-y" onclick="admGuardarContratista()">💾 Guardar y Generar Contrato</button>
+            <button class="btn btn-o btn-sm" onclick="admLimpiar()">Limpiar</button>
           </div>
           <div id="adm-msg" style="margin-top:10px;"></div>
         </div>
-
       </div>
 
-      <!-- Resumen ejecutivo -->
       <div class="card">
-        <div class="ct">📊 Resumen Ejecutivo — Todas las Obras</div>
+        <div style="font-size:10px;font-weight:700;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Resumen — Todas las Obras</div>
         <div class="tw"><table>
           <thead><tr><th>Obra</th><th>Estado</th><th>Contratista</th><th>Monto</th><th>Contrato</th></tr></thead>
           <tbody id="adm-tabla"></tbody>
@@ -609,17 +628,12 @@ async function storageUrl(path){
          PANEL SUPERVISOR MEJORADO — Arq. Raí
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-sup">
-      <div class="flujo-bar">
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Obra cargada</div></div>
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 2</div><div class="fp-label">Datos técnicos</div></div>
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 3</div><div class="fp-label">Contratista</div></div>
-        <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 4</div><div class="fp-label">Aprobado</div></div>
-        <div class="flujo-paso f-active"><div class="fp-ico">🏗️</div><div class="fp-num">EN CAMPO</div><div class="fp-label">Supervisión</div></div>
+      <div class="sh">
+        <div class="sh-ico green">🏗️</div>
+        <div><div class="sh-t">Supervisión de Campo</div><div class="sh-s">Arq. Raí — Paquete completo por obra</div></div>
       </div>
 
-      <div class="card" style="border-top:3px solid var(--Gc);">
-        <div class="ct" style="color:var(--Gc);">🏗️ SUPERVISIÓN DE CAMPO — Arq. Raí</div>
-        <div class="al al-g" style="margin-bottom:14px;">Seleccioná una obra para ver el paquete completo de supervisión: contratista, pagos, módulos, penalidades y obligaciones de campo.</div>
+      <div class="card">
         <div class="f" style="margin-bottom:14px;">
           <label>Seleccionar Obra</label>
           <select id="sup-sel" onchange="supSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
@@ -629,9 +643,8 @@ async function storageUrl(path){
         <div id="sup-content"></div>
       </div>
 
-      <!-- Resumen rápido todas las obras -->
       <div class="card">
-        <div class="ct" style="color:var(--Gc);">📊 Estado General de Obras</div>
+        <div style="font-size:10px;font-weight:700;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Estado General de Obras</div>
         <div id="sup-resumen-general"></div>
       </div>
     </div>
@@ -642,37 +655,37 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-ceo">
 
-      <!-- KPIs ejecutivos -->
-      <div class="card" style="border-top:3px solid var(--am);">
-        <div class="ct">📊 KPIs — GEAT CONTRATISTAS</div>
-        <div class="kpi-grid" id="ceo-kpis">
-          <div class="kpi k-gold"><div class="kpi-val" id="kpi-obras">—</div><div class="kpi-lbl">Obras Totales</div></div>
-          <div class="kpi k-green"><div class="kpi-val" id="kpi-contratos">—</div><div class="kpi-lbl">Contratos Firmados</div></div>
-          <div class="kpi k-blue"><div class="kpi-val" id="kpi-pendientes">—</div><div class="kpi-lbl">En Proceso</div></div>
-          <div class="kpi k-red"><div class="kpi-val" id="kpi-sin-ct">—</div><div class="kpi-lbl">Sin Contratista</div></div>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi k-gold"><div class="kpi-val" id="kpi-m2">—</div><div class="kpi-lbl">m² en obras activas</div></div>
-          <div class="kpi k-green"><div class="kpi-val" id="kpi-monto">—</div><div class="kpi-lbl">Monto total USD</div></div>
-          <div class="kpi k-purple"><div class="kpi-val" id="kpi-rev-pendiente">—</div><div class="kpi-lbl">Revisión Steffi</div></div>
-          <div class="kpi k-blue"><div class="kpi-val" id="kpi-listo-firma">—</div><div class="kpi-lbl">Listos para firma</div></div>
-        </div>
+      <div class="sh">
+        <div class="sh-ico gold">📊</div>
+        <div><div class="sh-t">Dashboard CEO</div><div class="sh-s">Josemiguel — Vista ejecutiva + acceso completo</div></div>
       </div>
 
-      <!-- Tabs de acceso a todos los paneles -->
-      <div class="card" style="padding-top:14px;">
-        <div class="ct">🗂️ GESTIÓN COMPLETA — Acceso a Todos los Módulos</div>
+      <!-- KPIs ejecutivos -->
+      <div class="kpi-grid" id="ceo-kpis">
+        <div class="kpi k-gold"><div class="kpi-val" id="kpi-obras">—</div><div class="kpi-lbl">Obras Totales</div></div>
+        <div class="kpi k-green"><div class="kpi-val" id="kpi-contratos">—</div><div class="kpi-lbl">Contratos Firmados</div></div>
+        <div class="kpi k-blue"><div class="kpi-val" id="kpi-pendientes">—</div><div class="kpi-lbl">En Proceso</div></div>
+        <div class="kpi k-red"><div class="kpi-val" id="kpi-sin-ct">—</div><div class="kpi-lbl">Sin Contratista</div></div>
+      </div>
+      <div class="kpi-grid" style="margin-bottom:18px;">
+        <div class="kpi k-gold"><div class="kpi-val" id="kpi-m2">—</div><div class="kpi-lbl">m² activos</div></div>
+        <div class="kpi k-green"><div class="kpi-val" id="kpi-monto">—</div><div class="kpi-lbl">Monto USD</div></div>
+        <div class="kpi k-purple"><div class="kpi-val" id="kpi-rev-pendiente">—</div><div class="kpi-lbl">Revisar Steffi</div></div>
+        <div class="kpi k-blue"><div class="kpi-val" id="kpi-listo-firma">—</div><div class="kpi-lbl">Para Firma</div></div>
+      </div>
+
+      <!-- Tabs acceso completo -->
+      <div class="card" style="padding-top:12px;">
         <div class="ceo-tabs">
-          <button class="ceo-tab on" onclick="ceoPestana('asignar')">⚙️ Asignar Contratista</button>
-          <button class="ceo-tab" onclick="ceoPestana('steffi')">⚖️ Revisión Legal</button>
-          <button class="ceo-tab" onclick="ceoPestana('fatima')">📋 Datos Técnicos</button>
-          <button class="ceo-tab" onclick="ceoPestana('supervisor')">🏗️ Supervisión</button>
-          <button class="ceo-tab" onclick="ceoPestana('auditoria')">📋 Auditoría</button>
+          <button class="ceo-tab on" onclick="ceoPestana('asignar')">⚙️ Asignar</button>
+          <button class="ceo-tab" onclick="ceoPestana('steffi')">⚖️ Legal</button>
+          <button class="ceo-tab" onclick="ceoPestana('fatima')">📋 Técnico</button>
+          <button class="ceo-tab" onclick="ceoPestana('supervisor')">🏗️ Campo</button>
+          <button class="ceo-tab" onclick="ceoPestana('auditoria')">🗒️ Auditoría</button>
         </div>
 
-        <!-- SUB: ASIGNAR (copia funcional del panel admin) -->
+        <!-- SUB: ASIGNAR -->
         <div class="ceo-sub on" id="csub-asignar">
-          <div class="al al-n" style="margin-bottom:14px;">📌 Elegí la obra lista. Asigná contratista directamente o activá búsqueda en redes.</div>
           <div class="f" style="margin-bottom:14px;">
             <label>Elegir Obra Lista *</label>
             <select id="ceo-adm-sel-obra" onchange="ceoAdmSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
@@ -681,21 +694,21 @@ async function storageUrl(path){
           </div>
           <div id="ceo-adm-obra-preview" style="display:none;"></div>
           <div id="ceo-adm-opciones" style="display:none;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-              <button class="btn btn-p btn-lg" style="justify-content:center;flex-direction:column;gap:4px;padding:16px;" onclick="ceoAdmOpcion('busqueda')">
-                <div style="font-size:22px;">📢</div><div>Activar Búsqueda</div>
-                <div style="font-size:9px;opacity:.7;font-weight:400;">Facebook + Messenger</div>
-              </button>
-              <button class="btn btn-y btn-lg" style="justify-content:center;flex-direction:column;gap:4px;padding:16px;" onclick="ceoAdmOpcion('directo')">
-                <div style="font-size:22px;">👷</div><div>Cargar Directamente</div>
-                <div style="font-size:9px;opacity:.7;font-weight:400;color:#333;">Ya elegiste el contratista</div>
-              </button>
+            <div class="opcion-cards">
+              <div class="opcion-card" onclick="ceoAdmOpcion('busqueda')">
+                <div class="opcion-card-ico">📢</div>
+                <div class="opcion-card-t">Activar Búsqueda</div>
+                <div class="opcion-card-s">Facebook · Messenger</div>
+              </div>
+              <div class="opcion-card" onclick="ceoAdmOpcion('directo')">
+                <div class="opcion-card-ico">👷</div>
+                <div class="opcion-card-t">Cargar Directamente</div>
+                <div class="opcion-card-s">Ya elegiste al contratista</div>
+              </div>
             </div>
           </div>
           <div id="ceo-adm-form-ct" style="display:none;">
-            <div style="background:linear-gradient(135deg,rgba(245,196,0,.08),var(--p1));border:1px solid rgba(245,196,0,.3);border-radius:8px;padding:16px;margin-bottom:16px;">
-              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:700;margin-bottom:14px;">👷 DATOS DEL CONTRATISTA ELEGIDO</div>
-              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Documentos de Identidad</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;margin-top:4px;">Documentos de Identidad</div>
               <div class="upload-trio" style="margin-bottom:16px;">
                 <div class="upload-zone" id="ceo-uz-ci" onclick="document.getElementById('ceo-fi-ci').click()">
                   <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
@@ -713,44 +726,40 @@ async function storageUrl(path){
                   <input type="file" id="ceo-fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="ceoOnUpCt('lz',this)">
                 </div>
               </div>
-              <div class="fg fg3" style="margin-bottom:14px;">
+              <div class="fg fg3" style="margin-bottom:12px;">
                 <div class="f"><label>Nombre Completo *</label><input id="ceo-adm-ct-nom" placeholder="Juan Carlos Morales"></div>
                 <div class="f"><label>Teléfono *</label><input id="ceo-adm-ct-tel" placeholder="72345678"></div>
                 <div class="f"><label>N° C.I.</label><input id="ceo-adm-ct-ci" placeholder="14789456"></div>
                 <div class="f full"><label>Dirección</label><input id="ceo-adm-ct-dir" placeholder="Zona, calle, número"></div>
               </div>
-              <div class="fg fg2">
+              <div class="fg" style="gap:8px;margin-bottom:12px;">
                 <div class="f full"><label>Condiciones especiales</label><textarea id="ceo-adm-ct-cond" rows="2" placeholder="Condiciones de ejecución..."></textarea></div>
-                <div class="f full"><label>Datos de negociación</label><textarea id="ceo-adm-ct-neg" rows="3" placeholder="Precio final, ajustes, acuerdos..."></textarea></div>
+                <div class="f full"><label>Datos de negociación</label><textarea id="ceo-adm-ct-neg" rows="2" placeholder="Precio final, ajustes, acuerdos..."></textarea></div>
               </div>
-            </div>
             <div class="brow">
-              <button class="btn btn-y btn-lg" onclick="ceoAdmGuardarContratista()">💾 GUARDAR Y GENERAR CONTRATO</button>
-              <button class="btn btn-o" onclick="ceoAdmLimpiar()">🔄 Limpiar</button>
+              <button class="btn btn-y" onclick="ceoAdmGuardarContratista()">💾 Guardar y Generar Contrato</button>
+              <button class="btn btn-o btn-sm" onclick="ceoAdmLimpiar()">Limpiar</button>
             </div>
             <div id="ceo-adm-msg" style="margin-top:10px;"></div>
           </div>
-          <!-- Tabla resumen -->
-          <div class="tw" style="margin-top:16px;"><table>
+          <div class="tw" style="margin-top:14px;"><table>
             <thead><tr><th>Obra</th><th>Estado</th><th>Contratista</th><th>Monto</th><th>Contrato</th></tr></thead>
             <tbody id="ceo-adm-tabla"></tbody>
           </table></div>
         </div>
 
-        <!-- SUB: REVISIÓN STEFFI (embed) -->
+        <!-- SUB: REVISIÓN STEFFI -->
         <div class="ceo-sub" id="csub-steffi">
-          <div class="al al-z" style="margin-bottom:14px;">Vista de revisión legal — igual que el panel de Steffi.</div>
           <div id="ceo-steffi-obras-lista"></div>
           <div id="ceo-steffi-editor-area" style="display:none;"></div>
         </div>
 
-        <!-- SUB: DATOS TÉCNICOS FÁTIMA (solo lectura para CEO) -->
+        <!-- SUB: DATOS TÉCNICOS FÁTIMA -->
         <div class="ceo-sub" id="csub-fatima">
-          <div class="al al-z" style="margin-bottom:14px;">Obras pendientes de datos técnicos por Fátima.</div>
           <div id="ceo-fat-lista"></div>
         </div>
 
-        <!-- SUB: SUPERVISIÓN (embed) -->
+        <!-- SUB: SUPERVISIÓN -->
         <div class="ceo-sub" id="csub-supervisor">
           <div class="f" style="margin-bottom:14px;">
             <label>Seleccionar Obra</label>
