@@ -201,6 +201,21 @@ tbody td:first-child{color:var(--w);font-weight:600;}
   .pin-box{width:90%;}
   .flujo-paso .fp-label{display:none;}
 }
+/* TOAST NOTIFICATIONS */
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+.toast{background:var(--p2);border:1px solid var(--bd);border-left:4px solid var(--am);border-radius:6px;padding:12px 16px;min-width:280px;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;gap:10px;align-items:flex-start;animation:toastIn .3s ease;pointer-events:auto;}
+.toast.toast-success{border-left-color:var(--Gc);}
+.toast.toast-warning{border-left-color:var(--Nc);}
+.toast.toast-error{border-left-color:var(--Rc);}
+.toast.toast-info{border-left-color:#38bdf8;}
+.toast-ico{font-size:20px;line-height:1;flex-shrink:0;}
+.toast-body{flex:1;}
+.toast-title{font-size:12px;font-weight:800;color:var(--w);margin-bottom:2px;}
+.toast-msg{font-size:11px;color:var(--wd);line-height:1.4;}
+.toast.toast-out{animation:toastOut .3s ease forwards;}
+@keyframes toastIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(120%);opacity:0;}}
+@media(max-width:600px){.toast-container{top:10px;right:10px;left:10px;}.toast{min-width:auto;max-width:none;}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -244,7 +259,10 @@ function mapObra(o){return{
   articulo_2_propietario:o.articulo_2_propietario||null,
   articulo_3_propietario:o.articulo_3_propietario||null,
   adendas:o.adendas||[],
-  croquis_imagen:o.croquis_imagen||null
+  croquis_imagen:o.croquis_imagen||null,
+  fecha_firma_notaria:o.fecha_firma_notaria||null,
+  fecha_primer_pago_propietario:o.fecha_primer_pago_propietario||null,
+  especificaciones_diferida:o.especificaciones_diferida||false
 };}
 function mapContrato(c){return{
   id:c.id,nom:c.nombre_contratista||'',tel:c.telefono||'',
@@ -262,7 +280,9 @@ function mapContrato(c){return{
   planos_contratista_fecha:c.planos_contratista_fecha||null,
   contrato_firmado_subido_por:c.contrato_firmado_subido_por||null,
   contrato_firmado_fecha:c.contrato_firmado_fecha||null,
-  cronograma_quincenal:c.cronograma_quincenal||[]
+  cronograma_quincenal:c.cronograma_quincenal||[],
+  plazo_planos_dias:c.plazo_planos_dias||6,
+  planos_pendientes_alerta:c.planos_pendientes_alerta||false
 };}
 async function dbGuardarObra(o){
   const esTemp=typeof o.id==='number'&&o.id>1e12;
@@ -315,6 +335,9 @@ async function storageUrl(path){
 </head>
 <body>
 
+<!-- TOAST CONTAINER (TANDA 4) -->
+<div id="toast-container" class="toast-container"></div>
+
 <!-- ═══ LOGIN ═══ -->
 <div id="screen-login">
   <div class="pin-box">
@@ -339,7 +362,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v40 · ADENDAS CON MODELO + GUÍAS</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v41 · CARGA DIFERIDA + ESCANEO + TOAST</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -396,7 +419,7 @@ async function storageUrl(path){
             <div class="uz-lbl">Archivo Digital</div>
             <div class="uz-sub">PDF · DOC · DOCX</div>
             <div class="uz-ok" id="txt-dig"></div>
-            <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="onUpNuevaObra('dig',this)">
+            <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" capture="environment" style="display:none;" onchange="onUpNuevaObra('dig',this)">
           </div>
         </div>
         <div class="al al-z" style="margin:10px 0 14px;">📌 <b>El escaneado firmado del propietario lo sube David</b> (PIN 5565) en su panel "Carga Propietario", junto con planos firmados, materiales y especificaciones técnicas.</div>
@@ -550,7 +573,7 @@ async function storageUrl(path){
               <label>O croquis (imagen) <span style="color:var(--ws);font-size:9px;">— alternativa al link Maps</span></label>
               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                 <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('fi-fat-croquis').click()">📸 Subir croquis</button>
-                <input type="file" id="fi-fat-croquis" accept="image/*,.pdf" style="display:none;" onchange="fatUploadCroquis(this)">
+                <input type="file" id="fi-fat-croquis" accept="image/*,.pdf" capture="environment" style="display:none;" onchange="fatUploadCroquis(this)">
                 <span id="fat-croquis-status" style="font-size:11px;color:var(--ws);">— sin croquis cargado —</span>
               </div>
             </div>
@@ -664,17 +687,17 @@ async function storageUrl(path){
               <div class="upload-zone" id="uz-ci" onclick="document.getElementById('fi-ci').click()">
                 <div class="uz-ico">🪪</div><div class="uz-lbl">C.I. Carnet</div>
                 <div class="uz-ok" id="txt-ci"></div>
-                <input type="file" id="fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ci',this)">
+                <input type="file" id="fi-ci" accept=".pdf,.jpg,.jpeg,.png,image/*" capture="environment" style="display:none;" onchange="onUpCt('ci',this)">
               </div>
               <div class="upload-zone" id="uz-ag" onclick="document.getElementById('fi-ag').click()">
                 <div class="uz-ico">💧</div><div class="uz-lbl">Aviso Agua</div>
                 <div class="uz-ok" id="txt-ag"></div>
-                <input type="file" id="fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('ag',this)">
+                <input type="file" id="fi-ag" accept=".pdf,.jpg,.jpeg,.png,image/*" capture="environment" style="display:none;" onchange="onUpCt('ag',this)">
               </div>
               <div class="upload-zone" id="uz-lz" onclick="document.getElementById('fi-lz').click()">
                 <div class="uz-ico">⚡</div><div class="uz-lbl">Aviso Luz</div>
                 <div class="uz-ok" id="txt-lz"></div>
-                <input type="file" id="fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" style="display:none;" onchange="onUpCt('lz',this)">
+                <input type="file" id="fi-lz" accept=".pdf,.jpg,.jpeg,.png,image/*" capture="environment" style="display:none;" onchange="onUpCt('lz',this)">
               </div>
             </div>
 
@@ -764,11 +787,12 @@ async function storageUrl(path){
 
       <!-- BANNER ROL -->
       <div style="background:linear-gradient(135deg,rgba(91,33,182,.15),var(--p2));border:1px solid var(--P);border-radius:8px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Pc);font-weight:800;margin-bottom:4px;">📐 DOCUMENTACIÓN DEL PROPIETARIO — DAVID GAMBARTE</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Pc);font-weight:800;margin-bottom:4px;">📐 DOCUMENTACIÓN DEL PROPIETARIO — CERRADOR (DAVID / GUSTAVO)</div>
         <div style="font-size:11px;color:var(--wd);line-height:1.6;">
-          <b style="color:var(--Pc);">Tu tarea:</b> después de hacer firmar al propietario en oficina, escaneás y subís 4 documentos.<br>
-          <b>① Contrato firmado</b> · <b>② Planos firmados</b> · <b>③ Lista de materiales firmada</b> · <b>④ Especificaciones técnicas firmadas</b><br>
-          <span style="color:var(--ws);font-size:10px;">⚡ Cada archivo se asocia a la obra correspondiente y queda visible para todo el equipo en supervisión.</span>
+          <b style="color:var(--Pc);">Tus tareas como cerrador:</b><br>
+          <b>① Registrar la fecha de firma en notaría</b> (= primer pago propietario) — esto activa el contador de 6 días para Carolina<br>
+          <b>② Subir escaneados firmados:</b> contrato, planos, lista de materiales y especificaciones técnicas<br>
+          <span style="color:var(--ws);font-size:10px;">📷 Podés escanear directo desde tu celular tocando los íconos. Si las especificaciones aún no están listas, podés cargarlas después sin problema.</span>
         </div>
       </div>
       <div class="card">
@@ -783,30 +807,45 @@ async function storageUrl(path){
         <div id="dv-form" style="display:none;">
           <div id="dv-info-obra"></div>
           <div id="dv-status" style="margin-bottom:14px;"></div>
+
+          <!-- ▼ FECHA FIRMA NOTARÍA (cerrador la registra) ▼ -->
+          <div style="background:rgba(245,196,0,.06);border:1px solid var(--am);border-radius:6px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📅 Fecha de Firma en Notaría = Primer Pago Propietario</div>
+            <div style="font-size:10px;color:var(--wd);margin-bottom:10px;">Registrá la fecha en que se firmó el contrato en notaría (que coincide con el primer pago del propietario). Esto activa el contador de 6 días para que Carolina suba los planos de ejecución.</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="date" id="dv-fecha-notaria" style="padding:8px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;color:var(--w);font-size:12px;">
+              <button type="button" class="btn btn-y btn-sm" onclick="dvGuardarFechaNotaria()">💾 Registrar fecha</button>
+              <span id="dv-fecha-status" style="font-size:11px;color:var(--ws);"></span>
+            </div>
+          </div>
+
+          <!-- ▼ NOTA: TODOS LOS ARCHIVOS SE PUEDEN SUBIR DESPUÉS ▼ -->
+          <div class="al al-z" style="margin-bottom:14px;font-size:10px;">📌 <b>No es necesario tener todo al firmar.</b> Las especificaciones técnicas u otros documentos pueden cargarse después si aún no están terminados. El sistema te recordará lo que falta.</div>
+
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
             <div class="upload-zone" onclick="document.getElementById('fi-dv-ct').click()">
               <div class="uz-ico">📄</div>
               <div class="uz-lbl">Contrato firmado</div>
-              <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-dv-ct" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('contrato',this)">
+              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
+              <input type="file" id="fi-dv-ct" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('contrato',this)">
             </div>
             <div class="upload-zone" onclick="document.getElementById('fi-dv-pl').click()">
               <div class="uz-ico">📐</div>
               <div class="uz-lbl">Planos firmados</div>
-              <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-dv-pl" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('planos',this)">
+              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
+              <input type="file" id="fi-dv-pl" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('planos',this)">
             </div>
             <div class="upload-zone" onclick="document.getElementById('fi-dv-mat').click()">
               <div class="uz-ico">🧱</div>
               <div class="uz-lbl">Lista de materiales</div>
-              <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-dv-mat" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('materiales',this)">
+              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
+              <input type="file" id="fi-dv-mat" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('materiales',this)">
             </div>
             <div class="upload-zone" onclick="document.getElementById('fi-dv-esp').click()">
               <div class="uz-ico">📋</div>
-              <div class="uz-lbl">Especificaciones técnicas</div>
-              <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-dv-esp" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('especificaciones',this)">
+              <div class="uz-lbl">Especificaciones técnicas <span style="color:var(--ws);font-size:9px;">(opcional)</span></div>
+              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
+              <input type="file" id="fi-dv-esp" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('especificaciones',this)">
             </div>
           </div>
           <div id="dv-msg" style="margin-top:14px;"></div>
@@ -849,13 +888,13 @@ async function storageUrl(path){
               <div class="uz-ico">📄</div>
               <div class="uz-lbl">Contrato firmado contratista</div>
               <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-ca-ct" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('contrato',this)">
+              <input type="file" id="fi-ca-ct" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="caUpload('contrato',this)">
             </div>
             <div class="upload-zone" onclick="document.getElementById('fi-ca-pl').click()">
               <div class="uz-ico">📐</div>
               <div class="uz-lbl">Planos ejecución firmados</div>
               <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-ca-pl" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('planos',this)">
+              <input type="file" id="fi-ca-pl" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="caUpload('planos',this)">
             </div>
           </div>
           <div id="ca-msg" style="margin-top:14px;"></div>
@@ -983,7 +1022,7 @@ const USERS={
   '6677':{n:'Arq. Raí',r:'supervisor',icon:'🏗️'},
   '5565':{n:'David Gambarte',r:'david',icon:'📐'},
   '7788':{n:'Carolina',r:'carolina',icon:'📋'},
-  '4454':{n:'Gustavo Vaca',r:'lector',icon:'👀'},
+  '4454':{n:'Gustavo Vaca',r:'david',icon:'📐'},
   '9911':{n:'Noemi',r:'lector',icon:'👀'},
   '8866':{n:'Samuel',r:'lector',icon:'👀'}
 };
@@ -1329,29 +1368,31 @@ async function steffGuardar(ctId,oid){
 
 async function steffIA(ctId){
   const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  if(ct.bloqueado){alert('Contrato bloqueado.');return;}
-  const instruccion=prompt('¿Qué cambiar?\nEj: "cambia plazo a 90 días", "agrega garantía de 6 meses", "modifica pago a 40/40/20%"');
-  if(!instruccion)return;
+  if(ct.bloqueado){toast('Contrato bloqueado.','warning');return;}
+  const instruccion=prompt('💬 Instrucción para la IA:\n\nDecile a la IA EXACTAMENTE qué cambio hacer.\n\nEjemplos:\n• "Cambiar plazo de ejecución a 90 días"\n• "Agregar cláusula de garantía de 6 meses"\n• "Modificar forma de pago a 40/40/20%"\n• "Agregar al final una cláusula sobre limpieza diaria"\n\nLa IA aplicará SOLO lo que pidas. No agregará nada más.');
+  if(!instruccion||!instruccion.trim())return;
   const btn=document.getElementById('btn-ia-'+ctId);
   if(btn){btn.disabled=true;btn.textContent='⏳ IA procesando...';}
   try{
     const {data:cfg,error}=await sb.from('app_config').select('value').eq('key','anthropic_api_key').single();
     if(error||!cfg?.value)throw new Error('API key no configurada en app_config.');
+    // Tomar el texto ACTUAL del editor (no el de la base) para respetar ediciones manuales previas
+    const textoActual=document.getElementById('ed-txt-'+ctId)?.value||ct.texto;
     const resp=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':cfg.value,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-haiku-4-5',max_tokens:4000,
-        system:'Eres especialista legal en contratos bolivianos de construcción. Recibirás un contrato y una instrucción. Devuelve SOLO el texto completo del contrato modificado, sin markdown, sin comillas extra, sin explicaciones. Mantén el formato original. Montos siempre en USD y Bs (T.C. 6.96).',
-        messages:[{role:'user',content:'CONTRATO:\n\n'+ct.texto+'\n\nINSTRUCCIÓN:\n'+instruccion+'\n\nDevuelve el contrato completo modificado:'}]
+        system:'Sos un asistente legal que MODIFICA contratos siguiendo instrucciones precisas del usuario.\n\nREGLAS ESTRICTAS:\n1. Aplicá EXACTAMENTE lo que el usuario pide. Nada más.\n2. NO agregues cláusulas, frases, ni recomendaciones que el usuario no haya pedido.\n3. NO cambies texto, formato, ortografía o estilo de partes que el usuario no mencionó.\n4. NO introduzcas mejoras "sugeridas" por iniciativa propia.\n5. Mantené el formato original (separadores ════, saltos de línea, encabezados de cláusulas).\n6. Si el usuario pidió un cambio numérico, calculá montos USD y Bs (TC 6.96).\n7. Devolvé SOLO el texto completo del contrato modificado, sin comillas externas, sin markdown, sin comentarios al final.\n\nEl criterio del usuario es la ley. No cuestiones, ejecutá.',
+        messages:[{role:'user',content:'CONTRATO ACTUAL:\n\n'+textoActual+'\n\nINSTRUCCIÓN DEL USUARIO (aplicá SOLO esto):\n'+instruccion+'\n\nDevolvé el contrato completo con esa única modificación aplicada:'}]
       })
     });
     if(!resp.ok)throw new Error('Error API: '+resp.status);
     const data=await resp.json();
     const ta=document.getElementById('ed-txt-'+ctId);
     if(ta)ta.value=data.content[0].text;
-    alert('✅ IA aplicó el cambio.\nRevisá y tocá "Guardar Cambios".');
-  }catch(e){alert('❌ Error IA: '+e.message);}
+    toast('IA aplicó tu instrucción. Revisá y tocá "Guardar Cambios".','success','🤖 IA');
+  }catch(e){toast('Error IA: '+e.message,'error');}
   finally{if(btn){btn.disabled=false;btn.textContent='🤖 Editar con IA';}}
 }
 
@@ -1627,7 +1668,7 @@ function admSelObra(oid){
 function admOpcion(tipo){
   const form=document.getElementById('adm-form-ct');
   if(tipo==='busqueda'){
-    if(!admObraId){alert('Seleccioná una obra primero.');return;}
+    if(!admObraId){toast('Seleccioná una obra primero.','warning');return;}
     const o=obras.find(x=>x.id===admObraId);
     const body=document.getElementById('modal-busqueda-body');
     body.innerHTML=`<div class="al al-z" style="margin-bottom:14px;">Se activará la búsqueda de contratista para <b>${o.nom}</b>.</div>
@@ -1650,8 +1691,18 @@ function admActivarBusqueda(oid){
 }
 
 async function admGuardarContratista(){
-  if(!admObraId){alert('Seleccioná una obra primero.');return;}
-  const nom=document.getElementById('adm-ct-nom').value.trim();
+  if(!admObraId){toast('Seleccioná una obra primero.','warning');return;}
+  // Sanitizar nombre: trim, colapsar espacios, evitar duplicación accidental
+  var nomRaw=document.getElementById('adm-ct-nom').value.trim().replace(/\s+/g,' ');
+  // Detectar caso "Pérez Pérez" (duplicación literal de palabras consecutivas)
+  var palabras=nomRaw.split(' ');
+  var sinDuplicados=[];
+  for(var ip=0;ip<palabras.length;ip++){
+    if(ip===0||palabras[ip].toLowerCase()!==palabras[ip-1].toLowerCase()){
+      sinDuplicados.push(palabras[ip]);
+    }
+  }
+  const nom=sinDuplicados.join(' ');
   const tel=document.getElementById('adm-ct-tel').value.trim();
   const ci_n=document.getElementById('adm-ct-ci').value.trim();
   const dir=document.getElementById('adm-ct-dir').value.trim();
@@ -1751,7 +1802,7 @@ function generarContrato(nom,ci_n,dir,o,cond,neg,crono){
       if(q.desc)cronoBloque+=' · '+q.desc;
       cronoBloque+='\n';
     });
-    cronoBloque+='\nLa supervisión técnica verificará el avance al cierre de cada quincena. El pago se libera SOLO si se cumple el porcentaje pactado.\n';
+    cronoBloque+='\nLa supervisión técnica verificará el avance al cierre de cada quincena. El pago se libera SOLO si se cumple el porcentaje pactado.\n\nCLÁUSULA — PERSONAL MÍNIMO EN OBRA Y PENALIDADES POR INCUMPLIMIENTO\n\nEl CONTRATISTA garantiza la presencia continua del personal mínimo declarado en su negociación durante todo el plazo de ejecución. El cumplimiento será verificado en visitas de supervisión.\n\nPenalidades por incumplimiento:\n  · Primera ausencia injustificada del personal mínimo: ADVERTENCIA formal por escrito.\n  · Segunda ausencia injustificada: descuento del 5% sobre la cuota correspondiente a esa quincena.\n  · Tercera ausencia injustificada: causal de RESCISIÓN del contrato y pérdida de garantías.\n  · Personal sin SOAT-C habilitado: descuento del 10% sobre la cuota vigente hasta regularización.\n  · Falta de avance pactado por causa de personal insuficiente: aplica además la penalidad por incumplimiento de cronograma.\n\nEl CONTRATISTA acepta expresamente estas condiciones en garantía de la calidad y cumplimiento del contrato.\n';
   }
   return `CONTRATO DE PRESTACIÓN DE SERVICIOS DE MANO DE OBRA DIRECTA
 Código: ${o.cod}
@@ -2630,6 +2681,8 @@ function dvSelObra(oid){
   var o=obras.find(function(x){return x.id===dvObraId;});
   if(!o){form.style.display='none';return;}
   form.style.display='block';
+  // T4: cargar fecha notaría
+  _dvCargarFechaNotaria(o);
   var info=document.getElementById('dv-info-obra');
   if(info){
     info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
@@ -2660,7 +2713,7 @@ async function dvUpload(tipo,inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
   if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
-  if(!dvObraId){alert('Seleccioná una obra primero.');return;}
+  if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
   var msg=document.getElementById('dv-msg');
   msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
   try{
@@ -2687,6 +2740,7 @@ async function dvUpload(tipo,inp){
     if(tipo==='contrato')o.cp_esc=fname;
     dbLog(CU.n,'Subió '+tipo+' propietario: '+o.nom);
     msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
+    toast(tipo.charAt(0).toUpperCase()+tipo.slice(1)+' subido correctamente para '+o.nom,'success','📄 Documento');
     setTimeout(function(){
       dvSelObra(dvObraId);
       renderDavid();
@@ -2713,7 +2767,14 @@ function renderCarolina(){
       var o=gO(c.oid);
       var ct=c.firm_scan?'✅':'⚠️';
       var pl=c.planos_contratista_pdf?'✅':'⚠️';
-      return '<option value="'+c.id+'">'+(o.nom||'?')+' / '+c.nom+' '+ct+pl+'</option>';
+      var est=_carolinaCalcularEstado(c,o);
+      var urgencia='';
+      if(est){
+        if(est.vencido)urgencia=' 🔴 VENCIDO '+Math.abs(est.diasRest)+'d';
+        else if(est.proximo)urgencia=' 🟠 '+est.diasRest+'d';
+        else urgencia=' 🟢 '+est.diasRest+'d';
+      }
+      return '<option value="'+c.id+'">'+(o.nom||'?')+' / '+c.nom+' '+ct+pl+urgencia+'</option>';
     }).join('');
   var h=document.getElementById('ca-historial');
   if(h){
@@ -2722,8 +2783,15 @@ function renderCarolina(){
       var o=gO(c.oid);
       var ct=c.firm_scan?'✅':'⚠️';
       var pl=c.planos_contratista_pdf?'✅':'⚠️';
+      var est=_carolinaCalcularEstado(c,o);
+      var alerta='';
+      if(est&&!c.planos_contratista_pdf){
+        if(est.vencido)alerta='<div style="color:var(--Rc);font-size:10px;font-weight:700;">🔴 VENCIDO hace '+Math.abs(est.diasRest)+' días — Subir planos URGENTE</div>';
+        else if(est.proximo)alerta='<div style="color:var(--Nc);font-size:10px;font-weight:700;">🟠 Quedan '+est.diasRest+' días — Subir planos pronto</div>';
+        else alerta='<div style="color:var(--Gc);font-size:10px;">🟢 '+est.diasRest+' días para subir planos</div>';
+      }
       return '<div style="padding:8px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">'+
-        '<div><b>'+(o.nom||'?')+'</b> · '+c.nom+'</div>'+
+        '<div><b>'+(o.nom||'?')+'</b> · '+c.nom+alerta+'</div>'+
         '<div style="font-size:11px;color:var(--wd);">'+ct+' Contrato · '+pl+' Planos</div>'+
         '</div>';
     }).join('');
@@ -2766,7 +2834,7 @@ async function caUpload(tipo,inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
   if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
-  if(!caCtId){alert('Seleccioná un contrato primero.');return;}
+  if(!caCtId){toast('Seleccioná un contrato primero.','warning');return;}
   var msg=document.getElementById('ca-msg');
   msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
   try{
@@ -2799,6 +2867,7 @@ async function caUpload(tipo,inp){
     }
     dbLog(CU.n,'Subió '+tipo+' contratista: '+(gO(c.oid).nom||'?'));
     msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
+    toast(tipo.charAt(0).toUpperCase()+tipo.slice(1)+' del contratista subido','success','📋 Documento');
     setTimeout(function(){
       caSelCt(caCtId);
       renderCarolina();
@@ -2873,9 +2942,9 @@ function admCronoAdd(){
 }
 
 function admCronoAuto(){
-  if(!admObraId){alert('Seleccioná una obra primero.');return;}
+  if(!admObraId){toast('Seleccioná una obra primero.','warning');return;}
   var o=obras.find(function(x){return x.id===admObraId;});
-  if(!o||!o.di){alert('La obra debe tener días de ejecución cargados por Fátima.');return;}
+  if(!o||!o.di){toast('La obra debe tener días de ejecución cargados por Fátima primero.','warning');return;}
   var dias=parseInt(o.di);
   var nQ=Math.max(1,Math.round(dias/15));
   var prompt1=window.prompt('Cantidad de quincenas a generar (sugerido por '+dias+' días: '+nQ+')',String(nQ));
@@ -2903,7 +2972,7 @@ async function fatUploadCroquis(inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
   if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}
-  if(!fatObraId){alert('Seleccioná una obra primero.');return;}
+  if(!fatObraId){toast('Seleccioná una obra primero.','warning');return;}
   var st=document.getElementById('fat-croquis-status');
   st.textContent='⏳ Subiendo croquis...';
   try{
@@ -3180,13 +3249,106 @@ async function adSubirFirmado(adId,inp){
     await sb.from('rec_obras').update({adendas:arr}).eq('id',adObraId);
     o.adendas=arr;
     dbLog(CU.n,'Adenda firmada cargada: '+o.nom);
-    alert('✅ Adenda firmada cargada correctamente.');
+    toast('Adenda firmada y registrada correctamente.','success','📑 Adenda');
     _adRenderHistorial(o);
     renderAdendas();
   }catch(e){
     alert('❌ Error: '+e.message);
   }
 }
+
+// ═══════════════════════════════════════════════════
+// TANDA 4 — TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════════
+function toast(msg,type,title){
+  type=type||'success';
+  title=title||({success:'Éxito',warning:'Atención',error:'Error',info:'Aviso'}[type]||'OK');
+  var ico=({success:'✅',warning:'⚠️',error:'❌',info:'ℹ️'})[type]||'✅';
+  var c=document.getElementById('toast-container');
+  if(!c)return;
+  var t=document.createElement('div');
+  t.className='toast toast-'+type;
+  t.innerHTML='<div class="toast-ico">'+ico+'</div>'+
+    '<div class="toast-body">'+
+      '<div class="toast-title">'+title+'</div>'+
+      '<div class="toast-msg">'+msg+'</div>'+
+    '</div>';
+  c.appendChild(t);
+  setTimeout(function(){
+    t.classList.add('toast-out');
+    setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},300);
+  },4500);
+}
+
+// ═══════════════════════════════════════════════════
+// TANDA 4 — FECHA FIRMA NOTARÍA (David/Gustavo)
+// ═══════════════════════════════════════════════════
+async function dvGuardarFechaNotaria(){
+  if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
+  var inp=document.getElementById('dv-fecha-notaria');
+  if(!inp||!inp.value){toast('Elegí una fecha.','warning');return;}
+  try{
+    var fechaISO=new Date(inp.value+'T12:00:00').toISOString();
+    await sb.from('rec_obras').update({
+      fecha_firma_notaria:fechaISO,
+      fecha_primer_pago_propietario:fechaISO
+    }).eq('id',dvObraId);
+    var o=obras.find(function(x){return x.id===dvObraId;});
+    if(o){
+      o.fecha_firma_notaria=fechaISO;
+      o.fecha_primer_pago_propietario=fechaISO;
+    }
+    dbLog(CU.n,'Fecha firma notaría registrada: '+o.nom);
+    toast('Fecha registrada. Carolina tiene 6 días para subir planos de ejecución.','success','📅 Notaría');
+    dvSelObra(dvObraId);
+    renderDavid();
+    renderCarolina();
+  }catch(e){toast(e.message,'error');}
+}
+
+// ═══════════════════════════════════════════════════
+// TANDA 4 — RECORDATORIO 6 DÍAS PARA CAROLINA
+// ═══════════════════════════════════════════════════
+function _carolinaCalcularEstado(c,o){
+  if(!o||!o.fecha_firma_notaria)return null;
+  if(c.planos_contratista_pdf&&c.firm_scan)return null; // ya completo
+  var firma=new Date(o.fecha_firma_notaria);
+  var hoy=new Date();
+  var diasTrans=Math.floor((hoy-firma)/86400000);
+  var diasRest=6-diasTrans;
+  return {
+    diasTrans:diasTrans,
+    diasRest:diasRest,
+    vencido:diasRest<0,
+    proximo:diasRest>=0&&diasRest<=2,
+    fechaLimite:new Date(firma.getTime()+6*86400000).toLocaleDateString('es-BO')
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// TANDA 4 — INICIALIZAR FECHA NOTARÍA EN PANEL DAVID
+// ═══════════════════════════════════════════════════
+function _dvCargarFechaNotaria(o){
+  var inp=document.getElementById('dv-fecha-notaria');
+  var st=document.getElementById('dv-fecha-status');
+  if(!inp)return;
+  if(o.fecha_firma_notaria){
+    inp.value=new Date(o.fecha_firma_notaria).toISOString().slice(0,10);
+    if(st){
+      var hoy=new Date(),f=new Date(o.fecha_firma_notaria);
+      var dias=Math.floor((hoy-f)/86400000);
+      st.textContent='✅ Registrada hace '+dias+' día(s)';
+      st.style.color='var(--Gc)';
+    }
+  } else {
+    inp.value='';
+    if(st){
+      st.textContent='⚠️ Sin registrar — el contador para Carolina aún no inició';
+      st.style.color='var(--Nc)';
+    }
+  }
+}
+
 
 </script>
 </body>
