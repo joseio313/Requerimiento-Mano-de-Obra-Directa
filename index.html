@@ -339,7 +339,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v39 · ADENDAS + CRONOGRAMA</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v40 · ADENDAS CON MODELO + GUÍAS</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -362,6 +362,17 @@ async function storageUrl(path){
          Paso 5: Cargar contrato firmado
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-steffi">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p2));border:1px solid var(--am);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--am);font-weight:800;margin-bottom:4px;">⚖️ ÁREA LEGAL — STEFFI VILLARPANDO</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:var(--am);">Tus tareas:</b><br>
+          <b>① Registrar nueva obra</b> con contrato propietario digital + texto literal de Artículos 2 y 3<br>
+          <b>② Revisar y aprobar contratos del contratista</b> (máx. 3 ediciones, podés usar IA)<br>
+          <b>③ Cargar adendas</b> cuando hay modificaciones después de firmar (gas, ampliaciones, etc.)
+        </div>
+      </div>
 
       <!-- BARRA DE FLUJO -->
       <div class="flujo-bar">
@@ -426,10 +437,10 @@ async function storageUrl(path){
       <!-- EDITOR de contrato (se muestra al seleccionar obra) -->
       <div id="steffi-editor-area" style="display:none;"></div>
 
-      <!-- ══ ADENDAS — modificaciones post-firma ══ -->
+      <!-- ══ ADENDAS — modificaciones post-firma con modelo editable ══ -->
       <div class="card" style="margin-top:14px;border-top:3px solid var(--P);">
-        <div class="ct" style="color:var(--Pc);">📑 Adendas — Modificaciones Post-Firma</div>
-        <div class="al al-z" style="margin-bottom:14px;">📌 Si después de firmar el contrato aparece una modificación (gas domiciliario, ampliación, cambio de materiales, etc.), subí acá el documento que respalda el cambio. Queda atado a la obra y todos lo ven.</div>
+        <div class="ct" style="color:var(--Pc);">📑 ADENDAS — Modificaciones Post-Firma</div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 <b>Flujo:</b> Generás el modelo de adenda con la descripción del cambio → editás → imprimís y firmás con el propietario → cargás el escaneado firmado. Queda atado a la obra y visible para todos.</div>
         <div class="f" style="margin-bottom:12px;">
           <label>Seleccioná obra</label>
           <select id="ad-sel-obra" onchange="adSelObra(this.value)">
@@ -438,20 +449,49 @@ async function storageUrl(path){
         </div>
         <div id="ad-form" style="display:none;">
           <div id="ad-info-obra"></div>
-          <div style="background:var(--p2);border-radius:6px;padding:14px;margin-bottom:12px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">Nueva Adenda</div>
+
+          <!-- Generador de adenda -->
+          <div style="background:var(--p2);border-radius:6px;padding:14px;margin-bottom:14px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:10px;">📝 Generar Nueva Adenda</div>
+            <div class="f" style="margin-bottom:10px;">
+              <label>Tipo de modificación</label>
+              <select id="ad-tipo">
+                <option value="ampliacion">Ampliación de obra</option>
+                <option value="gas">Instalación de gas domiciliario</option>
+                <option value="materiales">Cambio de materiales</option>
+                <option value="acabados">Cambio de acabados</option>
+                <option value="instalaciones">Instalaciones adicionales</option>
+                <option value="plazo">Modificación de plazo</option>
+                <option value="monto">Modificación de monto</option>
+                <option value="otro">Otra</option>
+              </select>
+            </div>
             <div class="f" style="margin-bottom:10px;">
               <label>Descripción del cambio *</label>
               <textarea id="ad-desc" rows="3" placeholder="ej: Se incluye instalación de gas domiciliario por solicitud del propietario tras inicio de obra. Costo asumido por GEAT."></textarea>
             </div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('fi-ad-doc').click()">📎 Adjuntar documento</button>
-              <input type="file" id="fi-ad-doc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,application/pdf,image/*" style="display:none;" onchange="adFile(this)">
-              <span id="ad-file-status" style="font-size:11px;color:var(--ws);">— ningún archivo —</span>
-              <button type="button" class="btn btn-y btn-sm" onclick="adGuardar()" style="margin-left:auto;">💾 Guardar Adenda</button>
+            <div class="brow">
+              <button type="button" class="btn btn-y" onclick="adGenerarModelo()">📄 GENERAR MODELO</button>
+              <button type="button" class="btn btn-o btn-sm" onclick="adLimpiarForm()">🔄 Limpiar</button>
+            </div>
+          </div>
+
+          <!-- Editor del modelo -->
+          <div id="ad-editor-area" style="display:none;background:var(--p2);border:2px solid var(--P);border-radius:6px;padding:14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+              <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--Pc);font-weight:700;">✏️ Editor de Adenda — Revisá y editá antes de imprimir</div>
+              <span id="ad-edit-count" style="font-size:10px;color:var(--ws);">0 ediciones</span>
+            </div>
+            <textarea id="ad-texto-editor" class="ct-editor" style="min-height:380px;"></textarea>
+            <div class="brow" style="margin-top:10px;">
+              <button type="button" class="btn btn-y" onclick="adGuardarBorrador()">💾 Guardar Borrador</button>
+              <button type="button" class="btn btn-g" onclick="adImprimir()">🖨️ IMPRIMIR PARA FIRMAR</button>
+              <button type="button" class="btn btn-o" onclick="adCerrarEditor()">↩ Cerrar editor</button>
             </div>
             <div id="ad-msg" style="margin-top:10px;"></div>
           </div>
+
+          <!-- Historial con cargar firmado -->
           <div id="ad-historial-list"></div>
         </div>
       </div>
@@ -462,6 +502,16 @@ async function storageUrl(path){
          PANEL FÁTIMA — Paso 2: Completar obra
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-fatima">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(56,189,248,.12),var(--p2));border:1px solid #38bdf8;border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:#38bdf8;font-weight:800;margin-bottom:4px;">📋 DATOS TÉCNICOS DE OBRA — FÁTIMA</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:#38bdf8;">Tu tarea:</b> completar los datos técnicos de cada obra que Steffi registra.<br>
+          <b>Cargás:</b> superficie m², precio USD/m², cuadrilla, fecha inicio, días de ejecución, ubicación (link Maps o croquis), módulos a ejecutar, objeto del contrato e inclusiones/exclusiones.<br>
+          <span style="color:var(--ws);font-size:10px;">⚡ Los textos de objeto/incluido/excluido vienen pre-cargados con los estándares GEAT — modificá solo si esta obra tiene condiciones especiales.</span>
+        </div>
+      </div>
 
       <div class="flujo-bar">
         <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi cargó</div></div>
@@ -553,6 +603,16 @@ async function storageUrl(path){
          PANEL ADMIN — Paso 3: Asignar contratista
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-admin">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p2));border:1px solid var(--am);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--am);font-weight:800;margin-bottom:4px;">👷 ASIGNACIÓN DE CONTRATISTAS — JOSEMIGUEL</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:var(--am);">Tu tarea:</b> elegir y asignar el contratista a cada obra ya completada por Fátima.<br>
+          <b>Cargás:</b> datos del contratista (nombre, CI, tel, dirección), facturas de servicios, condiciones especiales pactadas en la negociación, y el <b>cronograma quincenal de avance obligatorio</b>.<br>
+          <span style="color:var(--ws);font-size:10px;">⚡ El contrato del contratista se genera automáticamente con todo lo que cargás. Steffi después lo revisa y aprueba.</span>
+        </div>
+      </div>
 
       <div class="flujo-bar">
         <div class="flujo-paso f-done"><div class="fp-ico">✅</div><div class="fp-num">PASO 1</div><div class="fp-label">Steffi cargó</div></div>
@@ -674,6 +734,16 @@ async function storageUrl(path){
          PANEL SUPERVISOR — Solo lectura
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-sup">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(4,120,86,.15),var(--p2));border:1px solid var(--G);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Gc);font-weight:800;margin-bottom:4px;">🏗️ SUPERVISIÓN DE OBRA — ARQ. RAÍ</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:var(--Gc);">Tu vista:</b> paquete completo de cada obra para usar en campo.<br>
+          <b>Ves todo:</b> datos del contratista, forma de pago, cronograma quincenal, módulos, obligaciones, penalidades, artículos literales del contrato propietario, documentos firmados (botón 👁️ Ver), adendas y croquis.<br>
+          <span style="color:var(--ws);font-size:10px;">🖨️ Botón Imprimir genera el paquete completo en formato oficio para llevar a obra.</span>
+        </div>
+      </div>
       <div class="card" style="border-top:3px solid var(--Gc);">
         <div class="ct" style="color:var(--Gc);">🏗️ SUPERVISIÓN DE CAMPO</div>
         <div class="f" style="margin-bottom:14px;">
@@ -691,6 +761,16 @@ async function storageUrl(path){
          PANEL DAVID — escaneados firmados del PROPIETARIO
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-david">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(91,33,182,.15),var(--p2));border:1px solid var(--P);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Pc);font-weight:800;margin-bottom:4px;">📐 DOCUMENTACIÓN DEL PROPIETARIO — DAVID GAMBARTE</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:var(--Pc);">Tu tarea:</b> después de hacer firmar al propietario en oficina, escaneás y subís 4 documentos.<br>
+          <b>① Contrato firmado</b> · <b>② Planos firmados</b> · <b>③ Lista de materiales firmada</b> · <b>④ Especificaciones técnicas firmadas</b><br>
+          <span style="color:var(--ws);font-size:10px;">⚡ Cada archivo se asocia a la obra correspondiente y queda visible para todo el equipo en supervisión.</span>
+        </div>
+      </div>
       <div class="card">
         <div class="ct">📐 Cargas del Propietario — Subir Escaneados Firmados</div>
         <div class="al al-z" style="margin-bottom:14px;">📌 Una vez que el propietario firmó, escaneás y subís acá los 4 documentos: <b>contrato firmado</b>, <b>planos firmados</b>, <b>lista de materiales firmada</b> y <b>especificaciones técnicas firmadas</b>.</div>
@@ -742,6 +822,16 @@ async function storageUrl(path){
          PANEL CAROLINA — escaneados firmados del CONTRATISTA
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-carolina">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(30,64,175,.15),var(--p2));border:1px solid var(--Z);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Zc);font-weight:800;margin-bottom:4px;">📋 DOCUMENTACIÓN DEL CONTRATISTA — CAROLINA</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:var(--Zc);">Tu tarea:</b> generás los planos de ejecución del contratista. Después que Josemiguel los hace firmar, escaneás y subís 2 documentos.<br>
+          <b>① Contrato firmado por contratista</b> · <b>② Planos de ejecución firmados</b><br>
+          <span style="color:var(--ws);font-size:10px;">⚡ Solo aparecen contratos ya aprobados por Steffi. Al subir el contrato firmado, la obra pasa automáticamente a estado "Completo".</span>
+        </div>
+      </div>
       <div class="card">
         <div class="ct">📋 Cargas del Contratista — Subir Escaneados Firmados</div>
         <div class="al al-z" style="margin-bottom:14px;">📌 Una vez que Josemiguel hizo firmar al contratista, escaneás y subís: <b>contrato firmado</b> y <b>planos de ejecución firmados</b>. Solo aparecen contratos aprobados por Steffi.</div>
@@ -779,6 +869,15 @@ async function storageUrl(path){
 
     <!-- PANEL ADMIN FULL — Control Total CEO -->
     <div class="panel" id="panel-adm-full">
+
+      <!-- BANNER ROL -->
+      <div style="background:linear-gradient(135deg,rgba(245,196,0,.18),var(--p2));border:2px solid var(--am);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--am);font-weight:800;margin-bottom:4px;">🔧 CONTROL TOTAL EJECUTIVO — JOSEMIGUEL CEO</div>
+        <div style="font-size:11px;color:var(--wd);line-height:1.6;">
+          <b style="color:var(--am);">Vista de mando:</b> KPIs en vivo, alertas de pendientes, tabla completa de obras, desglose financiero (USD/Bs y cuotas 30/40/30), gestión de contratos, auditoría de todas las acciones, backup completo y reportes ejecutivos descargables.<br>
+          <span style="color:var(--ws);font-size:10px;">⚡ Acceso a todo: podés operar sobre cualquier panel cuando lo necesites desde el menú superior.</span>
+        </div>
+      </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p1));border:1px solid var(--am);border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:26px;font-weight:900;color:var(--am);" id="kpi-obras">—</div>
@@ -832,11 +931,12 @@ async function storageUrl(path){
             </div>
           </div>
           <div style="background:var(--p2);border-radius:6px;padding:14px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--Pc);font-weight:700;margin-bottom:8px;">🗄️ BACKUP COMPLETO</div>
-            <div style="font-size:11px;color:var(--wd);margin-bottom:10px;">Backup en JSON — incluye obras, contratos e historial. Importable en cualquier sistema.</div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--Pc);font-weight:700;margin-bottom:8px;">🗄️ BACKUP COMPLETO DE DATOS</div>
+            <div style="font-size:11px;color:var(--wd);margin-bottom:10px;">Archivo JSON con <b>todos los datos</b> del sistema: obras, contratos, contratistas, adendas, cronogramas, auditoría. <b>NO incluye el código del sistema</b> (eso vive en GitHub).</div>
+            <div style="font-size:10px;color:var(--ws);margin-bottom:10px;">📌 Útil para: respaldo periódico, migración a otro sistema, auditoría histórica, análisis con herramientas externas.</div>
             <div style="display:flex;flex-direction:column;gap:6px;">
-              <button type="button" class="btn btn-y btn-sm" onclick="admBackupCompleto()" style="font-weight:900;">💾 BACKUP COMPLETO (JSON)</button>
-              <button type="button" class="btn btn-o btn-sm" onclick="admReporteEjecutivo()">📑 Reporte Ejecutivo (HTML)</button>
+              <button type="button" class="btn btn-y btn-sm" onclick="admBackupCompleto()" style="font-weight:900;">💾 DESCARGAR BACKUP DE DATOS (JSON)</button>
+              <button type="button" class="btn btn-o btn-sm" onclick="admReporteEjecutivo()">📑 Reporte Ejecutivo (HTML imprimible)</button>
             </div>
           </div>
         </div>
@@ -2274,42 +2374,101 @@ async function admExportCSV(tipo){
   try{
     var rows=[],headers=[],filename='';
     var fecha=new Date().toISOString().slice(0,10);
+    var fmtFecha=function(f){if(!f)return '';try{return new Date(f).toLocaleDateString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return f;}};
+    var fmtSiNo=function(v){return v?'Sí':'No';};
+    var fmtUSD=function(n){if(!n)return '';return parseFloat(n).toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2});};
+    var fmtBs=function(n){if(!n)return '';return Math.round(parseFloat(n)*6.96).toLocaleString('es-BO');};
+
     if(tipo==='obras'){
       var res=await sb.from('rec_obras').select('*').order('created_at');
       if(!res.data||!res.data.length){alert('Sin obras para exportar.');return;}
-      headers=['ID','Nombre','Codigo','Superficie_m2','Precio_USD_m2','Monto_USD','Monto_Bs','Cuadrilla','Dias','Fecha_Inicio','Estado','Aprobada','Modulos','Maps','Notas','Tiene_Contrato_Prop'];
-      rows=res.data.map(function(o){
-        return [o.id,o.nombre,o.codigo,o.superficie,o.precio_usd,o.monto_usd,
-          Math.round((o.monto_usd||0)*6.96),o.cuadrilla,o.dias_ejecucion,o.fecha_inicio,
-          o.estado,o.aprobada?'Si':'No',
-          (o.modulos||[]).join(' | '),o.maps_link,o.notas,
-          (o.contrato_propietario_nombre||o.contrato_propietario_escaneado)?'Si':'No'];
+      // Cargar contratistas para columna "Contratista asignado"
+      var ctRes=await sb.from('rec_contratos').select('obra_id,nombre_contratista,estado_contrato,contrato_firmado_nombre');
+      var ctMap={};
+      (ctRes.data||[]).forEach(function(c){ctMap[c.obra_id]=c;});
+      headers=[
+        'N°','Código de Obra','Nombre de la Obra','Estado',
+        'Superficie (m²)','Precio USD/m²','Monto Total USD','Monto Total Bs',
+        'Cuadrilla','Días de Ejecución','Fecha de Inicio','Fecha Fin Estimada',
+        'Cantidad Módulos','Módulos a Ejecutar',
+        'Ubicación (Maps)','Notas Adicionales',
+        'Contrato Propietario Cargado','Planos Propietario','Materiales','Especificaciones Técnicas',
+        'Contratista Asignado','Estado Contrato','Adendas',
+        'Aprobada por GEAT','Fecha Registro'
+      ];
+      rows=res.data.map(function(o,i){
+        var ct=ctMap[o.id]||{};
+        var fechaFin='';
+        if(o.fecha_inicio&&o.dias_ejecucion){
+          var dt=new Date(o.fecha_inicio);
+          dt.setDate(dt.getDate()+parseInt(o.dias_ejecucion));
+          fechaFin=fmtFecha(dt.toISOString());
+        }
+        var nAd=Array.isArray(o.adendas)?o.adendas.length:0;
+        return [
+          i+1, o.codigo||'', o.nombre||'', o.estado||'',
+          o.superficie||'', o.precio_usd||'', fmtUSD(o.monto_usd), fmtBs(o.monto_usd),
+          o.cuadrilla||'', o.dias_ejecucion||'', fmtFecha(o.fecha_inicio), fechaFin,
+          (o.modulos||[]).length, (o.modulos||[]).join(' | '),
+          o.maps_link||'', o.notas||'',
+          fmtSiNo(o.contrato_propietario_nombre||o.contrato_propietario_escaneado),
+          fmtSiNo(o.planos_propietario_pdf), fmtSiNo(o.materiales_pdf), fmtSiNo(o.especificaciones_pdf),
+          ct.nombre_contratista||'—', ct.estado_contrato||'—',
+          nAd>0?nAd+' adenda(s)':'—',
+          fmtSiNo(o.aprobada), fmtFecha(o.created_at)
+        ];
       });
-      filename='GEAT_obras_'+fecha+'.csv';
+      filename='GEAT_Obras_'+fecha+'.csv';
+
     } else if(tipo==='contratos'){
       var res=await sb.from('rec_contratos').select('*').order('created_at');
       if(!res.data||!res.data.length){alert('Sin contratos para exportar.');return;}
-      var obrasMap={};
-      var oRes=await sb.from('rec_obras').select('id,nombre,codigo,monto_usd');
-      (oRes.data||[]).forEach(function(o){obrasMap[o.id]=o;});
-      headers=['ID','Obra','Codigo_Obra','Monto_USD','Contratista','CI','Telefono','Direccion','Estado','Estado_Contrato','Ediciones','Bloqueado','Firmado','Fecha_Registro','Aprobado_Por','Condiciones','Negociacion'];
-      rows=res.data.map(function(c){
-        var o=obrasMap[c.obra_id]||{};
-        return [c.id,o.nombre||'',o.codigo||'',o.monto_usd||'',
-          c.nombre_contratista,c.ci_numero,c.telefono,c.direccion,
-          c.estado,c.estado_contrato,c.ediciones_count,c.contrato_bloqueado?'Si':'No',
-          c.contrato_firmado_nombre?'Si':'No',c.fecha_registro,c.aprobado_por,
-          c.condiciones,c.negociacion];
+      var oRes=await sb.from('rec_obras').select('id,nombre,codigo,monto_usd,superficie,fecha_inicio,dias_ejecucion');
+      var oMap={};
+      (oRes.data||[]).forEach(function(o){oMap[o.id]=o;});
+      headers=[
+        'N°','Código Obra','Nombre Obra','Superficie (m²)',
+        'Contratista','C.I.','Teléfono','Dirección',
+        'Monto Obra USD','Monto Obra Bs',
+        'Cuota 1 (30%) USD','Cuota 1 Bs','Cuota 2 (40%) USD','Cuota 2 Bs','Cuota 3 (30%) USD','Cuota 3 Bs',
+        'Estado Contrato','Ediciones (de 3)','Bloqueado',
+        'Contrato Firmado','Subido por','Fecha Firma',
+        'Planos Ejecución','Cronograma Quincenal',
+        'Aprobado Por','Condiciones Especiales','Datos Negociación',
+        'Fecha Registro'
+      ];
+      rows=res.data.map(function(c,i){
+        var o=oMap[c.obra_id]||{};
+        var monto=parseFloat(o.monto_usd)||0;
+        var crono=Array.isArray(c.cronograma_quincenal)?c.cronograma_quincenal:[];
+        var cronoTxt=crono.length?crono.map(function(q){return 'Q'+q.q+': '+q.pct+'%';}).join(' | '):'—';
+        return [
+          i+1, o.codigo||'', o.nombre||'', o.superficie||'',
+          c.nombre_contratista||'', c.ci_numero||'', c.telefono||'', c.direccion||'',
+          fmtUSD(monto), fmtBs(monto),
+          fmtUSD(monto*0.30), fmtBs(monto*0.30),
+          fmtUSD(monto*0.40), fmtBs(monto*0.40),
+          fmtUSD(monto*0.30), fmtBs(monto*0.30),
+          c.estado_contrato||'', (c.ediciones_count||0)+'/3', fmtSiNo(c.contrato_bloqueado),
+          fmtSiNo(c.contrato_firmado_nombre), c.contrato_firmado_subido_por||'', fmtFecha(c.contrato_firmado_fecha),
+          fmtSiNo(c.planos_contratista_pdf), cronoTxt,
+          c.aprobado_por||'—', c.condiciones||'', c.negociacion||'',
+          fmtFecha(c.created_at)
+        ];
       });
-      filename='GEAT_contratos_'+fecha+'.csv';
+      filename='GEAT_Contratos_'+fecha+'.csv';
+
     } else if(tipo==='auditoria'){
       var res=await sb.from('rec_auditoria').select('*').order('created_at',{ascending:false}).limit(2000);
-      if(!res.data||!res.data.length){alert('Sin registros de auditoria.');return;}
-      headers=['Fecha','Usuario','Accion'];
-      rows=res.data.map(function(r){
-        return [new Date(r.created_at).toLocaleString('es-BO'),r.usuario,r.accion];
+      if(!res.data||!res.data.length){alert('Sin registros de auditoría.');return;}
+      headers=['N°','Fecha','Hora','Usuario','Acción Realizada'];
+      rows=res.data.map(function(r,i){
+        var d=new Date(r.created_at);
+        var fechaCol=d.toLocaleDateString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric'});
+        var horaCol=d.toLocaleTimeString('es-BO',{hour:'2-digit',minute:'2-digit'});
+        return [i+1, fechaCol, horaCol, r.usuario||'', r.accion||''];
       });
-      filename='GEAT_auditoria_'+fecha+'.csv';
+      filename='GEAT_Auditoria_'+fecha+'.csv';
     }
     var csv=headers.map(_csvEscape).join(',')+'\n';
     csv+=rows.map(function(row){return row.map(_csvEscape).join(',');}).join('\n');
@@ -2767,13 +2926,27 @@ async function fatUploadCroquis(inp){
 // ═══════════════════════════════════════════════════
 // ADENDAS — Steffi sube modificaciones post-firma
 // ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// ADENDAS — sistema con MODELO (texto + imprimir + cargar firmado)
+// ═══════════════════════════════════════════════════
 let adObraId=null;
-let adFileBuf=null;
+let adActiveId=null; // adenda actualmente en edición (para borradores)
+let adEditCount=0;
+
+const AD_TIPOS={
+  'ampliacion':'AMPLIACIÓN DE OBRA',
+  'gas':'INSTALACIÓN DE GAS DOMICILIARIO',
+  'materiales':'CAMBIO DE MATERIALES',
+  'acabados':'CAMBIO DE ACABADOS',
+  'instalaciones':'INSTALACIONES ADICIONALES',
+  'plazo':'MODIFICACIÓN DE PLAZO',
+  'monto':'MODIFICACIÓN DE MONTO',
+  'otro':'MODIFICACIÓN AL CONTRATO'
+};
 
 function renderAdendas(){
   var sel=document.getElementById('ad-sel-obra');
   if(!sel)return;
-  // Solo obras con contrato firmado o aprobado
   var aptas=obras.filter(function(o){
     var ct=gCByObra(o.id);
     return ct && (ct.est_ct==='aprobado'||ct.est_ct==='firmado');
@@ -2795,11 +2968,150 @@ function adSelObra(oid){
   form.style.display='block';
   var info=document.getElementById('ad-info-obra');
   if(info){
+    var ct=gCByObra(o.id);
     info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
       '<div style="font-weight:800;font-size:14px;">'+o.nom+'</div>'+
-      '<div style="font-size:10px;color:var(--ws);">'+o.cod+'</div></div>';
+      '<div style="font-size:10px;color:var(--ws);">'+o.cod+(ct?' · Contratista: '+ct.nom:'')+'</div></div>';
   }
+  adCerrarEditor();
   _adRenderHistorial(o);
+}
+
+function adGenerarModelo(){
+  if(!adObraId){alert('Seleccioná una obra.');return;}
+  var tipo=document.getElementById('ad-tipo').value;
+  var desc=document.getElementById('ad-desc').value.trim();
+  if(!desc){alert('Escribí la descripción del cambio.');return;}
+  var o=obras.find(function(x){return x.id===adObraId;});
+  var ct=gCByObra(o.id);
+  var fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+  var nAd=(o.adendas||[]).length+1;
+  var titulo=AD_TIPOS[tipo]||AD_TIPOS['otro'];
+  var modelo='ADENDA N° '+String(nAd).padStart(2,'0')+' — '+titulo+'\n';
+  modelo+='AL CONTRATO DE CONSTRUCCIÓN — '+o.nom+'\n';
+  modelo+='Código de obra: '+o.cod+'\n';
+  modelo+='Santa Cruz de la Sierra, '+fecha+'\n\n';
+  modelo+='════════════════════════════════════════════════════\n';
+  modelo+='ANTECEDENTES\n';
+  modelo+='════════════════════════════════════════════════════\n\n';
+  modelo+='Entre las partes que suscriben el CONTRATO DE CONSTRUCCIÓN PRIVADA correspondiente a la obra "'+o.nom+'" (código '+o.cod+'), de común acuerdo y por mutua conveniencia, convienen en suscribir la presente ADENDA bajo los siguientes términos:\n\n';
+  modelo+='════════════════════════════════════════════════════\n';
+  modelo+='OBJETO DE LA ADENDA\n';
+  modelo+='════════════════════════════════════════════════════\n\n';
+  modelo+=desc+'\n\n';
+  modelo+='════════════════════════════════════════════════════\n';
+  modelo+='CONDICIONES\n';
+  modelo+='════════════════════════════════════════════════════\n\n';
+  modelo+='PRIMERA: La presente adenda forma parte integrante del contrato original y tiene plena validez legal entre las partes.\n\n';
+  modelo+='SEGUNDA: Las cláusulas no modificadas expresamente en esta adenda mantienen toda su vigencia y efecto.\n\n';
+  modelo+='TERCERA: La modificación descrita ' + (tipo==='monto'||tipo==='plazo' ? 'altera' : 'no altera') + ' el monto y/o plazo del contrato original, salvo lo expresamente indicado en el OBJETO de esta adenda.\n\n';
+  modelo+='CUARTA: Ambas partes manifiestan conocer y aceptar los alcances de esta adenda, suscribiéndola en conformidad.\n\n';
+  modelo+='════════════════════════════════════════════════════\n';
+  modelo+='FIRMAS DE CONFORMIDAD\n';
+  modelo+='════════════════════════════════════════════════════\n\n';
+  modelo+='En constancia de aceptación, las partes suscriben la presente adenda en la ciudad de Santa Cruz de la Sierra, Bolivia, en la fecha indicada.\n\n\n\n';
+  modelo+='_______________________________          _______________________________\n';
+  modelo+='   GAMBARTE ARQUITECTURA S.R.L.                  PROPIETARIO\n';
+  modelo+='   José Miguel Gambarte Vidaurre\n';
+  modelo+='   CONSTRUCTORA\n';
+  // Crear borrador
+  var nueva={
+    id:Date.now(),
+    fecha:new Date().toISOString(),
+    tipo:tipo,
+    titulo:titulo,
+    descripcion:desc,
+    texto_modelo:modelo,
+    archivo:null,           // archivo digital del modelo
+    archivo_firmado:null,   // escaneado firmado
+    fecha_firma:null,
+    firmado_por:null,
+    subido_por:CU.n,
+    estado:'borrador'
+  };
+  // Guardar como borrador
+  var arr=o.adendas||[];
+  arr.push(nueva);
+  o.adendas=arr;
+  adActiveId=nueva.id;
+  adEditCount=0;
+  // Persistir
+  sb.from('rec_obras').update({adendas:arr}).eq('id',adObraId).then(function(){
+    dbLog(CU.n,'Adenda generada: '+o.nom+' · '+titulo);
+  });
+  // Mostrar editor
+  document.getElementById('ad-editor-area').style.display='block';
+  document.getElementById('ad-texto-editor').value=modelo;
+  _adActualizarContador();
+  document.getElementById('ad-editor-area').scrollIntoView({behavior:'smooth'});
+  // Limpiar form
+  document.getElementById('ad-desc').value='';
+  _adRenderHistorial(o);
+  renderAdendas();
+}
+
+function _adActualizarContador(){
+  var el=document.getElementById('ad-edit-count');
+  if(el)el.textContent=adEditCount+' edición'+(adEditCount===1?'':'es');
+}
+
+async function adGuardarBorrador(){
+  if(!adActiveId||!adObraId){alert('No hay borrador activo.');return;}
+  var msg=document.getElementById('ad-msg');
+  msg.innerHTML='<div class="al al-z">⏳ Guardando...</div>';
+  try{
+    var o=obras.find(function(x){return x.id===adObraId;});
+    var arr=o.adendas||[];
+    var idx=arr.findIndex(function(a){return a.id===adActiveId;});
+    if(idx<0)throw new Error('Borrador no encontrado.');
+    arr[idx].texto_modelo=document.getElementById('ad-texto-editor').value;
+    adEditCount++;
+    _adActualizarContador();
+    await sb.from('rec_obras').update({adendas:arr}).eq('id',adObraId);
+    o.adendas=arr;
+    dbLog(CU.n,'Adenda editada: '+o.nom);
+    msg.innerHTML='<div class="al al-g">✅ Borrador guardado</div>';
+    setTimeout(function(){msg.innerHTML='';},1500);
+  }catch(e){
+    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+  }
+}
+
+function adImprimir(){
+  if(!adActiveId||!adObraId)return;
+  var o=obras.find(function(x){return x.id===adObraId;});
+  var arr=o.adendas||[];
+  var ad=arr.find(function(a){return a.id===adActiveId;});
+  if(!ad)return;
+  var texto=document.getElementById('ad-texto-editor').value;
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Adenda - '+o.nom+'</title>'+
+    '<style>@page{size:Letter;margin:25mm 22mm;}'+
+    'body{font-family:"Times New Roman",Georgia,serif;font-size:11pt;line-height:1.7;color:#000;white-space:pre-line;}'+
+    'h1{font-size:14pt;text-align:center;margin-bottom:18px;}'+
+    '.hdr{text-align:center;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:18px;font-size:9pt;}'+
+    '@media print{button{display:none;}}</style></head><body>'+
+    '<div class="hdr"><b>GAMBARTE ARQUITECTURA S.R.L.</b><br>NIT: ___________ · Santa Cruz de la Sierra · Bolivia</div>'+
+    texto+
+    '<button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:10px 20px;background:#f5c400;border:none;border-radius:5px;font-weight:700;cursor:pointer;">🖨️ Imprimir</button>'+
+    '</body></html>');
+  win.document.close();
+  // Mostrar zona de carga firmado
+  setTimeout(function(){
+    var msg=document.getElementById('ad-msg');
+    msg.innerHTML='<div class="al al-z">📋 Imprimí, hacé firmar al propietario, y cargá el escaneado en el historial de adendas (botón "📥 Subir Firmado") más abajo.</div>';
+  },500);
+}
+
+function adCerrarEditor(){
+  document.getElementById('ad-editor-area').style.display='none';
+  adActiveId=null;
+  adEditCount=0;
+}
+
+function adLimpiarForm(){
+  document.getElementById('ad-desc').value='';
+  document.getElementById('ad-tipo').value='ampliacion';
 }
 
 function _adRenderHistorial(o){
@@ -2813,66 +3125,68 @@ function _adRenderHistorial(o){
   el.innerHTML='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📋 Adendas Registradas ('+arr.length+')</div>'+
     arr.map(function(a,i){
       var fecha=new Date(a.fecha).toLocaleDateString('es-BO');
-      var btnVer=a.archivo?'<button type="button" class="btn btn-o btn-sm" data-fn="'+a.archivo+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver</button>':'';
+      var titulo=a.titulo||'MODIFICACIÓN';
+      var estado=a.archivo_firmado?'✅ FIRMADA':'⚠️ BORRADOR';
+      var estColor=a.archivo_firmado?'var(--Gc)':'var(--Nc)';
+      var btnVerFirmado=a.archivo_firmado?'<button type="button" class="btn btn-g btn-sm" data-fn="'+a.archivo_firmado+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver firmada</button>':'';
+      var btnSubirFirmado=!a.archivo_firmado?'<input type="file" id="fi-adfirm-'+a.id+'" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="adSubirFirmado('+a.id+',this)"><button type="button" class="btn btn-y btn-sm" onclick="document.getElementById(\''+'fi-adfirm-'+a.id+'\').click()">📥 Subir Firmado</button>':'';
+      var btnEditar=!a.archivo_firmado?'<button type="button" class="btn btn-o btn-sm" onclick="adEditar('+a.id+')">✏️ Editar / Imprimir</button>':'';
       return '<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:8px;border-left:3px solid var(--P);">'+
         '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'+
-          '<div style="font-size:10px;color:var(--Pc);font-weight:700;">ADENDA #'+(i+1)+'</div>'+
-          '<div style="font-size:10px;color:var(--ws);">'+fecha+' · '+(a.subido_por||'—')+'</div>'+
+          '<div style="font-size:10px;color:var(--Pc);font-weight:700;">ADENDA #'+(i+1)+' — '+titulo+'</div>'+
+          '<div style="font-size:10px;color:'+estColor+';font-weight:700;">'+estado+'</div>'+
         '</div>'+
-        '<div style="font-size:11px;line-height:1.6;color:var(--wd);margin-bottom:6px;white-space:pre-line;">'+a.descripcion+'</div>'+
-        btnVer+
+        '<div style="font-size:10px;color:var(--ws);margin-bottom:6px;">'+fecha+' · '+(a.subido_por||'—')+'</div>'+
+        '<div style="font-size:11px;line-height:1.6;color:var(--wd);margin-bottom:8px;white-space:pre-line;">'+(a.descripcion||'').substring(0,200)+((a.descripcion||'').length>200?'...':'')+'</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          btnEditar+btnSubirFirmado+btnVerFirmado+
+        '</div>'+
         '</div>';
     }).join('');
 }
 
-function adFile(inp){
-  if(!inp.files||!inp.files[0]){adFileBuf=null;document.getElementById('ad-file-status').textContent='— ningún archivo —';return;}
-  var f=inp.files[0];
-  if(f.size>10*1024*1024){alert('Máximo 10MB.');inp.value='';return;}
-  adFileBuf=f;
-  document.getElementById('ad-file-status').textContent='📎 '+f.name;
+function adEditar(adId){
+  if(!adObraId)return;
+  var o=obras.find(function(x){return x.id===adObraId;});
+  var ad=(o.adendas||[]).find(function(a){return a.id===adId;});
+  if(!ad)return;
+  if(ad.archivo_firmado){alert('Esta adenda ya está firmada y no se puede editar.');return;}
+  adActiveId=adId;
+  adEditCount=0;
+  document.getElementById('ad-editor-area').style.display='block';
+  document.getElementById('ad-texto-editor').value=ad.texto_modelo||'';
+  _adActualizarContador();
+  document.getElementById('ad-editor-area').scrollIntoView({behavior:'smooth'});
 }
 
-async function adGuardar(){
-  if(!adObraId){alert('Seleccioná una obra.');return;}
-  var desc=document.getElementById('ad-desc').value.trim();
-  if(!desc){alert('Escribí la descripción del cambio.');return;}
-  var msg=document.getElementById('ad-msg');
-  msg.innerHTML='<div class="al al-z">⏳ Guardando adenda...</div>';
+async function adSubirFirmado(adId,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
+  if(!adObraId)return;
   try{
-    var fname=null;
-    if(adFileBuf){
-      var ext=adFileBuf.name.split('.').pop();
-      fname='ad_'+adObraId+'_'+Date.now()+'.'+ext;
-      var up=await sb.storage.from('rec-archivos').upload(fname,adFileBuf,{upsert:true});
-      if(up.error)throw new Error(up.error.message);
-    }
+    var ext=file.name.split('.').pop();
+    var fname='ad_firmada_'+adId+'_'+Date.now()+'.'+ext;
+    var up=await sb.storage.from('rec-archivos').upload(fname,file,{upsert:true});
+    if(up.error)throw new Error(up.error.message);
     var o=obras.find(function(x){return x.id===adObraId;});
     var arr=o.adendas||[];
-    var nueva={
-      id:Date.now(),
-      fecha:new Date().toISOString(),
-      descripcion:desc,
-      archivo:fname,
-      subido_por:CU.n
-    };
-    arr.push(nueva);
+    var idx=arr.findIndex(function(a){return a.id===adId;});
+    if(idx<0)throw new Error('Adenda no encontrada.');
+    arr[idx].archivo_firmado=fname;
+    arr[idx].fecha_firma=new Date().toISOString();
+    arr[idx].firmado_por=CU.n;
+    arr[idx].estado='firmada';
     await sb.from('rec_obras').update({adendas:arr}).eq('id',adObraId);
     o.adendas=arr;
-    dbLog(CU.n,'Adenda agregada: '+o.nom+' · '+desc.substring(0,50));
-    msg.innerHTML='<div class="al al-g">✅ Adenda registrada</div>';
-    document.getElementById('ad-desc').value='';
-    document.getElementById('ad-file-status').textContent='— ningún archivo —';
-    document.getElementById('fi-ad-doc').value='';
-    adFileBuf=null;
+    dbLog(CU.n,'Adenda firmada cargada: '+o.nom);
+    alert('✅ Adenda firmada cargada correctamente.');
     _adRenderHistorial(o);
     renderAdendas();
-    setTimeout(function(){msg.innerHTML='';},2000);
   }catch(e){
-    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+    alert('❌ Error: '+e.message);
   }
 }
-
 
 </script>
 </body>
