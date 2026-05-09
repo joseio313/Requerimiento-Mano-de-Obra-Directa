@@ -243,7 +243,8 @@ function mapObra(o){return{
   contrato_propietario_fecha:o.contrato_propietario_fecha||null,
   articulo_2_propietario:o.articulo_2_propietario||null,
   articulo_3_propietario:o.articulo_3_propietario||null,
-  adendas:o.adendas||[]
+  adendas:o.adendas||[],
+  croquis_imagen:o.croquis_imagen||null
 };}
 function mapContrato(c){return{
   id:c.id,nom:c.nombre_contratista||'',tel:c.telefono||'',
@@ -260,7 +261,8 @@ function mapContrato(c){return{
   planos_contratista_subido_por:c.planos_contratista_subido_por||null,
   planos_contratista_fecha:c.planos_contratista_fecha||null,
   contrato_firmado_subido_por:c.contrato_firmado_subido_por||null,
-  contrato_firmado_fecha:c.contrato_firmado_fecha||null
+  contrato_firmado_fecha:c.contrato_firmado_fecha||null,
+  cronograma_quincenal:c.cronograma_quincenal||[]
 };}
 async function dbGuardarObra(o){
   const esTemp=typeof o.id==='number'&&o.id>1e12;
@@ -337,7 +339,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v38 · MULTI USUARIO</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v39 · ADENDAS + CRONOGRAMA</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -424,6 +426,36 @@ async function storageUrl(path){
       <!-- EDITOR de contrato (se muestra al seleccionar obra) -->
       <div id="steffi-editor-area" style="display:none;"></div>
 
+      <!-- ══ ADENDAS — modificaciones post-firma ══ -->
+      <div class="card" style="margin-top:14px;border-top:3px solid var(--P);">
+        <div class="ct" style="color:var(--Pc);">📑 Adendas — Modificaciones Post-Firma</div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Si después de firmar el contrato aparece una modificación (gas domiciliario, ampliación, cambio de materiales, etc.), subí acá el documento que respalda el cambio. Queda atado a la obra y todos lo ven.</div>
+        <div class="f" style="margin-bottom:12px;">
+          <label>Seleccioná obra</label>
+          <select id="ad-sel-obra" onchange="adSelObra(this.value)">
+            <option value="">— Elegir obra —</option>
+          </select>
+        </div>
+        <div id="ad-form" style="display:none;">
+          <div id="ad-info-obra"></div>
+          <div style="background:var(--p2);border-radius:6px;padding:14px;margin-bottom:12px;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">Nueva Adenda</div>
+            <div class="f" style="margin-bottom:10px;">
+              <label>Descripción del cambio *</label>
+              <textarea id="ad-desc" rows="3" placeholder="ej: Se incluye instalación de gas domiciliario por solicitud del propietario tras inicio de obra. Costo asumido por GEAT."></textarea>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('fi-ad-doc').click()">📎 Adjuntar documento</button>
+              <input type="file" id="fi-ad-doc" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,application/pdf,image/*" style="display:none;" onchange="adFile(this)">
+              <span id="ad-file-status" style="font-size:11px;color:var(--ws);">— ningún archivo —</span>
+              <button type="button" class="btn btn-y btn-sm" onclick="adGuardar()" style="margin-left:auto;">💾 Guardar Adenda</button>
+            </div>
+            <div id="ad-msg" style="margin-top:10px;"></div>
+          </div>
+          <div id="ad-historial-list"></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ══════════════════════════════════════════
@@ -463,7 +495,15 @@ async function storageUrl(path){
             <div class="f"><label>Fecha Inicio</label><input type="date" id="fat-fi" oninput="fatCalcFecha()"></div>
             <div class="f"><label>Días Ejecución</label><input type="number" id="fat-di" oninput="fatCalcFecha()"></div>
             <div class="f"><label>Fecha Fin (auto)</label><input id="fat-ff" readonly></div>
-            <div class="f full"><label>📍 Link Google Maps *</label><input id="fat-map" placeholder="https://maps.google.com/maps?q=..."></div>
+            <div class="f full"><label>📍 Link Google Maps</label><input id="fat-map" placeholder="https://maps.google.com/maps?q=..."></div>
+            <div class="f full">
+              <label>O croquis (imagen) <span style="color:var(--ws);font-size:9px;">— alternativa al link Maps</span></label>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('fi-fat-croquis').click()">📸 Subir croquis</button>
+                <input type="file" id="fi-fat-croquis" accept="image/*,.pdf" style="display:none;" onchange="fatUploadCroquis(this)">
+                <span id="fat-croquis-status" style="font-size:11px;color:var(--ws);">— sin croquis cargado —</span>
+              </div>
+            </div>
           </div>
 
           <!-- Módulos -->
@@ -591,6 +631,22 @@ async function storageUrl(path){
             <div class="fg fg2" style="margin-bottom:14px;">
               <div class="f full"><label>Condiciones especiales pactadas</label><textarea id="adm-ct-cond" rows="2" placeholder="Condiciones de ejecución, materiales a cargo, herramientas especiales..."></textarea></div>
               <div class="f full"><label>Datos de negociación (precio final, ajustes, acuerdos)</label><textarea id="adm-ct-neg" rows="3" placeholder="ej: Se acordó precio de $8,500 USD por la obra completa. Se incluye movilización. Pago 30/40/30 según avance verificado por supervisor..."></textarea></div>
+            </div>
+
+            <!-- ⏱ CRONOGRAMA QUINCENAL DE AVANCE -->
+            <div style="background:rgba(245,196,0,.06);border:1px solid var(--am);border-radius:6px;padding:14px;margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;">⏱ Cronograma Quincenal de Avance</div>
+                  <div style="font-size:10px;color:var(--wd);margin-top:2px;">Definí qué % debe avanzar el contratista cada quincena. La suma debe dar 100%.</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button type="button" class="btn btn-o btn-sm" onclick="admCronoAuto()">⚡ Auto-distribuir</button>
+                  <button type="button" class="btn btn-o btn-sm" onclick="admCronoAdd()">+ Quincena</button>
+                </div>
+              </div>
+              <div id="adm-crono-rows" style="margin-top:10px;"></div>
+              <div id="adm-crono-totales" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:11px;color:var(--wd);"></div>
             </div>
           </div>
 
@@ -915,7 +971,7 @@ function gCByObra(oid){return contratos.find(c=>c.oid===oid);}
 function aOv(n){document.getElementById('ov-'+n).classList.add('on');}
 function cOv(n){document.getElementById('ov-'+n).classList.remove('on');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)cOv(o.id.replace('ov-',''));}));
-function renderTodo(){renderSteffii();renderFatima();renderAdmin();renderAdmFull();renderSup();renderDavid();renderCarolina();}
+function renderTodo(){renderSteffii();renderFatima();renderAdmin();renderAdmFull();renderSup();renderDavid();renderCarolina();renderAdendas();}
 function fechaFin(fi,di){if(!fi||!di)return '—';try{const d=new Date(fi);d.setDate(d.getDate()+parseInt(di));return d.toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});}catch(e){return '—';}}
 function estadoObra(o){
   const ct=gCByObra(o.id);
@@ -1327,6 +1383,17 @@ function fatSelObra(oid){
   if(elInc) elInc.value=o.inc||FAT_INC;
   if(elExc) elExc.value=o.exc||FAT_EXC;
   if(elNot) elNot.value=o.not||'';
+  // Status del croquis si ya tiene
+  var stCr=document.getElementById('fat-croquis-status');
+  if(stCr){
+    if(o.croquis_imagen){
+      stCr.innerHTML='✅ Croquis ya cargado · <a href="#" data-fn="'+o.croquis_imagen+'" onclick="_supVerArchivo(this.dataset.fn);return false;" style="color:var(--am);">Ver</a>';
+      stCr.style.color='var(--Gc)';
+    } else {
+      stCr.textContent='— sin croquis cargado —';
+      stCr.style.color='var(--ws)';
+    }
+  }
   form.scrollIntoView({behavior:'smooth'});
 }
 
@@ -1469,6 +1536,9 @@ function admOpcion(tipo){
     aOv('busqueda');
   } else {
     form.style.display='block';
+    // Inicializar cronograma vacío (Josemiguel lo arma o usa Auto-distribuir)
+    admCrono=[];
+    admCronoRender();
     form.scrollIntoView({behavior:'smooth'});
   }
 }
@@ -1488,17 +1558,40 @@ async function admGuardarContratista(){
   const cond=document.getElementById('adm-ct-cond').value;
   const neg=document.getElementById('adm-ct-neg').value;
   if(!nom||!tel){alert('⚠️ Nombre y Teléfono son obligatorios.');return;}
+  // Validar cronograma quincenal si tiene
+  var cronoVal=admCrono.slice();
+  if(cronoVal.length){
+    var totalPct=cronoVal.reduce(function(s,q){return s+(parseFloat(q.pct)||0);},0);
+    if(Math.abs(totalPct-100)>0.5){
+      if(!confirm('⚠️ El cronograma quincenal suma '+totalPct.toFixed(1)+'% (debería ser 100%).\n\n¿Guardar igual?'))return;
+    }
+  }
   const o=obras.find(x=>x.id===admObraId);if(!o)return;
-  const textoContrato=generarContrato(nom,ci_n,dir,o,cond,neg);
+  // Calcular monto Bs por quincena
+  var montoBsTotal=Math.round((o.monto||0)*6.96);
+  cronoVal=cronoVal.map(function(q,i){
+    return {
+      q:i+1,
+      pct:parseFloat(q.pct)||0,
+      monto_bs:Math.round(montoBsTotal*(parseFloat(q.pct)||0)/100),
+      desc:q.desc||''
+    };
+  });
+  const textoContrato=generarContrato(nom,ci_n,dir,o,cond,neg,cronoVal);
   const ct={id:Date.now(),nom,tel,ci_n,dir,oid:admObraId,
     ci:ctFiles.ci?.name||null,ag:ctFiles.ag?.name||null,lz:ctFiles.lz?.name||null,
     cond,negociacion:neg,est:'generado',est_ct:'generado',
     texto:textoContrato,firm_scan:null,aprobado_por:null,
     ed_count:0,historial:[],bloqueado:false,
-    fec_iso:new Date().toISOString().slice(0,10)};
+    fec_iso:new Date().toISOString().slice(0,10),
+    cronograma_quincenal:cronoVal};
   contratos.push(ct);
   try{
     await dbGuardarContrato(ct);
+    // Guardar cronograma por separado
+    if(cronoVal.length){
+      await sb.from('rec_contratos').update({cronograma_quincenal:cronoVal}).eq('id',ct.id);
+    }
     // Subir docs identificación
     if(ctFiles.ci){const p=storagePath('contratos',ct.id,'ci',ctFiles.ci.name);await storageUpload(p,ctFiles.ci);ct.ci=p;}
     if(ctFiles.ag){const p=storagePath('contratos',ct.id,'ag',ctFiles.ag.name);await storageUpload(p,ctFiles.ag);ct.ag=p;}
@@ -1518,6 +1611,7 @@ function admLimpiar(){
   document.getElementById('adm-opciones').style.display='none';
   document.getElementById('adm-obra-preview').style.display='none';
   document.getElementById('adm-sel-obra').value='';admObraId=null;
+  admCrono=[];admCronoRender();
 }
 
 function renderAdmTabla(){
@@ -1539,7 +1633,7 @@ function renderAdmTabla(){
 // ═══════════════════════════════════════════════════
 // GENERADOR CONTRATO — FLUJO REAL
 // ═══════════════════════════════════════════════════
-function generarContrato(nom,ci_n,dir,o,cond,neg){
+function generarContrato(nom,ci_n,dir,o,cond,neg,crono){
   const fecha=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
   const mods=(o.mods||[]).map((m,i)=>'  M'+String(i+1).padStart(2,'0')+' — '+m).join('\n');
   const montoUSD=parseFloat(o.monto)||0,montoBs=Math.round(montoUSD*6.96);
@@ -1547,6 +1641,18 @@ function generarContrato(nom,ci_n,dir,o,cond,neg){
   const p2u=(montoUSD*.40).toFixed(2),p2b=Math.round(montoUSD*.40*6.96);
   const p3u=(montoUSD*.30).toFixed(2),p3b=Math.round(montoUSD*.30*6.96);
   const ffin=fechaFin(o.fi,o.di);
+  // Bloque de cronograma quincenal
+  let cronoBloque='';
+  if(crono&&crono.length){
+    cronoBloque='\n════════════════════════════════════════════════════\nCLÁUSULA — CRONOGRAMA QUINCENAL DE AVANCE OBLIGATORIO\n════════════════════════════════════════════════════\n\nEl CONTRATISTA se compromete a cumplir el siguiente cronograma de avance verificable. El incumplimiento del % mínimo por quincena habilita a GEAT a aplicar penalidades y, en caso reiterado, rescindir el contrato.\n\n';
+    crono.forEach(function(q){
+      cronoBloque+='  Q'+q.q+' — '+q.pct.toFixed(1)+'% de avance ';
+      if(q.monto_bs)cronoBloque+='($'+ (montoUSD*q.pct/100).toFixed(0) +' USD / Bs '+q.monto_bs.toLocaleString('es-BO')+')';
+      if(q.desc)cronoBloque+=' · '+q.desc;
+      cronoBloque+='\n';
+    });
+    cronoBloque+='\nLa supervisión técnica verificará el avance al cierre de cada quincena. El pago se libera SOLO si se cumple el porcentaje pactado.\n';
+  }
   return `CONTRATO DE PRESTACIÓN DE SERVICIOS DE MANO DE OBRA DIRECTA
 Código: ${o.cod}
 Santa Cruz de la Sierra, ${fecha}
@@ -1654,7 +1760,7 @@ CLÁUSULA SÉPTIMA — PENALIDADES
   • Abandono de obra: Retención total del pago pendiente
   • Divulgar planos o diseños: Responsabilidad civil y penal
 
-${cond?'=====================================\nCLAUSULA OCTAVA - CONDICIONES ESPECIALES\n=====================================\n\n'+cond+'\n':''}
+${cond?'=====================================\nCLAUSULA OCTAVA - CONDICIONES ESPECIALES\n=====================================\n\n'+cond+'\n':''}${cronoBloque}
 ════════════════════════════════════════════════════
 FIRMAS DE CONFORMIDAD
 ════════════════════════════════════════════════════
@@ -1756,4 +1862,1018 @@ function supSelObra(oid){
   // Objeto
   if(o.obj) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Objeto del Contrato</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">'+o.obj+'</div></div>';
   // ─── Artículos literales del contrato propietario ───
-  if(o.articulo_2_propietario||o.articulo
+  if(o.articulo_2_propietario||o.articulo_3_propietario){
+    html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;">';
+    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:8px;">📜 Texto Literal — Contrato Propietario</div>';
+    html+='<div style="font-size:9px;color:var(--ws);margin-bottom:10px;">Lo que se firmó con el propietario, palabra por palabra:</div>';
+    if(o.articulo_2_propietario){
+      html+='<div style="margin-bottom:10px;">';
+      html+='<div style="font-size:10px;color:var(--am);font-weight:700;margin-bottom:4px;">ARTÍCULO 2 — OBJETO</div>';
+      html+='<div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;font-family:Georgia,serif;font-style:italic;">'+o.articulo_2_propietario+'</div>';
+      html+='</div>';
+    }
+    if(o.articulo_3_propietario){
+      html+='<div>';
+      html+='<div style="font-size:10px;color:var(--am);font-weight:700;margin-bottom:4px;">ARTÍCULO 3 — ALCANCE</div>';
+      html+='<div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;font-family:Georgia,serif;font-style:italic;">'+o.articulo_3_propietario+'</div>';
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  // ─── Documentos firmados visualizables ───
+  var archivos=[
+    {f:o.contrato_propietario_escaneado,l:'📄 Contrato Propietario',by:o.contrato_propietario_subido_por},
+    {f:o.planos_propietario_pdf,l:'📐 Planos Propietario',by:o.planos_propietario_subido_por},
+    {f:o.materiales_pdf,l:'🧱 Lista Materiales',by:o.materiales_subido_por},
+    {f:o.especificaciones_pdf,l:'📋 Especificaciones Técnicas',by:o.especificaciones_subido_por}
+  ];
+  if(ct){
+    archivos.push({f:ct.firm_scan,l:'📄 Contrato Contratista',by:ct.contrato_firmado_subido_por});
+    archivos.push({f:ct.planos_contratista_pdf,l:'📐 Planos Ejecución',by:ct.planos_contratista_subido_por});
+  }
+  var conArch=archivos.filter(function(a){return a.f;});
+  if(conArch.length){
+    html+='<div style="background:rgba(30,64,175,.05);border:1px solid var(--Z);border-radius:6px;padding:13px;margin-bottom:10px;">';
+    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Zc);margin-bottom:10px;">📎 Documentos Firmados</div>';
+    html+=conArch.map(function(a){
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);gap:8px;flex-wrap:wrap;">'+
+        '<div><div style="font-size:11px;font-weight:700;">'+a.l+'</div><div style="font-size:9px;color:var(--ws);">Subido por '+(a.by||'—')+'</div></div>'+
+        '<button type="button" class="btn btn-o btn-sm" data-fn="'+a.f+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver</button>'+
+        '</div>';
+    }).join('');
+    html+='</div>';
+  }
+  // ─── CRONOGRAMA QUINCENAL ───
+  if(ct&&ct.cronograma_quincenal&&ct.cronograma_quincenal.length){
+    html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;">';
+    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:10px;">⏱ Cronograma Quincenal de Avance Pactado</div>';
+    html+='<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Avance mínimo verificable que el contratista debe cumplir cada quincena:</div>';
+    var pctAcum=0;
+    html+=ct.cronograma_quincenal.map(function(q){
+      pctAcum+=q.pct;
+      return '<div style="display:grid;grid-template-columns:50px 70px 1fr;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px;">'+
+        '<div style="color:var(--am);font-weight:700;">Q'+q.q+'</div>'+
+        '<div style="color:var(--wd);font-weight:700;">'+q.pct.toFixed(1)+'%</div>'+
+        '<div style="color:var(--wd);">'+(q.desc||'—')+(q.monto_bs?' · <span style="color:var(--Gc);">Bs '+q.monto_bs.toLocaleString('es-BO')+'</span>':'')+'</div>'+
+        '</div>';
+    }).join('');
+    html+='<div style="text-align:right;font-size:10px;color:var(--am);margin-top:6px;font-weight:700;">Acumulado: '+pctAcum.toFixed(1)+'%</div>';
+    html+='</div>';
+  }
+  // ─── ADENDAS POST-FIRMA ───
+  if(o.adendas&&o.adendas.length){
+    html+='<div style="background:rgba(91,33,182,.06);border:1px solid var(--P);border-radius:6px;padding:13px;margin-bottom:10px;">';
+    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Pc);margin-bottom:10px;">📑 Adendas — Modificaciones al Contrato ('+o.adendas.length+')</div>';
+    html+=o.adendas.map(function(a,i){
+      var fecha=new Date(a.fecha).toLocaleDateString('es-BO');
+      var btn=a.archivo?'<button type="button" class="btn btn-o btn-sm" data-fn="'+a.archivo+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver doc</button>':'';
+      return '<div style="background:rgba(0,0,0,.2);border-radius:4px;padding:10px;margin-bottom:6px;">'+
+        '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px;">'+
+          '<div style="font-size:10px;color:var(--Pc);font-weight:700;">ADENDA #'+(i+1)+'</div>'+
+          '<div style="font-size:9px;color:var(--ws);">'+fecha+' · '+(a.subido_por||'—')+'</div>'+
+        '</div>'+
+        '<div style="font-size:11px;line-height:1.6;color:var(--wd);white-space:pre-line;margin-bottom:6px;">'+a.descripcion+'</div>'+
+        btn+
+        '</div>';
+    }).join('');
+    html+='</div>';
+  }
+  // ─── CROQUIS ───
+  if(o.croquis_imagen){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
+    html+='<div><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:4px;">📍 Croquis de Ubicación</div>';
+    html+='<div style="font-size:10px;color:var(--wd);">Imagen alternativa al link Maps</div></div>';
+    html+='<button type="button" class="btn btn-o btn-sm" data-fn="'+o.croquis_imagen+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver croquis</button>';
+    html+='</div>';
+  }
+  // Inclusion / Exclusion
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
+  if(o.inc) html+='<div style="background:rgba(4,120,86,.08);border:1px solid var(--G);border-radius:6px;padding:13px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Gc);margin-bottom:8px;">INCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">'+o.inc+'</div></div>';
+  if(o.exc) html+='<div style="background:rgba(220,38,38,.08);border:1px solid var(--R);border-radius:6px;padding:13px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Rc);margin-bottom:8px;">EXCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">'+o.exc+'</div></div>';
+  html+='</div>';
+  // Condiciones
+  if(ct&&ct.cond) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Condiciones Especiales</div><div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">'+ct.cond+'</div></div>';
+  // Obligaciones
+  html+='<div style="background:rgba(30,64,175,.1);border:1px solid var(--Z);border-radius:6px;padding:13px;margin-bottom:10px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Zc);margin-bottom:8px;">Obligaciones del Contratista</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--wd);">';
+  html+='<div>✓ Limpieza diaria</div><div>✓ Reporte semanal con fotos</div>';
+  html+='<div>✓ Herramientas menores propias</div><div>✓ SOAT-C en max. 3 dias</div>';
+  html+='<div>✓ No modificar planos sin autorizacion</div><div>✓ 50% de la madera</div>';
+  html+='</div></div>';
+  // Penalidades
+  html+='<div style="background:rgba(220,38,38,.08);border:1px solid var(--R);border-radius:6px;padding:13px;margin-bottom:10px;">';
+  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Rc);margin-bottom:8px;">Penalidades</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--wd);">';
+  html+='<div>Retraso: 0.5%/dia (max 10%)</div><div>Sin SOAT-C: Bs 50/dia</div>';
+  html+='<div>Hurto: rescision + proceso penal</div><div>Abandono: retencion total pago</div>';
+  html+='</div></div>';
+  // Modulos
+  if(o.mods&&o.mods.length){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;">';
+    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Modulos a Ejecutar ('+o.mods.length+')</div>';
+    html+='<div class="mods-grid">';
+    for(var mi=0;mi<o.mods.length;mi++){
+      html+='<div class="mod-item"><span class="mod-num">M'+String(mi+1).padStart(2,'0')+'</span> '+o.mods[mi]+'</div>';
+    }
+    html+='</div></div>';
+  }
+  // Notas
+  if(o.not) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Notas de Campo</div><div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">'+o.not+'</div></div>';
+  html+='</div>';
+  c.innerHTML=html;
+}
+
+function supImprimir(){
+  var selVal=document.getElementById('sup-sel').value;
+  var o=obras.find(function(x){return x.id==selVal;});if(!o)return;
+  var ct=gCByObra(o.id);
+  var monto=o.monto||0;
+  var p1u=(monto*0.30).toFixed(2),p1b=Math.round(monto*0.30*6.96);
+  var p2u=(monto*0.40).toFixed(2),p2b=Math.round(monto*0.40*6.96);
+  var p3u=(monto*0.30).toFixed(2),p3b=Math.round(monto*0.30*6.96);
+  var win=window.open('','_blank');
+  var body='';
+  body+='<h2>PAQUETE DE SUPERVISION - '+o.nom+'</h2>';
+  body+='<p style="color:#666;font-size:9pt;">GEAT Construccion y Consultoria · '+new Date().toLocaleDateString('es-BO')+'</p><hr>';
+  body+='<h3>Datos de Obra</h3>';
+  body+='<p><b>Obra:</b> '+o.nom+' | <b>Codigo:</b> '+o.cod+'</p>';
+  body+='<p><b>Superficie:</b> '+o.sup+'m2 | <b>Cuadrilla:</b> '+o.cuad+' personas</p>';
+  body+='<p><b>Inicio:</b> '+(o.fi||'—')+' | <b>Plazo:</b> '+o.di+' dias | <b>Fin:</b> '+fechaFin(o.fi,o.di)+'</p>';
+  if(o.map) body+='<p><b>Maps:</b> '+o.map+'</p>';
+  if(ct){
+    body+='<h3>Contratista</h3>';
+    body+='<p><b>Nombre:</b> '+ct.nom+' | <b>Tel:</b> '+(ct.tel||'—')+'</p>';
+    body+='<p><b>C.I.:</b> '+(ct.ci_n||'—')+' | <b>Dir.:</b> '+(ct.dir||'—')+'</p>';
+  }
+  body+='<h3>Forma de Pago</h3>';
+  body+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">';
+  body+='<div style="border:1px solid #ccc;padding:8px;text-align:center;"><b>30% Anticipo</b><br>$'+p1u+'<br>Bs '+p1b.toLocaleString('es-BO')+'</div>';
+  body+='<div style="border:1px solid #ccc;padding:8px;text-align:center;"><b>40% Avance 50%</b><br>$'+p2u+'<br>Bs '+p2b.toLocaleString('es-BO')+'</div>';
+  body+='<div style="border:1px solid #ccc;padding:8px;text-align:center;"><b>30% Entrega</b><br>$'+p3u+'<br>Bs '+p3b.toLocaleString('es-BO')+'</div>';
+  body+='</div>';
+  if(o.obj) body+='<h3>Objeto del Contrato</h3><p>'+o.obj+'</p>';
+  if(o.inc) body+='<h3>Incluido - Obligaciones del Contratista</h3><p style="white-space:pre-line;">'+o.inc+'</p>';
+  if(o.exc) body+='<h3>No Incluido - Corre por cuenta de GEAT</h3><p style="white-space:pre-line;">'+o.exc+'</p>';
+  if(ct&&ct.cond) body+='<h3>Condiciones Especiales</h3><p style="white-space:pre-line;">'+ct.cond+'</p>';
+  body+='<h3>Obligaciones</h3>';
+  body+='<p>✓ Limpieza diaria | ✓ Reporte semanal | ✓ SOAT-C en max 3 dias | ✓ No modificar sin autorizacion</p>';
+  body+='<h3>Penalidades</h3>';
+  body+='<p>Retraso: 0.5%/dia (max 10%) | Sin SOAT-C: Bs 50/dia | Hurto: rescision + penal | Abandono: retencion total</p>';
+  if(o.mods&&o.mods.length){
+    body+='<h3>Modulos ('+o.mods.length+')</h3>';
+    body+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;">';
+    for(var mi=0;mi<o.mods.length;mi++){
+      body+='<div style="border:1px solid #ccc;padding:3px 6px;font-size:9pt;"><b>M'+String(mi+1).padStart(2,'0')+'</b> '+o.mods[mi]+'</div>';
+    }
+    body+='</div>';
+  }
+  if(o.not) body+='<h3>Notas</h3><p style="white-space:pre-line;">'+o.not+'</p>';
+  body+='<div style="display:flex;justify-content:space-between;margin-top:60px;">';
+  body+='<div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Arq. Rai</strong><br>Supervisor de Obra</div></div>';
+  body+='<div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>'+(ct?ct.nom:'Contratista')+'</strong><br>C.I. '+(ct?ct.ci_n:'___')+'</div></div>';
+  body+='</div>';
+  win.document.write('<!DOCTYPE html><html><head><style>@page{size:216mm 330mm;margin:20mm 18mm;}body{font-family:Arial,sans-serif;font-size:10.5pt;line-height:1.6;color:#000;}h2{font-size:14pt;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:12px 0 6px;padding-bottom:3px;}@media print{button{display:none;}}</style></head><body>'+body+'<script>window.onload=function(){window.print();}<\/script></body></html>');
+  win.document.close();
+}
+
+
+// PERFIL
+function abrirPerfil(){
+  const body=document.getElementById('m-perfil-body');
+  body.innerHTML=`<div style="background:var(--p2);border-radius:6px;padding:14px;margin-bottom:12px;">
+    <div style="font-size:18px;font-weight:800;color:var(--am);">${CU.icon} ${CU.n}</div>
+    <div style="font-size:11px;color:var(--wd);margin-top:4px;">Rol: ${CU.r.toUpperCase()}</div>
+  </div>
+  <div style="font-size:11px;color:var(--ws);margin-bottom:16px;">
+    ${CU.r==='steffi'?'⚖️ Generás contratos digitales (Paso 1) · Revisás y aprobás contratos contratista (Paso 4)':
+      CU.r==='fatima'?'📋 Completás datos técnicos de obra (Paso 2)':
+      CU.r==='admin'?'⚙️ Asignás contratistas y cerrás negociaciones (Paso 3)':
+      CU.r==='david'?'📐 Subís escaneados firmados del PROPIETARIO: contrato, planos, materiales y especificaciones técnicas (Paso 1c)':
+      CU.r==='carolina'?'📋 Subís escaneados firmados del CONTRATISTA: contrato y planos de ejecución (Paso 5c)':
+      CU.r==='lector'?'👀 Acceso de lectura — supervisión de campo':
+      '🏗️ Supervisión de campo — Solo lectura'}
+  </div>
+  <button class="btn btn-r btn-sm" onclick="logout()">🚪 Cerrar Sesión</button>`;
+  aOv('perfil');
+}
+
+// ═══════════════════════════════════════════════════
+// PANEL ADMIN FULL
+// ═══════════════════════════════════════════════════
+function renderAdmFull(){
+  var k=function(id){return document.getElementById(id);};
+  var totalObras=obras.length;
+  var montoUSD=obras.filter(function(o){return o.monto>0;}).reduce(function(s,o){return s+o.monto;},0);
+  var totalCt=contratos.length;
+  var pendientes=0;
+  obras.forEach(function(o){
+    var ct=gCByObra(o.id);
+    if(!o.cp_dig&&!o.cp_esc)pendientes++;
+    else if(!o.sup)pendientes++;
+    else if(!ct)pendientes++;
+    else if(ct.est_ct==='generado')pendientes++;
+    else if(ct.est_ct==='aprobado'&&!ct.firm_scan)pendientes++;
+  });
+  if(k('kpi-obras'))k('kpi-obras').textContent=totalObras;
+  if(k('kpi-monto'))k('kpi-monto').textContent='$'+montoUSD.toLocaleString('en-US',{maximumFractionDigits:0});
+  if(k('kpi-contratos'))k('kpi-contratos').textContent=totalCt;
+  if(k('kpi-pendientes'))k('kpi-pendientes').textContent=pendientes;
+  // Alertas
+  var elA=k('adm-alertas');
+  if(elA){
+    var alerts=[];
+    obras.forEach(function(o){
+      var ct=gCByObra(o.id);
+      var nom='<b>'+o.nom+'</b>';
+      if(!o.cp_dig&&!o.cp_esc)alerts.push({t:'r',m:'⚠️ '+nom+' — Sin contrato propietario'});
+      else if(!o.sup)alerts.push({t:'n',m:'📋 '+nom+' — Esperando datos técnicos de Fátima'});
+      else if(!ct)alerts.push({t:'n',m:'👷 '+nom+' — Lista para asignar contratista'});
+      else if(ct.est_ct==='generado')alerts.push({t:'p',m:'⚖️ '+nom+' — Contrato listo para revisar por Steffi'});
+      else if(ct.est_ct==='aprobado'&&!ct.firm_scan)alerts.push({t:'z',m:'🖨️ '+nom+' — Aprobado, falta firma y escaneo'});
+      else if(ct.est_ct==='firmado')alerts.push({t:'g',m:'✅ '+nom+' — Proceso completo con '+ct.nom});
+    });
+    if(!alerts.length){elA.innerHTML='<div class="al al-g">✅ Sin acciones pendientes.</div>';}
+    else{elA.innerHTML=alerts.map(function(a){return '<div class="al al-'+a.t+'" style="margin-bottom:6px;">'+a.m+'</div>';}).join('');}
+  }
+  // Tabla
+  var tb=k('adm-tbody-full');
+  if(tb){
+    if(!obras.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ws);padding:20px;">Sin obras.</td></tr>';}
+    else{
+      tb.innerHTML=obras.map(function(o){
+        var ct=gCByObra(o.id);
+        var est=estadoObra(o);
+        var bs=Math.round(o.monto*6.96);
+        var acc='';
+        if(o.sup&&!ct)acc='<button class="btn btn-y btn-sm" onclick="goPanel(\"admin\")">Asignar CT</button>';
+        else if(ct&&ct.bloqueado)acc='<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>';
+        else if(ct&&ct.firm_scan)acc='<span style="font-size:10px;color:var(--Gc);">✅ Completo</span>';
+        return '<tr>'+
+          '<td data-label="Obra">'+o.nom+'<br><span style="font-size:9px;color:var(--ws);">'+o.cod+'</span></td>'+
+          '<td data-label="Estado"><span class="badge '+est.cls+'">'+est.lab+'</span></td>'+
+          '<td data-label="Contratista">'+(ct?ct.nom+'<br><span style="font-size:9px;color:var(--ws);">📱 '+ct.tel+'</span>':'<span style="color:var(--ws);">—</span>')+'</td>'+
+          '<td data-label="USD" style="color:var(--am);font-weight:700;">'+(o.monto?'$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0}):'—')+'</td>'+
+          '<td data-label="Bs" style="color:var(--wd);">'+(bs?'Bs '+bs.toLocaleString('es-BO'):'—')+'</td>'+
+          '<td data-label="Contrato">'+(ct?ct.est_ct:'—')+'</td>'+
+          '<td data-label="Acción">'+acc+'</td>'+
+          '</tr>';
+      }).join('');
+    }
+  }
+  // Financiero
+  var elF=k('adm-financiero');
+  if(elF){
+    var conMonto=obras.filter(function(o){return o.monto>0;});
+    if(!conMonto.length){elF.innerHTML='<p style="color:var(--ws);">Sin datos financieros.</p>';}
+    else{
+      var tUSD=conMonto.reduce(function(s,o){return s+o.monto;},0);
+      var tBs=Math.round(tUSD*6.96);
+      elF.innerHTML=
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">TOTAL USD</div><div style="font-size:20px;font-weight:900;color:var(--am);">$'+tUSD.toLocaleString('en-US',{maximumFractionDigits:0})+'</div></div>'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">TOTAL Bs</div><div style="font-size:20px;font-weight:900;color:var(--am);">Bs '+tBs.toLocaleString('es-BO')+'</div></div>'+
+        '<div style="background:var(--p2);border-radius:6px;padding:12px;text-align:center;"><div style="font-size:9px;color:var(--ws);margin-bottom:4px;">OBRAS</div><div style="font-size:20px;font-weight:900;color:var(--Gc);">'+conMonto.length+'</div></div>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">'+
+        ['30% — Cuota 1','40% — Cuota 2','30% — Cuota 3'].map(function(lbl,i){
+          var pcts=[0.30,0.40,0.30];var v=tUSD*pcts[i];
+          return '<div style="text-align:center;background:rgba(4,120,86,.1);border:1px solid var(--G);border-radius:4px;padding:10px;">'+
+            '<div style="font-size:9px;color:var(--Gc);font-weight:700;margin-bottom:4px;">'+lbl+'</div>'+
+            '<div style="font-size:14px;font-weight:900;">$'+v.toLocaleString('en-US',{maximumFractionDigits:0})+'</div>'+
+            '<div style="font-size:10px;color:var(--wd);">Bs '+Math.round(v*6.96).toLocaleString('es-BO')+'</div>'+
+            '</div>';
+        }).join('')+
+        '</div>'+
+        conMonto.map(function(o){
+          var ct=gCByObra(o.id);
+          return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);">'+
+            '<div><div style="font-weight:700;">'+o.nom+'</div><div style="font-size:10px;color:var(--ws);">'+(ct?ct.nom:'Sin CT')+' · '+o.sup+'m²</div></div>'+
+            '<div style="text-align:right;"><div style="font-weight:900;color:var(--am);">$'+o.monto.toLocaleString('en-US',{maximumFractionDigits:0})+'</div><div style="font-size:10px;color:var(--wd);">Bs '+Math.round(o.monto*6.96).toLocaleString('es-BO')+'</div></div>'+
+            '</div>';
+        }).join('');
+    }
+  }
+  // Contratos lista
+  var elC=k('adm-contratos-lista');
+  if(elC){
+    if(!contratos.length){elC.innerHTML='<p style="color:var(--ws);">Sin contratos.</p>';}
+    else{
+      elC.innerHTML=contratos.map(function(ct){
+        var o=gO(ct.oid);
+        var ed=ct.ed_count||0,bloq=ct.bloqueado||false;
+        return '<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:14px;margin-bottom:10px;">'+
+          '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px;">'+
+          '<div><div style="font-size:13px;font-weight:800;">'+ct.nom+'</div>'+
+          '<div style="font-size:10px;color:var(--wd);">📋 '+(o.nom||'?')+' · 📱 '+(ct.tel||'—')+'</div></div>'+
+          '<div style="display:flex;gap:6px;align-items:center;">'+
+          '<span style="font-size:9px;background:var(--p3);padding:2px 8px;border-radius:20px;">'+ct.est_ct+'</span>'+
+          '<span style="font-size:9px;color:'+(bloq?'var(--Rc)':ed>=2?'var(--Nc)':'var(--Gc)')+';">'+ed+'/3'+(bloq?' 🔒':'')+'</span>'+
+          '</div></div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          (bloq?'<button class="btn btn-r btn-sm" onclick="admDesbloquear('+ct.id+')">🔓 Desbloquear</button>':'')+
+          (ct.texto?'<button class="btn btn-o btn-sm" onclick="admVerContrato('+ct.id+')">👁️ Ver</button>':'')+
+          (ct.firm_scan?'<button class="btn btn-g btn-sm" onclick="admDescargarFirmado('+ct.id+')">📥 Firmado</button>':'')+
+          '<button class="btn btn-r btn-sm" onclick="admEliminarContratista('+ct.id+')" style="margin-left:auto;">🗑️</button>'+
+          '</div></div>';
+      }).join('');
+    }
+  }
+  // Zona peligro
+  var elP=k('adm-zona-peligro');
+  if(elP){
+    if(!obras.length){elP.innerHTML='<p style="color:var(--ws);">Sin obras.</p>';}
+    else{
+      elP.innerHTML=obras.map(function(o){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2);border-radius:4px;margin-bottom:6px;">'+
+          '<div><b>'+o.nom+'</b> <span style="font-size:10px;color:var(--ws);">'+o.cod+'</span></div>'+
+          '<button class="btn btn-r btn-sm" onclick="admEliminarObra('+o.id+')">🗑️ Eliminar</button>'+
+          '</div>';
+      }).join('');
+    }
+  }
+  admCargarAuditoria();
+  admCargarHistorialExport();
+}
+
+async function admDesbloquear(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  if(!confirm('¿Desbloquear contrato de '+ct.nom+'?'))return;
+  ct.bloqueado=false;ct.ed_count=0;ct.historial=[];
+  await dbGuardarContrato(ct);renderAdmFull();
+}
+function admVerContrato(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.texto)return;
+  var win=window.open('','_blank');
+  win.document.write('<html><head><style>body{font-family:Arial;font-size:11pt;padding:30px;color:#000;}pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;}</style></head><body><pre>'+ct.texto+'</pre></body></html>');
+  win.document.close();
+}
+async function admDescargarFirmado(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.firm_scan)return;
+  try{var url=await storageUrl(ct.firm_scan);window.open(url,'_blank','noopener');}
+  catch(e){alert('Error: '+e.message);}
+}
+async function admEliminarContratista(ctId){
+  var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
+  if(!confirm('¿Eliminar contratista "'+ct.nom+'"?'))return;
+  try{
+    await sb.from('rec_contratos').delete().eq('id',ctId);
+    contratos=contratos.filter(function(x){return x.id!==ctId;});
+    dbLog(CU.n,'CT eliminado: '+ct.nom);renderAdmFull();renderAdmin();
+    alert('✅ Eliminado.');
+  }catch(e){alert('Error: '+e.message);}
+}
+async function admEliminarObra(oid){
+  var o=obras.find(function(x){return x.id===oid;});if(!o)return;
+  if(!confirm('¿Eliminar obra "'+o.nom+'" y sus contratos?'))return;
+  try{
+    await sb.from('rec_contratos').delete().eq('obra_id',oid);
+    await sb.from('rec_obras').delete().eq('id',oid);
+    obras=obras.filter(function(x){return x.id!==oid;});
+    contratos=contratos.filter(function(x){return x.oid!==oid;});
+    dbLog(CU.n,'Obra eliminada: '+o.nom);
+    renderAdmFull();renderAdmin();renderFatima();renderSup();
+    alert('✅ Obra eliminada.');
+  }catch(e){alert('Error: '+e.message);}
+}
+async function admCargarAuditoria(){
+  var el=document.getElementById('adm-auditoria');if(!el)return;
+  el.innerHTML='<span style="color:var(--ws);">Cargando...</span>';
+  try{
+    var res=await sb.from('rec_auditoria').select('usuario,accion,created_at').order('created_at',{ascending:false}).limit(40);
+    var data=res.data;
+    if(!data||!data.length){el.innerHTML='<span style="color:var(--ws);">Sin registros.</span>';return;}
+    el.innerHTML=data.map(function(r){
+      var fecha=new Date(r.created_at).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return '<div style="border-bottom:1px solid var(--bd);padding:3px 0;display:flex;justify-content:space-between;"><span><b style="color:var(--am);">'+r.usuario+'</b> · '+r.accion+'</span><span style="color:var(--ws);font-size:9px;white-space:nowrap;margin-left:8px;">'+fecha+'</span></div>';
+    }).join('');
+  }catch(e){el.innerHTML='<span style="color:var(--Rc);">Error: '+e.message+'</span>';}
+}
+// ============================================================
+// EXPORT / BACKUP / HISTORIAL DESCARGAS
+// ============================================================
+function _admDescargarArchivo(nombre, contenido, mime){
+  var blob=new Blob([contenido],{type:mime});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=nombre;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+
+function _csvEscape(v){
+  if(v===null||v===undefined)return '';
+  var s=String(v);
+  if(s.indexOf(',')!==-1||s.indexOf('"')!==-1||s.indexOf('\n')!==-1){
+    return '"'+s.replace(/"/g,'""')+'"';
+  }
+  return s;
+}
+
+async function admExportCSV(tipo){
+  try{
+    var rows=[],headers=[],filename='';
+    var fecha=new Date().toISOString().slice(0,10);
+    if(tipo==='obras'){
+      var res=await sb.from('rec_obras').select('*').order('created_at');
+      if(!res.data||!res.data.length){alert('Sin obras para exportar.');return;}
+      headers=['ID','Nombre','Codigo','Superficie_m2','Precio_USD_m2','Monto_USD','Monto_Bs','Cuadrilla','Dias','Fecha_Inicio','Estado','Aprobada','Modulos','Maps','Notas','Tiene_Contrato_Prop'];
+      rows=res.data.map(function(o){
+        return [o.id,o.nombre,o.codigo,o.superficie,o.precio_usd,o.monto_usd,
+          Math.round((o.monto_usd||0)*6.96),o.cuadrilla,o.dias_ejecucion,o.fecha_inicio,
+          o.estado,o.aprobada?'Si':'No',
+          (o.modulos||[]).join(' | '),o.maps_link,o.notas,
+          (o.contrato_propietario_nombre||o.contrato_propietario_escaneado)?'Si':'No'];
+      });
+      filename='GEAT_obras_'+fecha+'.csv';
+    } else if(tipo==='contratos'){
+      var res=await sb.from('rec_contratos').select('*').order('created_at');
+      if(!res.data||!res.data.length){alert('Sin contratos para exportar.');return;}
+      var obrasMap={};
+      var oRes=await sb.from('rec_obras').select('id,nombre,codigo,monto_usd');
+      (oRes.data||[]).forEach(function(o){obrasMap[o.id]=o;});
+      headers=['ID','Obra','Codigo_Obra','Monto_USD','Contratista','CI','Telefono','Direccion','Estado','Estado_Contrato','Ediciones','Bloqueado','Firmado','Fecha_Registro','Aprobado_Por','Condiciones','Negociacion'];
+      rows=res.data.map(function(c){
+        var o=obrasMap[c.obra_id]||{};
+        return [c.id,o.nombre||'',o.codigo||'',o.monto_usd||'',
+          c.nombre_contratista,c.ci_numero,c.telefono,c.direccion,
+          c.estado,c.estado_contrato,c.ediciones_count,c.contrato_bloqueado?'Si':'No',
+          c.contrato_firmado_nombre?'Si':'No',c.fecha_registro,c.aprobado_por,
+          c.condiciones,c.negociacion];
+      });
+      filename='GEAT_contratos_'+fecha+'.csv';
+    } else if(tipo==='auditoria'){
+      var res=await sb.from('rec_auditoria').select('*').order('created_at',{ascending:false}).limit(2000);
+      if(!res.data||!res.data.length){alert('Sin registros de auditoria.');return;}
+      headers=['Fecha','Usuario','Accion'];
+      rows=res.data.map(function(r){
+        return [new Date(r.created_at).toLocaleString('es-BO'),r.usuario,r.accion];
+      });
+      filename='GEAT_auditoria_'+fecha+'.csv';
+    }
+    var csv=headers.map(_csvEscape).join(',')+'\n';
+    csv+=rows.map(function(row){return row.map(_csvEscape).join(',');}).join('\n');
+    csv='\uFEFF'+csv;
+    _admDescargarArchivo(filename,csv,'text/csv;charset=utf-8;');
+    dbLog(CU.n,'Export CSV: '+tipo+' ('+rows.length+' registros)');
+    setTimeout(admCargarHistorialExport,500);
+  }catch(e){alert('Error en export: '+e.message);}
+}
+
+async function admBackupCompleto(){
+  if(!confirm('Generar BACKUP COMPLETO en JSON?\nIncluye obras, contratos y auditoria.'))return;
+  try{
+    var oRes=await sb.from('rec_obras').select('*').order('created_at');
+    var cRes=await sb.from('rec_contratos').select('*').order('created_at');
+    var aRes=await sb.from('rec_auditoria').select('*').order('created_at',{ascending:false}).limit(1000);
+    var backup={
+      generado:new Date().toISOString(),
+      generado_por:CU.n,
+      version_sistema:'GEAT Contratistas v37',
+      proyecto_supabase:'jsacnpgpnvoslrpurfxc',
+      totales:{
+        obras:(oRes.data||[]).length,
+        contratos:(cRes.data||[]).length,
+        registros_auditoria:(aRes.data||[]).length
+      },
+      datos:{
+        obras:oRes.data||[],
+        contratos:cRes.data||[],
+        auditoria:aRes.data||[]
+      }
+    };
+    var json=JSON.stringify(backup,null,2);
+    var fecha=new Date().toISOString().slice(0,16).replace(/[:T]/g,'-');
+    _admDescargarArchivo('GEAT_BACKUP_'+fecha+'.json',json,'application/json;charset=utf-8;');
+    dbLog(CU.n,'BACKUP COMPLETO generado ('+backup.totales.obras+' obras, '+backup.totales.contratos+' contratos)');
+    setTimeout(admCargarHistorialExport,500);
+    alert('Backup descargado: '+(json.length/1024).toFixed(1)+' KB');
+  }catch(e){alert('Error backup: '+e.message);}
+}
+
+async function admReporteEjecutivo(){
+  try{
+    var oRes=await sb.from('rec_obras').select('*').order('created_at');
+    var cRes=await sb.from('rec_contratos').select('*').order('created_at');
+    var os=oRes.data||[],cs=cRes.data||[];
+    var totalUSD=os.reduce(function(s,o){return s+(parseFloat(o.monto_usd)||0);},0);
+    var totalBs=Math.round(totalUSD*6.96);
+    var fechaHoy=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
+    var html='';
+    html+='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte GEAT - '+fechaHoy+'</title>';
+    html+='<style>body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.6;color:#000;padding:30px;max-width:1100px;margin:0 auto;}';
+    html+='h1{font-size:18pt;text-align:center;border-bottom:3px solid #f5c400;padding-bottom:10px;}';
+    html+='h2{font-size:13pt;background:#f5c400;color:#000;padding:6px 12px;margin-top:20px;}';
+    html+='table{width:100%;border-collapse:collapse;margin:10px 0;}';
+    html+='th{background:#333;color:#fff;padding:8px;text-align:left;font-size:10pt;}';
+    html+='td{border:1px solid #ddd;padding:6px;font-size:10pt;}';
+    html+='.kpi{display:inline-block;background:#f5c400;padding:8px 14px;margin:4px;border-radius:4px;font-weight:700;}';
+    html+='@media print{button{display:none;}}</style></head><body>';
+    html+='<h1>GEAT - REPORTE EJECUTIVO</h1>';
+    html+='<p style="text-align:center;color:#666;">Generado: '+fechaHoy+' por '+CU.n+'</p>';
+    html+='<h2>Indicadores Clave</h2>';
+    html+='<div class="kpi">Obras: '+os.length+'</div>';
+    html+='<div class="kpi">Contratos: '+cs.length+'</div>';
+    html+='<div class="kpi">Total USD: $'+totalUSD.toLocaleString('en-US')+'</div>';
+    html+='<div class="kpi">Total Bs: '+totalBs.toLocaleString('es-BO')+'</div>';
+    html+='<h2>Detalle de Obras</h2>';
+    html+='<table><thead><tr><th>Obra</th><th>Codigo</th><th>Sup m2</th><th>USD</th><th>Bs</th><th>Estado</th><th>Contratista</th></tr></thead><tbody>';
+    for(var i=0;i<os.length;i++){
+      var o=os[i];
+      var ct=cs.find(function(c){return c.obra_id===o.id;});
+      html+='<tr><td><b>'+o.nombre+'</b></td><td>'+o.codigo+'</td><td>'+(o.superficie||'-')+'</td>';
+      html+='<td>$'+(o.monto_usd?parseFloat(o.monto_usd).toLocaleString('en-US'):'-')+'</td>';
+      html+='<td>'+(o.monto_usd?Math.round(parseFloat(o.monto_usd)*6.96).toLocaleString('es-BO'):'-')+'</td>';
+      html+='<td>'+(o.estado||'-')+'</td><td>'+(ct?ct.nombre_contratista:'Sin asignar')+'</td></tr>';
+    }
+    html+='</tbody></table>';
+    html+='<h2>Contratos Activos</h2>';
+    html+='<table><thead><tr><th>Contratista</th><th>Telefono</th><th>Obra</th><th>Estado</th><th>Ediciones</th><th>Firmado</th></tr></thead><tbody>';
+    for(var j=0;j<cs.length;j++){
+      var c=cs[j];
+      var ob=os.find(function(o){return o.id===c.obra_id;});
+      html+='<tr><td><b>'+c.nombre_contratista+'</b></td><td>'+c.telefono+'</td>';
+      html+='<td>'+(ob?ob.nombre:'-')+'</td><td>'+c.estado_contrato+'</td>';
+      html+='<td>'+c.ediciones_count+'/3</td><td>'+(c.contrato_firmado_nombre?'Si':'No')+'</td></tr>';
+    }
+    html+='</tbody></table>';
+    html+='<p style="margin-top:30px;font-size:9pt;color:#999;text-align:center;">GAMBARTE ARQUITECTURA S.R.L. - Documento confidencial</p>';
+    html+='<button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:10px 20px;background:#f5c400;border:none;border-radius:5px;font-weight:700;cursor:pointer;">Imprimir / PDF</button>';
+    html+='</body></html>';
+    var fecha=new Date().toISOString().slice(0,10);
+    _admDescargarArchivo('GEAT_Reporte_'+fecha+'.html',html,'text/html;charset=utf-8;');
+    dbLog(CU.n,'Reporte ejecutivo HTML generado');
+    setTimeout(admCargarHistorialExport,500);
+  }catch(e){alert('Error reporte: '+e.message);}
+}
+
+async function admCargarHistorialExport(){
+  var el=document.getElementById('adm-historial-export');if(!el)return;
+  el.innerHTML='<span style="color:var(--ws);">Cargando...</span>';
+  try{
+    var res=await sb.from('rec_auditoria').select('usuario,accion,created_at').or('accion.like.%Export%,accion.like.%BACKUP%,accion.like.%Reporte%,accion.like.%Descarg%,accion.like.%Consulta%').order('created_at',{ascending:false}).limit(20);
+    var data=res.data||[];
+    if(!data.length){el.innerHTML='<span style="color:var(--ws);">Sin descargas registradas aun.</span>';return;}
+    el.innerHTML=data.map(function(r){
+      var fecha=new Date(r.created_at).toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      var icon='💾';
+      if(r.accion.indexOf('CSV')>=0)icon='📊';
+      else if(r.accion.indexOf('Reporte')>=0)icon='📑';
+      else if(r.accion.indexOf('BACKUP')>=0)icon='🗄️';
+      return '<div style="padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;gap:8px;"><span>'+icon+' <b style="color:var(--am);">'+r.usuario+'</b> · '+r.accion+'</span><span style="color:var(--ws);font-size:9px;white-space:nowrap;">'+fecha+'</span></div>';
+    }).join('');
+  }catch(e){el.innerHTML='<span style="color:var(--Rc);">Error: '+e.message+'</span>';}
+}
+
+// ═══════════════════════════════════════════════════
+// PANEL DAVID — escaneados firmados del PROPIETARIO
+// ═══════════════════════════════════════════════════
+let dvObraId=null;
+
+function renderDavid(){
+  var sel=document.getElementById('dv-sel-obra');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Elegir obra —</option>'+
+    obras.map(function(o){
+      var pendientes=_dvPendientes(o);
+      var tag=pendientes===0?' ✅':' ('+pendientes+' faltan)';
+      return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+')'+tag+'</option>';
+    }).join('');
+  var h=document.getElementById('dv-historial');
+  if(h){
+    if(!obras.length){h.innerHTML='<div style="color:var(--ws);">Sin obras.</div>';return;}
+    h.innerHTML=obras.map(function(o){
+      var ct=o.contrato_propietario_escaneado?'✅':'⚠️';
+      var pl=o.planos_propietario_pdf?'✅':'⚠️';
+      var mat=o.materiales_pdf?'✅':'⚠️';
+      var esp=o.especificaciones_pdf?'✅':'⚠️';
+      return '<div style="padding:8px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">'+
+        '<div><b>'+o.nom+'</b> <span style="color:var(--ws);font-size:9px;">'+o.cod+'</span></div>'+
+        '<div style="font-size:11px;color:var(--wd);">'+ct+' Contrato · '+pl+' Planos · '+mat+' Materiales · '+esp+' Especif.</div>'+
+        '</div>';
+    }).join('');
+  }
+}
+
+function _dvPendientes(o){
+  var n=0;
+  if(!o.contrato_propietario_escaneado)n++;
+  if(!o.planos_propietario_pdf)n++;
+  if(!o.materiales_pdf)n++;
+  if(!o.especificaciones_pdf)n++;
+  return n;
+}
+
+function dvSelObra(oid){
+  dvObraId=oid?parseInt(oid):null;
+  var form=document.getElementById('dv-form');
+  if(!dvObraId){if(form)form.style.display='none';return;}
+  var o=obras.find(function(x){return x.id===dvObraId;});
+  if(!o){form.style.display='none';return;}
+  form.style.display='block';
+  var info=document.getElementById('dv-info-obra');
+  if(info){
+    info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
+      '<div style="font-weight:800;font-size:14px;">'+o.nom+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);">'+o.cod+'</div></div>';
+  }
+  var st=document.getElementById('dv-status');
+  if(st){
+    var rows=[
+      {k:'contrato_propietario_escaneado',l:'Contrato firmado',by:'contrato_propietario_subido_por',d:'contrato_propietario_fecha'},
+      {k:'planos_propietario_pdf',l:'Planos firmados',by:'planos_propietario_subido_por',d:'planos_propietario_fecha'},
+      {k:'materiales_pdf',l:'Materiales firmados',by:'materiales_subido_por',d:'materiales_fecha'},
+      {k:'especificaciones_pdf',l:'Especificaciones técnicas',by:'especificaciones_subido_por',d:'especificaciones_fecha'}
+    ];
+    st.innerHTML=rows.map(function(r){
+      var v=o[r.k];
+      var por=o[r.by]||'—';
+      var fec=o[r.d]?new Date(o[r.d]).toLocaleDateString('es-BO'):'—';
+      return '<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--p2);border-radius:4px;margin-bottom:4px;font-size:11px;">'+
+        '<div>'+(v?'✅':'⚠️')+' '+r.l+'</div>'+
+        '<div style="color:var(--ws);font-size:10px;">'+(v?por+' · '+fec:'Pendiente')+'</div>'+
+        '</div>';
+    }).join('');
+  }
+}
+
+async function dvUpload(tipo,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
+  if(!dvObraId){alert('Seleccioná una obra primero.');return;}
+  var msg=document.getElementById('dv-msg');
+  msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
+  try{
+    var ext=file.name.split('.').pop();
+    var fname='dv_'+tipo+'_'+dvObraId+'_'+Date.now()+'.'+ext;
+    var up=await sb.storage.from('rec-archivos').upload(fname,file,{upsert:true});
+    if(up.error)throw new Error(up.error.message);
+    var mapa={
+      'contrato':{file:'contrato_propietario_escaneado',by:'contrato_propietario_subido_por',d:'contrato_propietario_fecha'},
+      'planos':{file:'planos_propietario_pdf',by:'planos_propietario_subido_por',d:'planos_propietario_fecha'},
+      'materiales':{file:'materiales_pdf',by:'materiales_subido_por',d:'materiales_fecha'},
+      'especificaciones':{file:'especificaciones_pdf',by:'especificaciones_subido_por',d:'especificaciones_fecha'}
+    };
+    var m=mapa[tipo];
+    var update={};
+    update[m.file]=fname;
+    update[m.by]=CU.n;
+    update[m.d]=new Date().toISOString();
+    await sb.from('rec_obras').update(update).eq('id',dvObraId);
+    var o=obras.find(function(x){return x.id===dvObraId;});
+    o[m.file]=fname;
+    o[m.by]=CU.n;
+    o[m.d]=update[m.d];
+    if(tipo==='contrato')o.cp_esc=fname;
+    dbLog(CU.n,'Subió '+tipo+' propietario: '+o.nom);
+    msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
+    setTimeout(function(){
+      dvSelObra(dvObraId);
+      renderDavid();
+      msg.innerHTML='';
+    },1500);
+  }catch(e){
+    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// PANEL CAROLINA — escaneados firmados del CONTRATISTA
+// ═══════════════════════════════════════════════════
+let caCtId=null;
+
+function renderCarolina(){
+  var sel=document.getElementById('ca-sel-ct');
+  if(!sel)return;
+  var aprobados=contratos.filter(function(c){
+    return c.est_ct==='aprobado'||c.est_ct==='firmado';
+  });
+  sel.innerHTML='<option value="">— Elegir contrato —</option>'+
+    aprobados.map(function(c){
+      var o=gO(c.oid);
+      var ct=c.firm_scan?'✅':'⚠️';
+      var pl=c.planos_contratista_pdf?'✅':'⚠️';
+      return '<option value="'+c.id+'">'+(o.nom||'?')+' / '+c.nom+' '+ct+pl+'</option>';
+    }).join('');
+  var h=document.getElementById('ca-historial');
+  if(h){
+    if(!aprobados.length){h.innerHTML='<div style="color:var(--ws);">Sin contratos aprobados todavía.</div>';return;}
+    h.innerHTML=aprobados.map(function(c){
+      var o=gO(c.oid);
+      var ct=c.firm_scan?'✅':'⚠️';
+      var pl=c.planos_contratista_pdf?'✅':'⚠️';
+      return '<div style="padding:8px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">'+
+        '<div><b>'+(o.nom||'?')+'</b> · '+c.nom+'</div>'+
+        '<div style="font-size:11px;color:var(--wd);">'+ct+' Contrato · '+pl+' Planos</div>'+
+        '</div>';
+    }).join('');
+  }
+}
+
+function caSelCt(cid){
+  caCtId=cid?parseInt(cid):null;
+  var form=document.getElementById('ca-form');
+  if(!caCtId){if(form)form.style.display='none';return;}
+  var c=contratos.find(function(x){return x.id===caCtId;});
+  if(!c){form.style.display='none';return;}
+  var o=gO(c.oid);
+  form.style.display='block';
+  var info=document.getElementById('ca-info-ct');
+  if(info){
+    info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
+      '<div style="font-weight:800;font-size:14px;">'+(o.nom||'?')+'</div>'+
+      '<div style="font-size:11px;color:var(--wd);">Contratista: <b>'+c.nom+'</b> · '+(c.tel||'—')+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);">Estado: '+c.est_ct+'</div></div>';
+  }
+  var st=document.getElementById('ca-status');
+  if(st){
+    var rows=[
+      {has:!!c.firm_scan,l:'Contrato firmado por contratista',by:c.contrato_firmado_subido_por,d:c.contrato_firmado_fecha},
+      {has:!!c.planos_contratista_pdf,l:'Planos ejecución firmados',by:c.planos_contratista_subido_por,d:c.planos_contratista_fecha}
+    ];
+    st.innerHTML=rows.map(function(r){
+      var por=r.by||'—';
+      var fec=r.d?new Date(r.d).toLocaleDateString('es-BO'):'—';
+      return '<div style="display:flex;justify-content:space-between;padding:6px 10px;background:var(--p2);border-radius:4px;margin-bottom:4px;font-size:11px;">'+
+        '<div>'+(r.has?'✅':'⚠️')+' '+r.l+'</div>'+
+        '<div style="color:var(--ws);font-size:10px;">'+(r.has?por+' · '+fec:'Pendiente')+'</div>'+
+        '</div>';
+    }).join('');
+  }
+}
+
+async function caUpload(tipo,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
+  if(!caCtId){alert('Seleccioná un contrato primero.');return;}
+  var msg=document.getElementById('ca-msg');
+  msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
+  try{
+    var ext=file.name.split('.').pop();
+    var fname='ca_'+tipo+'_'+caCtId+'_'+Date.now()+'.'+ext;
+    var up=await sb.storage.from('rec-archivos').upload(fname,file,{upsert:true});
+    if(up.error)throw new Error(up.error.message);
+    var update={};
+    if(tipo==='contrato'){
+      update.contrato_firmado_nombre=fname;
+      update.contrato_firmado_subido_por=CU.n;
+      update.contrato_firmado_fecha=new Date().toISOString();
+      update.estado_contrato='firmado';
+    } else {
+      update.planos_contratista_pdf=fname;
+      update.planos_contratista_subido_por=CU.n;
+      update.planos_contratista_fecha=new Date().toISOString();
+    }
+    await sb.from('rec_contratos').update(update).eq('id',caCtId);
+    var c=contratos.find(function(x){return x.id===caCtId;});
+    if(tipo==='contrato'){
+      c.firm_scan=fname;
+      c.contrato_firmado_subido_por=CU.n;
+      c.contrato_firmado_fecha=update.contrato_firmado_fecha;
+      c.est_ct='firmado';
+    } else {
+      c.planos_contratista_pdf=fname;
+      c.planos_contratista_subido_por=CU.n;
+      c.planos_contratista_fecha=update.planos_contratista_fecha;
+    }
+    dbLog(CU.n,'Subió '+tipo+' contratista: '+(gO(c.oid).nom||'?'));
+    msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
+    setTimeout(function(){
+      caSelCt(caCtId);
+      renderCarolina();
+      msg.innerHTML='';
+    },1500);
+  }catch(e){
+    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+  }
+}
+
+// Helper: abrir archivo desde supervisión
+async function _supVerArchivo(fname){
+  if(!fname)return;
+  try{
+    var url=await storageUrl(fname);
+    window.open(url,'_blank','noopener');
+  }catch(e){alert('Error: '+e.message);}
+}
+
+
+// ═══════════════════════════════════════════════════
+// CRONOGRAMA QUINCENAL — admin asigna contratista
+// ═══════════════════════════════════════════════════
+let admCrono=[];
+
+function admCronoRender(){
+  var el=document.getElementById('adm-crono-rows');
+  if(!el)return;
+  if(!admCrono.length){
+    el.innerHTML='<div style="text-align:center;padding:14px;color:var(--ws);font-size:11px;">Sin quincenas. Agregá manualmente o usá Auto-distribuir.</div>';
+    _admCronoTotales();
+    return;
+  }
+  el.innerHTML=admCrono.map(function(q,i){
+    return '<div style="display:grid;grid-template-columns:60px 80px 1fr 30px;gap:6px;align-items:center;margin-bottom:6px;">'+
+      '<div style="font-size:11px;color:var(--am);font-weight:700;text-align:center;">Q'+(i+1)+'</div>'+
+      '<input type="number" min="0" max="100" step="0.5" value="'+q.pct+'" onchange="_admCronoEdit('+i+',\'pct\',this.value)" style="padding:6px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;color:var(--w);font-size:11px;text-align:center;" placeholder="%">'+
+      '<input type="text" value="'+(q.desc||'')+'" onchange="_admCronoEdit('+i+',\'desc\',this.value)" style="padding:6px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;color:var(--w);font-size:11px;" placeholder="ej: Excavación + cimientos">'+
+      '<button type="button" onclick="_admCronoDel('+i+')" style="background:none;border:none;color:var(--Rc);cursor:pointer;font-size:14px;">✕</button>'+
+      '</div>';
+  }).join('');
+  _admCronoTotales();
+}
+
+function _admCronoTotales(){
+  var el=document.getElementById('adm-crono-totales');
+  if(!el)return;
+  var total=admCrono.reduce(function(s,q){return s+(parseFloat(q.pct)||0);},0);
+  var color=total===100?'var(--Gc)':(total>100?'var(--Rc)':'var(--Nc)');
+  var icon=total===100?'✅':(total>100?'⚠️':'⚠️');
+  el.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">'+
+    '<span>'+admCrono.length+' quincenas definidas</span>'+
+    '<span style="color:'+color+';font-weight:700;">'+icon+' Total: '+total.toFixed(1)+'%</span>'+
+    '</div>';
+}
+
+function _admCronoEdit(i,k,v){
+  if(!admCrono[i])return;
+  if(k==='pct')admCrono[i].pct=parseFloat(v)||0;
+  else admCrono[i][k]=v;
+  _admCronoTotales();
+}
+
+function _admCronoDel(i){
+  admCrono.splice(i,1);
+  admCronoRender();
+}
+
+function admCronoAdd(){
+  admCrono.push({pct:0,desc:''});
+  admCronoRender();
+}
+
+function admCronoAuto(){
+  if(!admObraId){alert('Seleccioná una obra primero.');return;}
+  var o=obras.find(function(x){return x.id===admObraId;});
+  if(!o||!o.di){alert('La obra debe tener días de ejecución cargados por Fátima.');return;}
+  var dias=parseInt(o.di);
+  var nQ=Math.max(1,Math.round(dias/15));
+  var prompt1=window.prompt('Cantidad de quincenas a generar (sugerido por '+dias+' días: '+nQ+')',String(nQ));
+  if(!prompt1)return;
+  var n=parseInt(prompt1)||nQ;
+  if(n<1||n>30){alert('Entre 1 y 30 quincenas.');return;}
+  var pctBase=Math.floor(100/n*100)/100;
+  var diff=Math.round((100-pctBase*n)*100)/100;
+  admCrono=[];
+  for(var i=0;i<n;i++){
+    var pct=pctBase+(i===n-1?diff:0);
+    admCrono.push({pct:pct,desc:''});
+  }
+  admCronoRender();
+}
+
+function admCronoLimpiar(){admCrono=[];admCronoRender();}
+
+// ═══════════════════════════════════════════════════
+// CROQUIS — Fátima sube imagen alternativa
+// ═══════════════════════════════════════════════════
+let fatCroquisFile=null;
+
+async function fatUploadCroquis(inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}
+  if(!fatObraId){alert('Seleccioná una obra primero.');return;}
+  var st=document.getElementById('fat-croquis-status');
+  st.textContent='⏳ Subiendo croquis...';
+  try{
+    var ext=file.name.split('.').pop();
+    var fname='croquis_'+fatObraId+'_'+Date.now()+'.'+ext;
+    var up=await sb.storage.from('rec-archivos').upload(fname,file,{upsert:true});
+    if(up.error)throw new Error(up.error.message);
+    await sb.from('rec_obras').update({croquis_imagen:fname}).eq('id',fatObraId);
+    var o=obras.find(function(x){return x.id===fatObraId;});
+    o.croquis_imagen=fname;
+    dbLog(CU.n,'Subió croquis: '+o.nom);
+    st.textContent='✅ Croquis cargado: '+file.name;
+    st.style.color='var(--Gc)';
+  }catch(e){
+    st.textContent='❌ Error: '+e.message;
+    st.style.color='var(--Rc)';
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// ADENDAS — Steffi sube modificaciones post-firma
+// ═══════════════════════════════════════════════════
+let adObraId=null;
+let adFileBuf=null;
+
+function renderAdendas(){
+  var sel=document.getElementById('ad-sel-obra');
+  if(!sel)return;
+  // Solo obras con contrato firmado o aprobado
+  var aptas=obras.filter(function(o){
+    var ct=gCByObra(o.id);
+    return ct && (ct.est_ct==='aprobado'||ct.est_ct==='firmado');
+  });
+  sel.innerHTML='<option value="">— Elegir obra —</option>'+
+    aptas.map(function(o){
+      var n=(o.adendas||[]).length;
+      var tag=n>0?' ('+n+' adenda'+(n>1?'s':'')+')':'';
+      return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+')'+tag+'</option>';
+    }).join('');
+}
+
+function adSelObra(oid){
+  adObraId=oid?parseInt(oid):null;
+  var form=document.getElementById('ad-form');
+  if(!adObraId){if(form)form.style.display='none';return;}
+  var o=obras.find(function(x){return x.id===adObraId;});
+  if(!o){form.style.display='none';return;}
+  form.style.display='block';
+  var info=document.getElementById('ad-info-obra');
+  if(info){
+    info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
+      '<div style="font-weight:800;font-size:14px;">'+o.nom+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);">'+o.cod+'</div></div>';
+  }
+  _adRenderHistorial(o);
+}
+
+function _adRenderHistorial(o){
+  var el=document.getElementById('ad-historial-list');
+  if(!el)return;
+  var arr=o.adendas||[];
+  if(!arr.length){
+    el.innerHTML='<div style="color:var(--ws);font-size:11px;text-align:center;padding:14px;">Sin adendas registradas.</div>';
+    return;
+  }
+  el.innerHTML='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📋 Adendas Registradas ('+arr.length+')</div>'+
+    arr.map(function(a,i){
+      var fecha=new Date(a.fecha).toLocaleDateString('es-BO');
+      var btnVer=a.archivo?'<button type="button" class="btn btn-o btn-sm" data-fn="'+a.archivo+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver</button>':'';
+      return '<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:8px;border-left:3px solid var(--P);">'+
+        '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'+
+          '<div style="font-size:10px;color:var(--Pc);font-weight:700;">ADENDA #'+(i+1)+'</div>'+
+          '<div style="font-size:10px;color:var(--ws);">'+fecha+' · '+(a.subido_por||'—')+'</div>'+
+        '</div>'+
+        '<div style="font-size:11px;line-height:1.6;color:var(--wd);margin-bottom:6px;white-space:pre-line;">'+a.descripcion+'</div>'+
+        btnVer+
+        '</div>';
+    }).join('');
+}
+
+function adFile(inp){
+  if(!inp.files||!inp.files[0]){adFileBuf=null;document.getElementById('ad-file-status').textContent='— ningún archivo —';return;}
+  var f=inp.files[0];
+  if(f.size>10*1024*1024){alert('Máximo 10MB.');inp.value='';return;}
+  adFileBuf=f;
+  document.getElementById('ad-file-status').textContent='📎 '+f.name;
+}
+
+async function adGuardar(){
+  if(!adObraId){alert('Seleccioná una obra.');return;}
+  var desc=document.getElementById('ad-desc').value.trim();
+  if(!desc){alert('Escribí la descripción del cambio.');return;}
+  var msg=document.getElementById('ad-msg');
+  msg.innerHTML='<div class="al al-z">⏳ Guardando adenda...</div>';
+  try{
+    var fname=null;
+    if(adFileBuf){
+      var ext=adFileBuf.name.split('.').pop();
+      fname='ad_'+adObraId+'_'+Date.now()+'.'+ext;
+      var up=await sb.storage.from('rec-archivos').upload(fname,adFileBuf,{upsert:true});
+      if(up.error)throw new Error(up.error.message);
+    }
+    var o=obras.find(function(x){return x.id===adObraId;});
+    var arr=o.adendas||[];
+    var nueva={
+      id:Date.now(),
+      fecha:new Date().toISOString(),
+      descripcion:desc,
+      archivo:fname,
+      subido_por:CU.n
+    };
+    arr.push(nueva);
+    await sb.from('rec_obras').update({adendas:arr}).eq('id',adObraId);
+    o.adendas=arr;
+    dbLog(CU.n,'Adenda agregada: '+o.nom+' · '+desc.substring(0,50));
+    msg.innerHTML='<div class="al al-g">✅ Adenda registrada</div>';
+    document.getElementById('ad-desc').value='';
+    document.getElementById('ad-file-status').textContent='— ningún archivo —';
+    document.getElementById('fi-ad-doc').value='';
+    adFileBuf=null;
+    _adRenderHistorial(o);
+    renderAdendas();
+    setTimeout(function(){msg.innerHTML='';},2000);
+  }catch(e){
+    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+  }
+}
+
+
+</script>
+</body>
+</html>
