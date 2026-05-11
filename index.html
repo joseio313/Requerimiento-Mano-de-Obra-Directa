@@ -251,9 +251,21 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 .scan-page img{width:100%;height:100%;object-fit:cover;}
 .scan-page-rm{position:absolute;top:2px;right:2px;background:rgba(220,38,38,.9);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px;text-align:center;padding:0;}
 .scan-page.add{display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--am);background:var(--p2);}
+.scan-page.dragging{opacity:0.5;}
 .scan-footer{background:#000;padding:14px;border-top:1px solid #333;display:flex;gap:8px;flex-wrap:wrap;}
 .scan-footer .btn{flex:1;min-width:120px;}
 .scan-filter-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+
+/* ESQUINAS de detección manual */
+.scan-corners-wrap{position:relative;display:inline-block;max-width:100%;}
+.scan-corners-wrap canvas{display:block;max-width:100%;height:auto;}
+.scan-corner{position:absolute;width:32px;height:32px;border:3px solid var(--am);background:rgba(245,196,0,.3);border-radius:50%;margin-left:-16px;margin-top:-16px;cursor:grab;touch-action:none;z-index:10;box-shadow:0 0 0 2px rgba(0,0,0,.5);}
+.scan-corner:active{cursor:grabbing;background:rgba(245,196,0,.6);}
+.scan-poly{position:absolute;inset:0;pointer-events:none;z-index:5;}
+.scan-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.85);color:var(--am);font-weight:700;font-size:14px;z-index:20;flex-direction:column;gap:12px;}
+.scan-loading-spin{width:36px;height:36px;border:4px solid rgba(245,196,0,.2);border-top-color:var(--am);border-radius:50%;animation:scanSpin 1s linear infinite;}
+@keyframes scanSpin{to{transform:rotate(360deg);}}
+.scan-step-info{background:rgba(245,196,0,.1);border:1px solid var(--am);border-radius:6px;padding:8px 12px;color:var(--am);font-size:11px;text-align:center;}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -380,17 +392,57 @@ async function storageUrl(path){
 <!-- TOAST CONTAINER (TANDA 4) -->
 <div id="toast-container" class="toast-container"></div>
 
-<!-- SCANNER MODAL (TANDA 8) -->
+<!-- SCANNER MODAL (TANDA 9 — escaneo profesional) -->
 <div id="scan-modal" class="scan-modal">
   <div class="scan-header">
     <div class="scan-title" id="scan-title">📷 Escanear documento</div>
     <button type="button" class="scan-close" onclick="scanClose()">✕</button>
   </div>
   <div class="scan-body">
+    <!-- Paso info -->
+    <div class="scan-step-info" id="scan-step-info">Tomá una foto del documento</div>
+
+    <!-- Área de preview -->
     <div class="scan-preview" id="scan-preview">
       <div style="color:#666;font-size:13px;text-align:center;padding:30px;" id="scan-empty">Tomá una foto para comenzar</div>
+
+      <!-- Paso 1: detección de esquinas (oculto inicialmente) -->
+      <div class="scan-corners-wrap" id="scan-corners-wrap" style="display:none;">
+        <canvas id="scan-detect-canvas"></canvas>
+        <svg class="scan-poly" id="scan-poly"></svg>
+        <div class="scan-corner" id="scan-c-tl"></div>
+        <div class="scan-corner" id="scan-c-tr"></div>
+        <div class="scan-corner" id="scan-c-br"></div>
+        <div class="scan-corner" id="scan-c-bl"></div>
+      </div>
+
+      <!-- Paso 2: imagen procesada con filtros -->
       <canvas id="scan-canvas" style="display:none;"></canvas>
+
+      <!-- Loader OpenCV -->
+      <div class="scan-loading" id="scan-loading" style="display:none;">
+        <div class="scan-loading-spin"></div>
+        <div id="scan-loading-txt">Cargando librería de escaneo...</div>
+      </div>
     </div>
+
+    <!-- Toolbar paso 1: detección -->
+    <div class="scan-filter-row" id="scan-detect-toolbar" style="display:none;">
+      <button type="button" class="scan-btn" onclick="scanAutoDetect()">
+        <span class="scan-btn-ico">🎯</span><span>Auto-detectar</span>
+      </button>
+      <button type="button" class="scan-btn" onclick="scanResetCorners()">
+        <span class="scan-btn-ico">🔲</span><span>Sin recorte</span>
+      </button>
+      <button type="button" class="scan-btn" onclick="scanProcessCorners()">
+        <span class="scan-btn-ico">✂️</span><span>Aplicar</span>
+      </button>
+      <button type="button" class="scan-btn" onclick="scanRetake()">
+        <span class="scan-btn-ico">🔄</span><span>Re-tomar</span>
+      </button>
+    </div>
+
+    <!-- Toolbar paso 2: filtros -->
     <div class="scan-filter-row" id="scan-filter-row" style="display:none;">
       <button type="button" class="scan-btn" id="scf-color" onclick="scanApplyFilter('color')">
         <span class="scan-btn-ico">🎨</span><span>Color</span>
@@ -404,7 +456,11 @@ async function storageUrl(path){
       <button type="button" class="scan-btn" id="scf-rot" onclick="scanRotate()">
         <span class="scan-btn-ico">🔄</span><span>Rotar</span>
       </button>
+      <button type="button" class="scan-btn" onclick="scanEditCorners()">
+        <span class="scan-btn-ico">✂️</span><span>Re-recortar</span>
+      </button>
     </div>
+
     <div class="scan-pages" id="scan-pages-list" style="display:none;"></div>
   </div>
   <div class="scan-footer">
@@ -441,7 +497,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v45 · ESCANER PDF MULTIPAGINA</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v46 · ESCANER PROFESIONAL (PERSPECTIVA + AUTO-DETECT)</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -3591,31 +3647,74 @@ function _carolinaCalcularEstado(c,o){
 
 
 // ═══════════════════════════════════════════════════════════════
-// TANDA 8 — SCANNER NATIVO (cámara + edición + PDF multi-página)
+// TANDA 9 — SCANNER PROFESIONAL (OpenCV + detección de bordes + perspectiva)
 // ═══════════════════════════════════════════════════════════════
 var scanCtx={
-  destino:null,    // 'dv'|'ca'|'fat'|'ad'
-  tipo:null,       // 'contrato'|'planos'|... o adendaId
-  pages:[],        // [{original:dataURL, processed:dataURL, filter:'doc', rotation:0}]
+  destino:null,
+  tipo:null,
+  pages:[],            // [{original, cropped, processed, corners, filter, rotation}]
   currentIdx:-1,
-  filter:'doc',
-  rotation:0
+  step:'shoot',        // 'shoot' | 'detect' | 'edit'
+  corners:null,        // [{x,y},{x,y},{x,y},{x,y}] tl,tr,br,bl en píxeles del canvas detect
+  cvLoaded:false,
+  cvLoading:false
 };
 
+// Carga lazy de OpenCV.js (solo cuando se abre el scanner por primera vez)
+function _scanLoadOpenCV(){
+  return new Promise(function(resolve,reject){
+    if(scanCtx.cvLoaded||(window.cv&&window.cv.Mat)){scanCtx.cvLoaded=true;resolve();return;}
+    if(scanCtx.cvLoading){
+      // Esperar a que termine de cargar
+      var poll=setInterval(function(){
+        if(window.cv&&window.cv.Mat){clearInterval(poll);scanCtx.cvLoaded=true;resolve();}
+      },200);
+      return;
+    }
+    scanCtx.cvLoading=true;
+    var ldr=document.getElementById('scan-loading');
+    var txt=document.getElementById('scan-loading-txt');
+    if(ldr){ldr.style.display='flex';txt.textContent='Cargando librería de escaneo (~8MB la primera vez)...';}
+    var script=document.createElement('script');
+    script.src='https://docs.opencv.org/4.9.0/opencv.js';
+    script.async=true;
+    script.onload=function(){
+      // OpenCV.js se inicializa async
+      if(window.cv){
+        if(window.cv.Mat){scanCtx.cvLoaded=true;if(ldr)ldr.style.display='none';resolve();}
+        else {
+          window.cv.onRuntimeInitialized=function(){
+            scanCtx.cvLoaded=true;
+            if(ldr)ldr.style.display='none';
+            resolve();
+          };
+        }
+      } else {reject(new Error('OpenCV no se inicializó'));}
+    };
+    script.onerror=function(){
+      scanCtx.cvLoading=false;
+      if(ldr)ldr.style.display='none';
+      reject(new Error('No se pudo cargar OpenCV.js'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
 function scanOpen(destino,tipo){
-  // Validar contexto previo
   if(destino==='dv'&&!dvObraId){toast('Seleccioná una obra primero','warning');return;}
   if(destino==='ca'&&!caCtId){toast('Seleccioná un contrato primero','warning');return;}
   if(destino==='fat'&&!fatObraId){toast('Seleccioná una obra primero','warning');return;}
-  scanCtx={destino:destino,tipo:tipo,pages:[],currentIdx:-1,filter:'doc',rotation:0};
-  document.getElementById('scan-title').textContent='📷 Escanear documento ('+_scanTipoLabel(destino,tipo)+')';
-  document.getElementById('scan-canvas').style.display='none';
-  document.getElementById('scan-empty').style.display='block';
-  document.getElementById('scan-filter-row').style.display='none';
-  document.getElementById('scan-pages-list').style.display='none';
-  document.getElementById('scan-finish-btn').style.display='none';
+  scanCtx.destino=destino;
+  scanCtx.tipo=tipo;
+  scanCtx.pages=[];
+  scanCtx.currentIdx=-1;
+  scanCtx.step='shoot';
+  document.getElementById('scan-title').textContent='📷 Escanear ('+_scanTipoLabel(destino,tipo)+')';
+  _scanSetStep('shoot');
   document.getElementById('scan-cam-input').value='';
   document.getElementById('scan-modal').classList.add('on');
+  // Precargar OpenCV en background
+  _scanLoadOpenCV().catch(function(e){console.warn('OpenCV no disponible',e.message);});
   // Auto-click en tomar foto
   setTimeout(function(){document.getElementById('scan-cam-input').click();},250);
 }
@@ -3628,12 +3727,70 @@ function _scanTipoLabel(d,t){
   return t;
 }
 
-function scanClose(){
-  if(scanCtx.pages.length>0){
-    if(!confirm('¿Cerrar sin guardar? Se perderán las páginas escaneadas.'))return;
+function _scanSetStep(step){
+  scanCtx.step=step;
+  var info=document.getElementById('scan-step-info');
+  var empty=document.getElementById('scan-empty');
+  var cornersWrap=document.getElementById('scan-corners-wrap');
+  var canvas=document.getElementById('scan-canvas');
+  var detectBar=document.getElementById('scan-detect-toolbar');
+  var filterBar=document.getElementById('scan-filter-row');
+  var pagesList=document.getElementById('scan-pages-list');
+  var finishBtn=document.getElementById('scan-finish-btn');
+  if(step==='shoot'){
+    info.textContent='Tomá una foto del documento';
+    empty.style.display='block';
+    cornersWrap.style.display='none';
+    canvas.style.display='none';
+    detectBar.style.display='none';
+    filterBar.style.display='none';
+    if(scanCtx.pages.length>0){
+      pagesList.style.display='flex';
+      finishBtn.style.display='inline-flex';
+      _scanRenderThumbs();
+    } else {
+      pagesList.style.display='none';
+      finishBtn.style.display='none';
+    }
+  } else if(step==='detect'){
+    info.textContent='Ajustá las esquinas del documento y tocá Aplicar';
+    empty.style.display='none';
+    cornersWrap.style.display='inline-block';
+    canvas.style.display='none';
+    detectBar.style.display='flex';
+    filterBar.style.display='none';
+    pagesList.style.display='none';
+    finishBtn.style.display='none';
+  } else if(step==='edit'){
+    info.textContent='Elegí un filtro y agregá más páginas si necesitás';
+    empty.style.display='none';
+    cornersWrap.style.display='none';
+    canvas.style.display='block';
+    detectBar.style.display='none';
+    filterBar.style.display='flex';
+    pagesList.style.display='flex';
+    finishBtn.style.display='inline-flex';
+    _scanRenderThumbs();
   }
+}
+
+function scanClose(){
+  if(scanCtx.pages.length>0&&!confirm('¿Cerrar sin guardar? Se perderán las páginas escaneadas.'))return;
   document.getElementById('scan-modal').classList.remove('on');
-  scanCtx={destino:null,tipo:null,pages:[],currentIdx:-1,filter:'doc',rotation:0};
+  scanCtx.destino=null;
+  scanCtx.tipo=null;
+  scanCtx.pages=[];
+  scanCtx.currentIdx=-1;
+}
+
+function scanRetake(){
+  // Eliminar la página actual (no procesada) y volver a tomar
+  if(scanCtx.currentIdx>=0&&scanCtx.currentIdx<scanCtx.pages.length){
+    scanCtx.pages.splice(scanCtx.currentIdx,1);
+    scanCtx.currentIdx=-1;
+  }
+  _scanSetStep('shoot');
+  document.getElementById('scan-cam-input').click();
 }
 
 function scanCapture(inp){
@@ -3643,32 +3800,28 @@ function scanCapture(inp){
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
-      // Crear página nueva
-      var canvas=document.createElement('canvas');
-      // Limitar tamaño máximo a 2000px para no inflar PDFs
-      var maxDim=2000;
+      // Limitar tamaño máximo
+      var maxDim=2200;
       var w=img.width,h=img.height;
       if(w>maxDim||h>maxDim){
         var ratio=Math.min(maxDim/w,maxDim/h);
-        w=Math.round(w*ratio);
-        h=Math.round(h*ratio);
+        w=Math.round(w*ratio);h=Math.round(h*ratio);
       }
+      var canvas=document.createElement('canvas');
       canvas.width=w;canvas.height=h;
-      var ctx=canvas.getContext('2d');
-      ctx.drawImage(img,0,0,w,h);
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
       var originalDataURL=canvas.toDataURL('image/jpeg',0.92);
-      scanCtx.pages.push({
+      var newPage={
         original:originalDataURL,
-        processed:originalDataURL,
+        cropped:null,
+        processed:null,
+        corners:null,
         filter:'doc',
         rotation:0
-      });
+      };
+      scanCtx.pages.push(newPage);
       scanCtx.currentIdx=scanCtx.pages.length-1;
-      scanCtx.filter='doc';
-      scanCtx.rotation=0;
-      // Aplicar filtro doc por defecto
-      scanApplyFilter('doc');
-      _scanRenderUI();
+      _scanStartDetection();
     };
     img.src=e.target.result;
   };
@@ -3676,22 +3829,358 @@ function scanCapture(inp){
   inp.value='';
 }
 
-function _scanRenderUI(){
-  document.getElementById('scan-empty').style.display='none';
-  var cv=document.getElementById('scan-canvas');
-  cv.style.display='block';
-  document.getElementById('scan-filter-row').style.display='flex';
-  document.getElementById('scan-finish-btn').style.display='inline-flex';
-  document.getElementById('scan-pages-list').style.display='flex';
-  _scanRenderThumbs();
+function _scanStartDetection(){
+  // Mostrar la imagen original con esquinas para ajuste manual
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  var cv2D=document.getElementById('scan-detect-canvas');
+  var img=new Image();
+  img.onload=function(){
+    cv2D.width=img.width;
+    cv2D.height=img.height;
+    cv2D.getContext('2d').drawImage(img,0,0);
+    _scanSetStep('detect');
+    // Intentar auto-detección
+    _scanLoadOpenCV().then(function(){
+      _scanTryAutoDetect();
+    }).catch(function(){
+      // Sin OpenCV: usar esquinas por defecto (90% del canvas)
+      _scanSetDefaultCorners();
+    });
+  };
+  img.src=page.original;
+}
+
+function _scanSetDefaultCorners(){
+  var cv2D=document.getElementById('scan-detect-canvas');
+  var pad=cv2D.width*0.05;
+  scanCtx.corners=[
+    {x:pad,y:pad},
+    {x:cv2D.width-pad,y:pad},
+    {x:cv2D.width-pad,y:cv2D.height-pad},
+    {x:pad,y:cv2D.height-pad}
+  ];
+  _scanRenderCorners();
+}
+
+function scanResetCorners(){_scanSetDefaultCorners();}
+
+function _scanTryAutoDetect(){
+  scanAutoDetect();
+}
+
+function scanAutoDetect(){
+  if(!window.cv||!window.cv.Mat){
+    toast('Librería aún cargando, intentá en unos segundos','info');
+    _scanSetDefaultCorners();return;
+  }
+  try{
+    var cv=window.cv;
+    var canvas=document.getElementById('scan-detect-canvas');
+    var src=cv.imread(canvas);
+    var gray=new cv.Mat();
+    cv.cvtColor(src,gray,cv.COLOR_RGBA2GRAY);
+    cv.GaussianBlur(gray,gray,new cv.Size(5,5),0);
+    // Canny edge
+    var edges=new cv.Mat();
+    cv.Canny(gray,edges,50,150);
+    // Dilatar para cerrar bordes
+    var kernel=cv.getStructuringElement(cv.MORPH_RECT,new cv.Size(3,3));
+    cv.dilate(edges,edges,kernel);
+    // Contornos
+    var contours=new cv.MatVector();
+    var hierarchy=new cv.Mat();
+    cv.findContours(edges,contours,hierarchy,cv.RETR_EXTERNAL,cv.CHAIN_APPROX_SIMPLE);
+    // Buscar el contorno más grande con 4 vértices
+    var maxArea=0,best=null;
+    var minArea=canvas.width*canvas.height*0.15; // al menos 15% del frame
+    for(var i=0;i<contours.size();i++){
+      var cnt=contours.get(i);
+      var area=cv.contourArea(cnt);
+      if(area<minArea){cnt.delete();continue;}
+      var peri=cv.arcLength(cnt,true);
+      var approx=new cv.Mat();
+      cv.approxPolyDP(cnt,approx,0.02*peri,true);
+      if(approx.rows===4&&area>maxArea){
+        maxArea=area;
+        if(best)best.delete();
+        best=approx;
+      } else {
+        approx.delete();
+      }
+      cnt.delete();
+    }
+    if(best){
+      // Extraer 4 esquinas
+      var pts=[];
+      for(var j=0;j<4;j++){
+        pts.push({x:best.data32S[j*2],y:best.data32S[j*2+1]});
+      }
+      // Ordenar TL,TR,BR,BL
+      scanCtx.corners=_scanOrderCorners(pts);
+      best.delete();
+      toast('Bordes detectados','success','🎯');
+    } else {
+      _scanSetDefaultCorners();
+      toast('No se detectaron bordes — ajustá manualmente','warning');
+    }
+    src.delete();gray.delete();edges.delete();kernel.delete();contours.delete();hierarchy.delete();
+    _scanRenderCorners();
+  }catch(e){
+    console.error(e);
+    _scanSetDefaultCorners();
+  }
+}
+
+function _scanOrderCorners(pts){
+  // Ordenar TL,TR,BR,BL según suma y diferencia
+  var sums=pts.map(function(p){return p.x+p.y;});
+  var diffs=pts.map(function(p){return p.y-p.x;});
+  var tl=pts[sums.indexOf(Math.min.apply(null,sums))];
+  var br=pts[sums.indexOf(Math.max.apply(null,sums))];
+  var tr=pts[diffs.indexOf(Math.min.apply(null,diffs))];
+  var bl=pts[diffs.indexOf(Math.max.apply(null,diffs))];
+  return [tl,tr,br,bl];
+}
+
+function _scanRenderCorners(){
+  if(!scanCtx.corners)return;
+  var cv2D=document.getElementById('scan-detect-canvas');
+  var wrap=document.getElementById('scan-corners-wrap');
+  var poly=document.getElementById('scan-poly');
+  // Calcular relación entre tamaño real y mostrado
+  var rect=cv2D.getBoundingClientRect();
+  var scaleX=rect.width/cv2D.width;
+  var scaleY=rect.height/cv2D.height;
+  wrap.style.width=rect.width+'px';
+  wrap.style.height=rect.height+'px';
+  poly.setAttribute('viewBox','0 0 '+cv2D.width+' '+cv2D.height);
+  poly.style.width=rect.width+'px';
+  poly.style.height=rect.height+'px';
+  // Dibujar polígono
+  var pts=scanCtx.corners.map(function(p){return p.x+','+p.y;}).join(' ');
+  poly.innerHTML='<polygon points="'+pts+'" fill="rgba(245,196,0,.15)" stroke="#f5c400" stroke-width="3"/>';
+  // Posicionar las 4 esquinas
+  var ids=['scan-c-tl','scan-c-tr','scan-c-br','scan-c-bl'];
+  ids.forEach(function(id,i){
+    var el=document.getElementById(id);
+    el.style.left=(scanCtx.corners[i].x*scaleX)+'px';
+    el.style.top=(scanCtx.corners[i].y*scaleY)+'px';
+    el.onpointerdown=function(ev){_scanStartDrag(ev,i);};
+  });
+}
+
+function _scanStartDrag(ev,cornerIdx){
+  ev.preventDefault();
+  ev.stopPropagation();
+  var cv2D=document.getElementById('scan-detect-canvas');
+  var rect=cv2D.getBoundingClientRect();
+  var scaleX=cv2D.width/rect.width;
+  var scaleY=cv2D.height/rect.height;
+  function onMove(e){
+    var clientX=e.clientX,clientY=e.clientY;
+    var x=(clientX-rect.left)*scaleX;
+    var y=(clientY-rect.top)*scaleY;
+    x=Math.max(0,Math.min(cv2D.width,x));
+    y=Math.max(0,Math.min(cv2D.height,y));
+    scanCtx.corners[cornerIdx]={x:x,y:y};
+    _scanRenderCorners();
+  }
+  function onUp(){
+    document.removeEventListener('pointermove',onMove);
+    document.removeEventListener('pointerup',onUp);
+  }
+  document.addEventListener('pointermove',onMove);
+  document.addEventListener('pointerup',onUp);
+}
+
+function scanProcessCorners(){
+  // Aplicar transformación de perspectiva con las 4 esquinas elegidas
+  if(!scanCtx.corners){toast('Sin esquinas definidas','error');return;}
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  page.corners=scanCtx.corners.slice();
+  if(window.cv&&window.cv.Mat){
+    try{
+      _scanApplyPerspective();
+    }catch(e){
+      console.error(e);
+      _scanCropFallback();
+    }
+  } else {
+    _scanCropFallback();
+  }
+}
+
+function _scanApplyPerspective(){
+  var cv=window.cv;
+  var canvas=document.getElementById('scan-detect-canvas');
+  var src=cv.imread(canvas);
+  var corners=scanCtx.corners;
+  // Calcular dimensiones del destino (basado en distancias)
+  var widthTop=Math.hypot(corners[1].x-corners[0].x,corners[1].y-corners[0].y);
+  var widthBot=Math.hypot(corners[2].x-corners[3].x,corners[2].y-corners[3].y);
+  var heightL=Math.hypot(corners[3].x-corners[0].x,corners[3].y-corners[0].y);
+  var heightR=Math.hypot(corners[2].x-corners[1].x,corners[2].y-corners[1].y);
+  var maxW=Math.round(Math.max(widthTop,widthBot));
+  var maxH=Math.round(Math.max(heightL,heightR));
+  var srcArr=corners.flatMap(function(p){return [p.x,p.y];});
+  var dstArr=[0,0,maxW,0,maxW,maxH,0,maxH];
+  var srcMat=cv.matFromArray(4,1,cv.CV_32FC2,srcArr);
+  var dstMat=cv.matFromArray(4,1,cv.CV_32FC2,dstArr);
+  var M=cv.getPerspectiveTransform(srcMat,dstMat);
+  var dsize=new cv.Size(maxW,maxH);
+  var dst=new cv.Mat();
+  cv.warpPerspective(src,dst,M,dsize,cv.INTER_LINEAR,cv.BORDER_CONSTANT,new cv.Scalar());
+  // Convertir a canvas
+  var outCanvas=document.createElement('canvas');
+  outCanvas.width=maxW;outCanvas.height=maxH;
+  cv.imshow(outCanvas,dst);
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  page.cropped=outCanvas.toDataURL('image/jpeg',0.92);
+  src.delete();dst.delete();srcMat.delete();dstMat.delete();M.delete();
+  // Aplicar filtro por defecto
+  scanApplyFilter('doc');
+  _scanSetStep('edit');
+}
+
+function _scanCropFallback(){
+  // Sin OpenCV: solo recorte rectangular del bounding box
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  var corners=scanCtx.corners;
+  var xs=corners.map(function(p){return p.x;});
+  var ys=corners.map(function(p){return p.y;});
+  var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs);
+  var minY=Math.min.apply(null,ys),maxY=Math.max.apply(null,ys);
+  var w=maxX-minX,h=maxY-minY;
+  var srcCanvas=document.getElementById('scan-detect-canvas');
+  var outCanvas=document.createElement('canvas');
+  outCanvas.width=w;outCanvas.height=h;
+  outCanvas.getContext('2d').drawImage(srcCanvas,minX,minY,w,h,0,0,w,h);
+  page.cropped=outCanvas.toDataURL('image/jpeg',0.92);
+  scanApplyFilter('doc');
+  _scanSetStep('edit');
+}
+
+function scanEditCorners(){
+  if(scanCtx.currentIdx<0)return;
+  // Volver al paso de detección con la imagen original
+  _scanStartDetection();
+}
+
+function scanApplyFilter(filter){
+  if(scanCtx.currentIdx<0)return;
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  page.filter=filter;
+  _scanProcessImage();
+  _scanUpdateFilterButtons();
+}
+
+function _scanUpdateFilterButtons(){
+  ['color','doc','bw'].forEach(function(f){
+    var btn=document.getElementById('scf-'+f);
+    if(!btn)return;
+    var page=scanCtx.pages[scanCtx.currentIdx];
+    if(page&&f===page.filter)btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+}
+
+function scanRotate(){
+  if(scanCtx.currentIdx<0)return;
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  page.rotation=((page.rotation||0)+90)%360;
+  _scanProcessImage();
+}
+
+function _scanProcessImage(){
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  if(!page||!page.cropped)return;
+  var src=page.cropped;
+  var img=new Image();
+  img.onload=function(){
+    var canvas=document.createElement('canvas');
+    var w=img.width,h=img.height;
+    var rot=page.rotation||0;
+    if(rot===90||rot===270){canvas.width=h;canvas.height=w;}
+    else{canvas.width=w;canvas.height=h;}
+    var ctx=canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(canvas.width/2,canvas.height/2);
+    ctx.rotate(rot*Math.PI/180);
+    ctx.drawImage(img,-w/2,-h/2);
+    ctx.restore();
+    // Aplicar filtros usando OpenCV si está disponible (mejor calidad)
+    var filter=page.filter||'doc';
+    if(filter!=='color'&&window.cv&&window.cv.Mat){
+      try{
+        var cv=window.cv;
+        var mat=cv.imread(canvas);
+        var gray=new cv.Mat();
+        cv.cvtColor(mat,gray,cv.COLOR_RGBA2GRAY);
+        if(filter==='doc'){
+          // Threshold adaptativo Gaussiano para texto sobre papel
+          var bin=new cv.Mat();
+          cv.adaptiveThreshold(gray,bin,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY,21,10);
+          // Mezclar con gris para mantener algo de tono (no full B&N)
+          var alpha=0.7;
+          var dst=new cv.Mat();
+          cv.addWeighted(gray,1-alpha,bin,alpha,0,dst);
+          cv.imshow(canvas,dst);
+          mat.delete();gray.delete();bin.delete();dst.delete();
+        } else if(filter==='bw'){
+          // Otsu para B&N puro
+          var bin=new cv.Mat();
+          cv.threshold(gray,bin,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU);
+          cv.imshow(canvas,bin);
+          mat.delete();gray.delete();bin.delete();
+        }
+      }catch(e){
+        console.warn('OpenCV filter failed, using fallback',e);
+        _scanFilterFallback(canvas,filter);
+      }
+    } else if(filter!=='color'){
+      _scanFilterFallback(canvas,filter);
+    }
+    page.processed=canvas.toDataURL('image/jpeg',0.92);
+    // Mostrar en el canvas principal
+    var mainCv=document.getElementById('scan-canvas');
+    mainCv.width=canvas.width;
+    mainCv.height=canvas.height;
+    mainCv.getContext('2d').drawImage(canvas,0,0);
+    _scanRenderThumbs();
+  };
+  img.src=src;
+}
+
+function _scanFilterFallback(canvas,filter){
+  var ctx=canvas.getContext('2d');
+  var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  var d=imgData.data;
+  if(filter==='doc'){
+    var contrast=1.5,brightness=20;
+    for(var i=0;i<d.length;i+=4){
+      var gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      gray=((gray-128)*contrast)+128+brightness;
+      if(gray<0)gray=0;if(gray>255)gray=255;
+      d[i]=gray;d[i+1]=gray;d[i+2]=gray;
+    }
+  } else if(filter==='bw'){
+    for(var i=0;i<d.length;i+=4){
+      var gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+      var v=gray>140?255:0;
+      d[i]=v;d[i+1]=v;d[i+2]=v;
+    }
+  }
+  ctx.putImageData(imgData,0,0);
 }
 
 function _scanRenderThumbs(){
   var box=document.getElementById('scan-pages-list');
+  if(!box)return;
   box.innerHTML=scanCtx.pages.map(function(p,i){
     var sel=i===scanCtx.currentIdx?'border-color:var(--am);':'';
-    return '<div class="scan-page" style="'+sel+'" onclick="scanGoPage('+i+')">'+
-      '<img src="'+p.processed+'" alt="p'+(i+1)+'">'+
+    var preview=p.processed||p.cropped||p.original;
+    return '<div class="scan-page" data-idx="'+i+'" style="'+sel+'" onclick="scanGoPage('+i+')">'+
+      '<img src="'+preview+'" alt="p'+(i+1)+'">'+
       '<button type="button" class="scan-page-rm" onclick="event.stopPropagation();scanRmPage('+i+')">✕</button>'+
       '</div>';
   }).join('')+
@@ -3701,11 +4190,16 @@ function _scanRenderThumbs(){
 function scanGoPage(i){
   if(i<0||i>=scanCtx.pages.length)return;
   scanCtx.currentIdx=i;
-  scanCtx.filter=scanCtx.pages[i].filter||'doc';
-  scanCtx.rotation=scanCtx.pages[i].rotation||0;
-  _scanDrawCurrent();
-  _scanRenderThumbs();
-  _scanUpdateFilterButtons();
+  var page=scanCtx.pages[i];
+  if(!page.cropped){
+    // Aún no fue procesada, ir a detección
+    _scanStartDetection();
+  } else {
+    // Mostrar en modo edit
+    _scanProcessImage();
+    _scanSetStep('edit');
+    _scanUpdateFilterButtons();
+  }
 }
 
 function scanRmPage(i){
@@ -3715,115 +4209,28 @@ function scanRmPage(i){
   scanCtx.pages.splice(i,1);
   if(scanCtx.pages.length===0){
     scanCtx.currentIdx=-1;
-    document.getElementById('scan-canvas').style.display='none';
-    document.getElementById('scan-empty').style.display='block';
-    document.getElementById('scan-filter-row').style.display='none';
-    document.getElementById('scan-pages-list').style.display='none';
-    document.getElementById('scan-finish-btn').style.display='none';
+    _scanSetStep('shoot');
     return;
   }
   if(scanCtx.currentIdx>=scanCtx.pages.length)scanCtx.currentIdx=scanCtx.pages.length-1;
   scanGoPage(scanCtx.currentIdx);
 }
 
-function scanApplyFilter(filter){
-  if(scanCtx.currentIdx<0)return;
-  scanCtx.filter=filter;
-  scanCtx.pages[scanCtx.currentIdx].filter=filter;
-  _scanProcessImage();
-  _scanUpdateFilterButtons();
-}
-
-function _scanUpdateFilterButtons(){
-  ['color','doc','bw'].forEach(function(f){
-    var btn=document.getElementById('scf-'+f);
-    if(btn){
-      if(f===scanCtx.filter)btn.classList.add('active');
-      else btn.classList.remove('active');
-    }
-  });
-}
-
-function scanRotate(){
-  if(scanCtx.currentIdx<0)return;
-  scanCtx.rotation=(scanCtx.rotation+90)%360;
-  scanCtx.pages[scanCtx.currentIdx].rotation=scanCtx.rotation;
-  _scanProcessImage();
-}
-
-function _scanProcessImage(){
-  if(scanCtx.currentIdx<0)return;
-  var page=scanCtx.pages[scanCtx.currentIdx];
-  var img=new Image();
-  img.onload=function(){
-    var canvas=document.createElement('canvas');
-    var w=img.width,h=img.height;
-    var rot=page.rotation||0;
-    // Aplicar rotación al canvas
-    if(rot===90||rot===270){canvas.width=h;canvas.height=w;}
-    else{canvas.width=w;canvas.height=h;}
-    var ctx=canvas.getContext('2d');
-    ctx.save();
-    ctx.translate(canvas.width/2,canvas.height/2);
-    ctx.rotate(rot*Math.PI/180);
-    ctx.drawImage(img,-w/2,-h/2);
-    ctx.restore();
-    // Aplicar filtro
-    var f=page.filter||'doc';
-    if(f!=='color'){
-      var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
-      var d=imgData.data;
-      if(f==='doc'){
-        // Documento: aumentar contraste + claros más blancos
-        var contrast=1.4;
-        var brightness=15;
-        for(var i=0;i<d.length;i+=4){
-          // Convertir a grises ponderados
-          var gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-          // Aplicar contraste
-          gray=((gray-128)*contrast)+128+brightness;
-          if(gray<0)gray=0;if(gray>255)gray=255;
-          d[i]=gray;d[i+1]=gray;d[i+2]=gray;
-        }
-      } else if(f==='bw'){
-        // B&N puro con threshold adaptativo simple
-        var threshold=140;
-        for(var i=0;i<d.length;i+=4){
-          var gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
-          var v=gray>threshold?255:0;
-          d[i]=v;d[i+1]=v;d[i+2]=v;
-        }
-      }
-      ctx.putImageData(imgData,0,0);
-    }
-    var processedURL=canvas.toDataURL('image/jpeg',0.92);
-    page.processed=processedURL;
-    // Mostrar en canvas principal
-    var mainCv=document.getElementById('scan-canvas');
-    mainCv.width=canvas.width;
-    mainCv.height=canvas.height;
-    mainCv.getContext('2d').drawImage(canvas,0,0);
-    _scanRenderThumbs();
-  };
-  img.src=page.original;
-}
-
-function _scanDrawCurrent(){
-  _scanProcessImage();
-}
-
 async function scanFinish(){
   if(scanCtx.pages.length===0){toast('Agregá al menos una página','warning');return;}
-  // Generar PDF
+  // Asegurar que todas las páginas tengan processed
+  var falta=scanCtx.pages.filter(function(p){return !p.processed;});
+  if(falta.length>0){
+    toast('Hay páginas sin procesar — completalas primero','warning');return;
+  }
   toast('Generando PDF de '+scanCtx.pages.length+' página(s)...','info','📄');
   try{
     var jsPDFLib=window.jspdf?window.jspdf.jsPDF:window.jsPDF;
     if(!jsPDFLib){throw new Error('jsPDF no cargado');}
     var pdf=new jsPDFLib({orientation:'portrait',unit:'mm',format:'a4'});
-    var pageW=210,pageH=297,margin=10;
+    var pageW=210,pageH=297,margin=8;
     for(var i=0;i<scanCtx.pages.length;i++){
       var page=scanCtx.pages[i];
-      // Esperar a que la imagen esté lista
       var dim=await _scanImgDim(page.processed);
       var maxW=pageW-2*margin,maxH=pageH-2*margin;
       var ratio=Math.min(maxW/dim.w,maxH/dim.h);
@@ -3834,10 +4241,9 @@ async function scanFinish(){
     }
     var pdfBlob=pdf.output('blob');
     var file=new File([pdfBlob],'escaneado_'+Date.now()+'.pdf',{type:'application/pdf'});
-    // Subir según destino
     await _scanUploadToDestino(file);
     document.getElementById('scan-modal').classList.remove('on');
-    scanCtx={destino:null,tipo:null,pages:[],currentIdx:-1,filter:'doc',rotation:0};
+    scanCtx.destino=null;scanCtx.tipo=null;scanCtx.pages=[];scanCtx.currentIdx=-1;
   }catch(e){
     console.error(e);
     toast('Error generando PDF: '+e.message,'error');
@@ -3854,15 +4260,10 @@ function _scanImgDim(dataURL){
 
 async function _scanUploadToDestino(file){
   var fakeInput={files:[file]};
-  if(scanCtx.destino==='dv'){
-    await dvUpload(scanCtx.tipo,fakeInput);
-  } else if(scanCtx.destino==='ca'){
-    await caUpload(scanCtx.tipo,fakeInput);
-  } else if(scanCtx.destino==='fat'){
-    await fatUploadCroquis(fakeInput);
-  } else if(scanCtx.destino==='ad'){
-    await adSubirFirmado(scanCtx.tipo,fakeInput);
-  }
+  if(scanCtx.destino==='dv'){await dvUpload(scanCtx.tipo,fakeInput);}
+  else if(scanCtx.destino==='ca'){await caUpload(scanCtx.tipo,fakeInput);}
+  else if(scanCtx.destino==='fat'){await fatUploadCroquis(fakeInput);}
+  else if(scanCtx.destino==='ad'){await adSubirFirmado(scanCtx.tipo,fakeInput);}
 }
 
 
