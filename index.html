@@ -231,8 +231,33 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 @keyframes toastIn{from{transform:translateX(120%);opacity:0;}to{transform:translateX(0);opacity:1;}}
 @keyframes toastOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(120%);opacity:0;}}
 @media(max-width:600px){.toast-container{top:10px;right:10px;left:10px;}.toast{min-width:auto;max-width:none;}}
+
+/* ═══ SCANNER MODAL (TANDA 8) ═══ */
+.scan-modal{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:10000;display:none;flex-direction:column;}
+.scan-modal.on{display:flex;}
+.scan-header{background:#000;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #333;}
+.scan-title{color:var(--am);font-size:14px;font-weight:800;}
+.scan-close{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0 8px;}
+.scan-body{flex:1;display:flex;flex-direction:column;overflow:auto;padding:14px;gap:12px;}
+.scan-preview{position:relative;background:#000;border-radius:8px;overflow:hidden;flex:1;min-height:280px;display:flex;align-items:center;justify-content:center;}
+.scan-preview canvas, .scan-preview img, .scan-preview video{max-width:100%;max-height:65vh;object-fit:contain;}
+.scan-tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;}
+.scan-btn{padding:10px;background:var(--p2);border:1px solid var(--bd);border-radius:6px;color:var(--w);font-size:11px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.scan-btn:hover{border-color:var(--am);}
+.scan-btn.active{background:var(--am);color:#000;border-color:var(--am);}
+.scan-btn-ico{font-size:18px;}
+.scan-pages{display:flex;gap:8px;overflow-x:auto;padding:8px 0;}
+.scan-page{position:relative;border:2px solid var(--bd);border-radius:6px;overflow:hidden;flex-shrink:0;width:60px;height:80px;cursor:pointer;}
+.scan-page img{width:100%;height:100%;object-fit:cover;}
+.scan-page-rm{position:absolute;top:2px;right:2px;background:rgba(220,38,38,.9);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;line-height:18px;text-align:center;padding:0;}
+.scan-page.add{display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--am);background:var(--p2);}
+.scan-footer{background:#000;padding:14px;border-top:1px solid #333;display:flex;gap:8px;flex-wrap:wrap;}
+.scan-footer .btn{flex:1;min-width:120px;}
+.scan-filter-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const SB_URL='https://jsacnpgpnvoslrpurfxc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWNucGdwbnZvc2xycHVyZnhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMTIwNjUsImV4cCI6MjA4OTc4ODA2NX0.fOF7BQuNG6KdWMbsr7YQJ3kUIeJ9mdgV1fGmDMDGWtE';
@@ -277,7 +302,9 @@ function mapObra(o){return{
   croquis_imagen:o.croquis_imagen||null,
   fecha_firma_notaria:o.fecha_firma_notaria||null,
   fecha_primer_pago_propietario:o.fecha_primer_pago_propietario||null,
-  especificaciones_diferida:o.especificaciones_diferida||false
+  especificaciones_diferida:o.especificaciones_diferida||false,
+  cerrador_responsable:o.cerrador_responsable||null,
+  cerrador_fecha_registro:o.cerrador_fecha_registro||null
 };}
 function mapContrato(c){return{
   id:c.id,nom:c.nombre_contratista||'',tel:c.telefono||'',
@@ -353,6 +380,43 @@ async function storageUrl(path){
 <!-- TOAST CONTAINER (TANDA 4) -->
 <div id="toast-container" class="toast-container"></div>
 
+<!-- SCANNER MODAL (TANDA 8) -->
+<div id="scan-modal" class="scan-modal">
+  <div class="scan-header">
+    <div class="scan-title" id="scan-title">📷 Escanear documento</div>
+    <button type="button" class="scan-close" onclick="scanClose()">✕</button>
+  </div>
+  <div class="scan-body">
+    <div class="scan-preview" id="scan-preview">
+      <div style="color:#666;font-size:13px;text-align:center;padding:30px;" id="scan-empty">Tomá una foto para comenzar</div>
+      <canvas id="scan-canvas" style="display:none;"></canvas>
+    </div>
+    <div class="scan-filter-row" id="scan-filter-row" style="display:none;">
+      <button type="button" class="scan-btn" id="scf-color" onclick="scanApplyFilter('color')">
+        <span class="scan-btn-ico">🎨</span><span>Color</span>
+      </button>
+      <button type="button" class="scan-btn active" id="scf-doc" onclick="scanApplyFilter('doc')">
+        <span class="scan-btn-ico">📄</span><span>Documento</span>
+      </button>
+      <button type="button" class="scan-btn" id="scf-bw" onclick="scanApplyFilter('bw')">
+        <span class="scan-btn-ico">⬛</span><span>B&N</span>
+      </button>
+      <button type="button" class="scan-btn" id="scf-rot" onclick="scanRotate()">
+        <span class="scan-btn-ico">🔄</span><span>Rotar</span>
+      </button>
+    </div>
+    <div class="scan-pages" id="scan-pages-list" style="display:none;"></div>
+  </div>
+  <div class="scan-footer">
+    <label class="btn btn-y btn-lg" style="cursor:pointer;flex:1;text-align:center;">
+      📷 Tomar foto
+      <input type="file" id="scan-cam-input" accept="image/*" capture="environment" style="display:none;" onchange="scanCapture(this)">
+    </label>
+    <button type="button" class="btn btn-g btn-lg" id="scan-finish-btn" onclick="scanFinish()" style="flex:1;display:none;">✅ Finalizar y subir</button>
+    <button type="button" class="btn btn-o" onclick="scanClose()">Cancelar</button>
+  </div>
+</div>
+
 <!-- ═══ LOGIN ═══ -->
 <div id="screen-login">
   <div class="pin-box">
@@ -377,7 +441,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v42 · ESCANEO DUAL (CÁMARA + ARCHIVO)</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v45 · ESCANER PDF MULTIPAGINA</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -587,10 +651,9 @@ async function storageUrl(path){
             <div class="f full">
               <label>O croquis (imagen) <span style="color:var(--ws);font-size:9px;">— alternativa al link Maps</span></label>
               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                <button type="button" class="btn btn-o btn-sm" onclick="scanOpen('fat','croquis')" style="display:inline-flex;align-items:center;gap:4px;">
                   📷 Escanear con cámara
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="fatUploadCroquis(this)">
-                </label>
+                </button>
                 <label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
                   📁 Subir archivo
                   <input type="file" accept="image/*,.pdf" style="display:none;" onchange="fatUploadCroquis(this)">
@@ -829,15 +892,9 @@ async function storageUrl(path){
           <div id="dv-info-obra"></div>
           <div id="dv-status" style="margin-bottom:14px;"></div>
 
-          <!-- ▼ FECHA FIRMA NOTARÍA (cerrador la registra) ▼ -->
-          <div style="background:rgba(245,196,0,.06);border:1px solid var(--am);border-radius:6px;padding:14px;margin-bottom:14px;">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📅 Fecha de Firma en Notaría = Primer Pago Propietario</div>
-            <div style="font-size:10px;color:var(--wd);margin-bottom:10px;">Registrá la fecha en que se firmó el contrato en notaría (que coincide con el primer pago del propietario). Esto activa el contador de 6 días para que Carolina suba los planos de ejecución.</div>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <input type="date" id="dv-fecha-notaria" style="padding:8px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;color:var(--w);font-size:12px;">
-              <button type="button" class="btn btn-y btn-sm" onclick="dvGuardarFechaNotaria()">💾 Registrar fecha</button>
-              <span id="dv-fecha-status" style="font-size:11px;color:var(--ws);"></span>
-            </div>
+          <!-- ▼ FECHA FIRMA NOTARÍA (cerrador la registra UNA VEZ) ▼ -->
+          <div id="dv-bloque-notaria" style="background:rgba(245,196,0,.06);border:1px solid var(--am);border-radius:6px;padding:14px;margin-bottom:14px;">
+            <!-- Contenido dinámico: si no hay fecha → formulario, si hay → resumen bloqueado -->
           </div>
 
           <!-- ▼ NOTA: TODOS LOS ARCHIVOS SE PUEDEN SUBIR DESPUÉS ▼ -->
@@ -855,10 +912,7 @@ async function storageUrl(path){
                 </div>
               </div>
               <div class="up-card-btns">
-                <label class="up-card-btn cam">
-                  📷 Escanear
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('contrato',this)">
-                </label>
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('dv','contrato')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('contrato',this)">
@@ -877,10 +931,7 @@ async function storageUrl(path){
                 </div>
               </div>
               <div class="up-card-btns">
-                <label class="up-card-btn cam">
-                  📷 Escanear
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('planos',this)">
-                </label>
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('dv','planos')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('planos',this)">
@@ -899,10 +950,7 @@ async function storageUrl(path){
                 </div>
               </div>
               <div class="up-card-btns">
-                <label class="up-card-btn cam">
-                  📷 Escanear
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('materiales',this)">
-                </label>
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('dv','materiales')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('materiales',this)">
@@ -921,10 +969,7 @@ async function storageUrl(path){
                 </div>
               </div>
               <div class="up-card-btns">
-                <label class="up-card-btn cam">
-                  📷 Escanear
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('especificaciones',this)">
-                </label>
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('dv','especificaciones')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('especificaciones',this)">
@@ -980,10 +1025,7 @@ async function storageUrl(path){
                 </div>
               </div>
               <div class="up-card-btns">
-                <label class="up-card-btn cam">
-                  📷 Escanear
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="caUpload('contrato',this)">
-                </label>
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','contrato')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('contrato',this)">
@@ -1002,10 +1044,7 @@ async function storageUrl(path){
                 </div>
               </div>
               <div class="up-card-btns">
-                <label class="up-card-btn cam">
-                  📷 Escanear
-                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="caUpload('planos',this)">
-                </label>
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','planos')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
                   <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('planos',this)">
@@ -2129,6 +2168,16 @@ function supSelObra(oid){
   html+='</div>';
   // Objeto
   if(o.obj) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Objeto del Contrato</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">'+o.obj+'</div></div>';
+  // ─── Cerrador responsable + fecha firma notaría ───
+  if(o.cerrador_responsable||o.fecha_firma_notaria){
+    var ff=o.fecha_firma_notaria?new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO',{day:'2-digit',month:'long',year:'numeric'}):'—';
+    html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">';
+    html+='<div><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:4px;">🤝 Cerrador Responsable</div>';
+    html+='<div style="font-size:13px;font-weight:700;color:var(--w);">'+(o.cerrador_responsable||'(no asignado)')+'</div></div>';
+    html+='<div style="text-align:right;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:4px;">📅 Firma en Notaría</div>';
+    html+='<div style="font-size:13px;font-weight:700;color:var(--w);">'+ff+'</div></div>';
+    html+='</div>';
+  }
   // ─── Artículos literales del contrato propietario ───
   if(o.articulo_2_propietario||o.articulo_3_propietario){
     html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;">';
@@ -2561,6 +2610,7 @@ async function admExportCSV(tipo){
         'Cantidad Módulos','Módulos a Ejecutar',
         'Ubicación (Maps)','Notas Adicionales',
         'Contrato Propietario Cargado','Planos Propietario','Materiales','Especificaciones Técnicas',
+        'Cerrador Responsable','Fecha Firma Notaría',
         'Contratista Asignado','Estado Contrato','Adendas',
         'Aprobada por GEAT','Fecha Registro'
       ];
@@ -2581,6 +2631,7 @@ async function admExportCSV(tipo){
           o.maps_link||'', o.notas||'',
           fmtSiNo(o.contrato_propietario_nombre||o.contrato_propietario_escaneado),
           fmtSiNo(o.planos_propietario_pdf), fmtSiNo(o.materiales_pdf), fmtSiNo(o.especificaciones_pdf),
+          o.cerrador_responsable||'—', fmtFecha(o.fecha_firma_notaria),
           ct.nombre_contratista||'—', ct.estado_contrato||'—',
           nAd>0?nAd+' adenda(s)':'—',
           fmtSiNo(o.aprobada), fmtFecha(o.created_at)
@@ -2945,10 +2996,17 @@ function caSelCt(cid){
   form.style.display='block';
   var info=document.getElementById('ca-info-ct');
   if(info){
+    var cerradorInfo='';
+    if(o.cerrador_responsable){
+      var ff=o.fecha_firma_notaria?new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO'):'—';
+      cerradorInfo='<div style="font-size:10px;color:var(--am);margin-top:4px;">🤝 Cerrador: <b>'+o.cerrador_responsable+'</b> · Firma notaría: '+ff+'</div>';
+    }
     info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
       '<div style="font-weight:800;font-size:14px;">'+(o.nom||'?')+'</div>'+
       '<div style="font-size:11px;color:var(--wd);">Contratista: <b>'+c.nom+'</b> · '+(c.tel||'—')+'</div>'+
-      '<div style="font-size:10px;color:var(--ws);">Estado: '+c.est_ct+'</div></div>';
+      '<div style="font-size:10px;color:var(--ws);">Estado: '+c.est_ct+'</div>'+
+      cerradorInfo+
+      '</div>';
   }
   var st=document.getElementById('ca-status');
   if(st){
@@ -3354,7 +3412,7 @@ function _adRenderHistorial(o){
       var estColor=a.archivo_firmado?'var(--Gc)':'var(--Nc)';
       var btnVerFirmado=a.archivo_firmado?'<button type="button" class="btn btn-g btn-sm" data-fn="'+a.archivo_firmado+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver firmada</button>':'';
       var btnSubirFirmado=!a.archivo_firmado?
-        '<label class="btn btn-y btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📷 Escanear<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="adSubirFirmado('+a.id+',this)"></label>'+
+        '<button type="button" class="btn btn-y btn-sm" onclick="scanOpen(\'ad\','+a.id+')" style="display:inline-flex;align-items:center;gap:4px;">📷 Escanear</button>'+
         '<label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📁 Archivo<input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="adSubirFirmado('+a.id+',this)"></label>'
         :'';
       var btnEditar=!a.archivo_firmado?'<button type="button" class="btn btn-o btn-sm" onclick="adEditar('+a.id+')">✏️ Editar / Imprimir</button>':'';
@@ -3439,29 +3497,77 @@ function toast(msg,type,title){
 }
 
 // ═══════════════════════════════════════════════════
-// TANDA 4 — FECHA FIRMA NOTARÍA (David/Gustavo)
+// TANDA 5 — FECHA FIRMA NOTARÍA (cerrador la registra UNA VEZ)
 // ═══════════════════════════════════════════════════
 async function dvGuardarFechaNotaria(){
   if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
-  var inp=document.getElementById('dv-fecha-notaria');
+  var inp=document.getElementById('dv-fecha-notaria-input');
   if(!inp||!inp.value){toast('Elegí una fecha.','warning');return;}
+  // CONFIRMACIÓN: una vez registrada NO se puede editar
+  if(!confirm('⚠️ ATENCIÓN\n\nUna vez registrada, la fecha de firma en notaría QUEDA BLOQUEADA y no se puede editar.\n\nQuedará registrado que vos ('+CU.n+') sos el CERRADOR de esta obra.\n\n¿Confirmás la fecha '+inp.value+'?'))return;
   try{
     var fechaISO=new Date(inp.value+'T12:00:00').toISOString();
+    var ahora=new Date().toISOString();
     await sb.from('rec_obras').update({
       fecha_firma_notaria:fechaISO,
-      fecha_primer_pago_propietario:fechaISO
+      fecha_primer_pago_propietario:fechaISO,
+      cerrador_responsable:CU.n,
+      cerrador_fecha_registro:ahora
     }).eq('id',dvObraId);
     var o=obras.find(function(x){return x.id===dvObraId;});
     if(o){
       o.fecha_firma_notaria=fechaISO;
       o.fecha_primer_pago_propietario=fechaISO;
+      o.cerrador_responsable=CU.n;
+      o.cerrador_fecha_registro=ahora;
     }
-    dbLog(CU.n,'Fecha firma notaría registrada: '+o.nom);
-    toast('Fecha registrada. Carolina tiene 6 días para subir planos de ejecución.','success','📅 Notaría');
+    dbLog(CU.n,'Cerrador registró firma notaría: '+o.nom);
+    toast('Fecha registrada por '+CU.n+'. Carolina tiene 6 días para subir planos de ejecución.','success','📅 Notaría');
     dvSelObra(dvObraId);
     renderDavid();
     renderCarolina();
   }catch(e){toast(e.message,'error');}
+}
+
+// Helper: render del bloque notaría (formulario o resumen bloqueado)
+function _dvCargarFechaNotaria(o){
+  var box=document.getElementById('dv-bloque-notaria');
+  if(!box)return;
+  if(o.fecha_firma_notaria){
+    // YA REGISTRADO → mostrar resumen BLOQUEADO
+    var fechaFirma=new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO',{day:'2-digit',month:'long',year:'numeric'});
+    var cerrador=o.cerrador_responsable||'(no registrado)';
+    var fechaRegISO=o.cerrador_fecha_registro||o.fecha_firma_notaria;
+    var fechaReg=new Date(fechaRegISO).toLocaleString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    var hoy=new Date(),f=new Date(o.fecha_firma_notaria);
+    var diasTrans=Math.floor((hoy-f)/86400000);
+    var diasRest=6-diasTrans;
+    var alerta='';
+    if(diasRest<0)alerta='<div style="color:var(--Rc);font-size:11px;font-weight:700;margin-top:8px;">🔴 Carolina debió subir planos hace '+Math.abs(diasRest)+' días — VENCIDO</div>';
+    else if(diasRest<=2)alerta='<div style="color:var(--Nc);font-size:11px;font-weight:700;margin-top:8px;">🟠 Quedan '+diasRest+' días para que Carolina suba planos</div>';
+    else alerta='<div style="color:var(--Gc);font-size:11px;margin-top:8px;">🟢 '+diasRest+' días para que Carolina suba planos</div>';
+    box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">'+
+      '<div style="flex:1;min-width:200px;">'+
+        '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">🔒 FIRMA EN NOTARÍA — REGISTRADA</div>'+
+        '<div style="font-size:14px;font-weight:800;color:var(--w);margin-bottom:4px;">📅 '+fechaFirma+'</div>'+
+        '<div style="font-size:11px;color:var(--wd);">Cerrador responsable: <b style="color:var(--am);">'+cerrador+'</b></div>'+
+        '<div style="font-size:10px;color:var(--ws);margin-top:2px;">Registrado: '+fechaReg+'</div>'+
+        alerta+
+      '</div>'+
+      '<div style="text-align:right;">'+
+        '<div style="background:var(--Gbg);border:1px solid var(--G);border-radius:4px;padding:6px 10px;font-size:10px;color:var(--Gc);font-weight:700;">✅ BLOQUEADO</div>'+
+      '</div>'+
+      '</div>';
+  } else {
+    // NO REGISTRADO → mostrar formulario
+    box.innerHTML='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📅 Fecha de Firma en Notaría = Primer Pago Propietario</div>'+
+      '<div style="font-size:10px;color:var(--wd);margin-bottom:10px;">Como cerrador a cargo del cliente, registrá la fecha en que se firmó el contrato en notaría (coincide con el primer pago del propietario). <b>Esta acción se registra UNA SOLA VEZ y queda asociada a tu nombre.</b></div>'+
+      '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'+
+        '<input type="date" id="dv-fecha-notaria-input" style="padding:8px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;color:var(--w);font-size:12px;">'+
+        '<button type="button" class="btn btn-y btn-sm" onclick="dvGuardarFechaNotaria()">💾 Registrar como cerrador ('+CU.n+')</button>'+
+      '</div>'+
+      '<div style="margin-top:8px;font-size:10px;color:var(--Nc);">⚠️ Una vez registrada, la fecha NO se puede editar.</div>';
+  }
 }
 
 // ═══════════════════════════════════════════════════
@@ -3483,27 +3589,279 @@ function _carolinaCalcularEstado(c,o){
   };
 }
 
-// ═══════════════════════════════════════════════════
-// TANDA 4 — INICIALIZAR FECHA NOTARÍA EN PANEL DAVID
-// ═══════════════════════════════════════════════════
-function _dvCargarFechaNotaria(o){
-  var inp=document.getElementById('dv-fecha-notaria');
-  var st=document.getElementById('dv-fecha-status');
-  if(!inp)return;
-  if(o.fecha_firma_notaria){
-    inp.value=new Date(o.fecha_firma_notaria).toISOString().slice(0,10);
-    if(st){
-      var hoy=new Date(),f=new Date(o.fecha_firma_notaria);
-      var dias=Math.floor((hoy-f)/86400000);
-      st.textContent='✅ Registrada hace '+dias+' día(s)';
-      st.style.color='var(--Gc)';
+
+// ═══════════════════════════════════════════════════════════════
+// TANDA 8 — SCANNER NATIVO (cámara + edición + PDF multi-página)
+// ═══════════════════════════════════════════════════════════════
+var scanCtx={
+  destino:null,    // 'dv'|'ca'|'fat'|'ad'
+  tipo:null,       // 'contrato'|'planos'|... o adendaId
+  pages:[],        // [{original:dataURL, processed:dataURL, filter:'doc', rotation:0}]
+  currentIdx:-1,
+  filter:'doc',
+  rotation:0
+};
+
+function scanOpen(destino,tipo){
+  // Validar contexto previo
+  if(destino==='dv'&&!dvObraId){toast('Seleccioná una obra primero','warning');return;}
+  if(destino==='ca'&&!caCtId){toast('Seleccioná un contrato primero','warning');return;}
+  if(destino==='fat'&&!fatObraId){toast('Seleccioná una obra primero','warning');return;}
+  scanCtx={destino:destino,tipo:tipo,pages:[],currentIdx:-1,filter:'doc',rotation:0};
+  document.getElementById('scan-title').textContent='📷 Escanear documento ('+_scanTipoLabel(destino,tipo)+')';
+  document.getElementById('scan-canvas').style.display='none';
+  document.getElementById('scan-empty').style.display='block';
+  document.getElementById('scan-filter-row').style.display='none';
+  document.getElementById('scan-pages-list').style.display='none';
+  document.getElementById('scan-finish-btn').style.display='none';
+  document.getElementById('scan-cam-input').value='';
+  document.getElementById('scan-modal').classList.add('on');
+  // Auto-click en tomar foto
+  setTimeout(function(){document.getElementById('scan-cam-input').click();},250);
+}
+
+function _scanTipoLabel(d,t){
+  if(d==='dv')return {contrato:'Contrato Propietario',planos:'Planos Propietario',materiales:'Lista Materiales',especificaciones:'Especificaciones'}[t]||t;
+  if(d==='ca')return {contrato:'Contrato Contratista',planos:'Planos Ejecución'}[t]||t;
+  if(d==='fat')return 'Croquis';
+  if(d==='ad')return 'Adenda firmada';
+  return t;
+}
+
+function scanClose(){
+  if(scanCtx.pages.length>0){
+    if(!confirm('¿Cerrar sin guardar? Se perderán las páginas escaneadas.'))return;
+  }
+  document.getElementById('scan-modal').classList.remove('on');
+  scanCtx={destino:null,tipo:null,pages:[],currentIdx:-1,filter:'doc',rotation:0};
+}
+
+function scanCapture(inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      // Crear página nueva
+      var canvas=document.createElement('canvas');
+      // Limitar tamaño máximo a 2000px para no inflar PDFs
+      var maxDim=2000;
+      var w=img.width,h=img.height;
+      if(w>maxDim||h>maxDim){
+        var ratio=Math.min(maxDim/w,maxDim/h);
+        w=Math.round(w*ratio);
+        h=Math.round(h*ratio);
+      }
+      canvas.width=w;canvas.height=h;
+      var ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      var originalDataURL=canvas.toDataURL('image/jpeg',0.92);
+      scanCtx.pages.push({
+        original:originalDataURL,
+        processed:originalDataURL,
+        filter:'doc',
+        rotation:0
+      });
+      scanCtx.currentIdx=scanCtx.pages.length-1;
+      scanCtx.filter='doc';
+      scanCtx.rotation=0;
+      // Aplicar filtro doc por defecto
+      scanApplyFilter('doc');
+      _scanRenderUI();
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+  inp.value='';
+}
+
+function _scanRenderUI(){
+  document.getElementById('scan-empty').style.display='none';
+  var cv=document.getElementById('scan-canvas');
+  cv.style.display='block';
+  document.getElementById('scan-filter-row').style.display='flex';
+  document.getElementById('scan-finish-btn').style.display='inline-flex';
+  document.getElementById('scan-pages-list').style.display='flex';
+  _scanRenderThumbs();
+}
+
+function _scanRenderThumbs(){
+  var box=document.getElementById('scan-pages-list');
+  box.innerHTML=scanCtx.pages.map(function(p,i){
+    var sel=i===scanCtx.currentIdx?'border-color:var(--am);':'';
+    return '<div class="scan-page" style="'+sel+'" onclick="scanGoPage('+i+')">'+
+      '<img src="'+p.processed+'" alt="p'+(i+1)+'">'+
+      '<button type="button" class="scan-page-rm" onclick="event.stopPropagation();scanRmPage('+i+')">✕</button>'+
+      '</div>';
+  }).join('')+
+  '<div class="scan-page add" onclick="document.getElementById(\'scan-cam-input\').click()" title="Agregar página">+</div>';
+}
+
+function scanGoPage(i){
+  if(i<0||i>=scanCtx.pages.length)return;
+  scanCtx.currentIdx=i;
+  scanCtx.filter=scanCtx.pages[i].filter||'doc';
+  scanCtx.rotation=scanCtx.pages[i].rotation||0;
+  _scanDrawCurrent();
+  _scanRenderThumbs();
+  _scanUpdateFilterButtons();
+}
+
+function scanRmPage(i){
+  if(scanCtx.pages.length===1){
+    if(!confirm('Es la única página. ¿Eliminar?'))return;
+  }
+  scanCtx.pages.splice(i,1);
+  if(scanCtx.pages.length===0){
+    scanCtx.currentIdx=-1;
+    document.getElementById('scan-canvas').style.display='none';
+    document.getElementById('scan-empty').style.display='block';
+    document.getElementById('scan-filter-row').style.display='none';
+    document.getElementById('scan-pages-list').style.display='none';
+    document.getElementById('scan-finish-btn').style.display='none';
+    return;
+  }
+  if(scanCtx.currentIdx>=scanCtx.pages.length)scanCtx.currentIdx=scanCtx.pages.length-1;
+  scanGoPage(scanCtx.currentIdx);
+}
+
+function scanApplyFilter(filter){
+  if(scanCtx.currentIdx<0)return;
+  scanCtx.filter=filter;
+  scanCtx.pages[scanCtx.currentIdx].filter=filter;
+  _scanProcessImage();
+  _scanUpdateFilterButtons();
+}
+
+function _scanUpdateFilterButtons(){
+  ['color','doc','bw'].forEach(function(f){
+    var btn=document.getElementById('scf-'+f);
+    if(btn){
+      if(f===scanCtx.filter)btn.classList.add('active');
+      else btn.classList.remove('active');
     }
-  } else {
-    inp.value='';
-    if(st){
-      st.textContent='⚠️ Sin registrar — el contador para Carolina aún no inició';
-      st.style.color='var(--Nc)';
+  });
+}
+
+function scanRotate(){
+  if(scanCtx.currentIdx<0)return;
+  scanCtx.rotation=(scanCtx.rotation+90)%360;
+  scanCtx.pages[scanCtx.currentIdx].rotation=scanCtx.rotation;
+  _scanProcessImage();
+}
+
+function _scanProcessImage(){
+  if(scanCtx.currentIdx<0)return;
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  var img=new Image();
+  img.onload=function(){
+    var canvas=document.createElement('canvas');
+    var w=img.width,h=img.height;
+    var rot=page.rotation||0;
+    // Aplicar rotación al canvas
+    if(rot===90||rot===270){canvas.width=h;canvas.height=w;}
+    else{canvas.width=w;canvas.height=h;}
+    var ctx=canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(canvas.width/2,canvas.height/2);
+    ctx.rotate(rot*Math.PI/180);
+    ctx.drawImage(img,-w/2,-h/2);
+    ctx.restore();
+    // Aplicar filtro
+    var f=page.filter||'doc';
+    if(f!=='color'){
+      var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+      var d=imgData.data;
+      if(f==='doc'){
+        // Documento: aumentar contraste + claros más blancos
+        var contrast=1.4;
+        var brightness=15;
+        for(var i=0;i<d.length;i+=4){
+          // Convertir a grises ponderados
+          var gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+          // Aplicar contraste
+          gray=((gray-128)*contrast)+128+brightness;
+          if(gray<0)gray=0;if(gray>255)gray=255;
+          d[i]=gray;d[i+1]=gray;d[i+2]=gray;
+        }
+      } else if(f==='bw'){
+        // B&N puro con threshold adaptativo simple
+        var threshold=140;
+        for(var i=0;i<d.length;i+=4){
+          var gray=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];
+          var v=gray>threshold?255:0;
+          d[i]=v;d[i+1]=v;d[i+2]=v;
+        }
+      }
+      ctx.putImageData(imgData,0,0);
     }
+    var processedURL=canvas.toDataURL('image/jpeg',0.92);
+    page.processed=processedURL;
+    // Mostrar en canvas principal
+    var mainCv=document.getElementById('scan-canvas');
+    mainCv.width=canvas.width;
+    mainCv.height=canvas.height;
+    mainCv.getContext('2d').drawImage(canvas,0,0);
+    _scanRenderThumbs();
+  };
+  img.src=page.original;
+}
+
+function _scanDrawCurrent(){
+  _scanProcessImage();
+}
+
+async function scanFinish(){
+  if(scanCtx.pages.length===0){toast('Agregá al menos una página','warning');return;}
+  // Generar PDF
+  toast('Generando PDF de '+scanCtx.pages.length+' página(s)...','info','📄');
+  try{
+    var jsPDFLib=window.jspdf?window.jspdf.jsPDF:window.jsPDF;
+    if(!jsPDFLib){throw new Error('jsPDF no cargado');}
+    var pdf=new jsPDFLib({orientation:'portrait',unit:'mm',format:'a4'});
+    var pageW=210,pageH=297,margin=10;
+    for(var i=0;i<scanCtx.pages.length;i++){
+      var page=scanCtx.pages[i];
+      // Esperar a que la imagen esté lista
+      var dim=await _scanImgDim(page.processed);
+      var maxW=pageW-2*margin,maxH=pageH-2*margin;
+      var ratio=Math.min(maxW/dim.w,maxH/dim.h);
+      var imgW=dim.w*ratio,imgH=dim.h*ratio;
+      var x=(pageW-imgW)/2,y=(pageH-imgH)/2;
+      if(i>0)pdf.addPage();
+      pdf.addImage(page.processed,'JPEG',x,y,imgW,imgH,'','FAST');
+    }
+    var pdfBlob=pdf.output('blob');
+    var file=new File([pdfBlob],'escaneado_'+Date.now()+'.pdf',{type:'application/pdf'});
+    // Subir según destino
+    await _scanUploadToDestino(file);
+    document.getElementById('scan-modal').classList.remove('on');
+    scanCtx={destino:null,tipo:null,pages:[],currentIdx:-1,filter:'doc',rotation:0};
+  }catch(e){
+    console.error(e);
+    toast('Error generando PDF: '+e.message,'error');
+  }
+}
+
+function _scanImgDim(dataURL){
+  return new Promise(function(resolve){
+    var img=new Image();
+    img.onload=function(){resolve({w:img.width,h:img.height});};
+    img.src=dataURL;
+  });
+}
+
+async function _scanUploadToDestino(file){
+  var fakeInput={files:[file]};
+  if(scanCtx.destino==='dv'){
+    await dvUpload(scanCtx.tipo,fakeInput);
+  } else if(scanCtx.destino==='ca'){
+    await caUpload(scanCtx.tipo,fakeInput);
+  } else if(scanCtx.destino==='fat'){
+    await fatUploadCroquis(fakeInput);
+  } else if(scanCtx.destino==='ad'){
+    await adSubirFirmado(scanCtx.tipo,fakeInput);
   }
 }
 
