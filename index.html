@@ -266,6 +266,9 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 .scan-loading-spin{width:36px;height:36px;border:4px solid rgba(245,196,0,.2);border-top-color:var(--am);border-radius:50%;animation:scanSpin 1s linear infinite;}
 @keyframes scanSpin{to{transform:rotate(360deg);}}
 .scan-step-info{background:rgba(245,196,0,.1);border:1px solid var(--am);border-radius:6px;padding:8px 12px;color:var(--am);font-size:11px;text-align:center;}
+.scan-adjust-row{display:flex;flex-direction:column;gap:6px;}
+.scan-adjust-row input[type=range]{accent-color:var(--am);}
+.scan-adjust-row input[type=range]::-webkit-slider-thumb{background:var(--am);}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -296,6 +299,7 @@ function mapObra(o){return{
   not:o.notas||'',obj:o.objeto_contrato||'',inc:o.inclusiones||'',exc:o.exclusiones||'',
   cp_dig:o.contrato_propietario_nombre||null,
   cp_esc:o.contrato_propietario_escaneado||null,
+  contrato_propietario_escaneado:o.contrato_propietario_escaneado||null,
   aprobada:o.aprobada||false,mods:o.modulos||[],
   planos_propietario_pdf:o.planos_propietario_pdf||null,
   planos_propietario_subido_por:o.planos_propietario_subido_por||null,
@@ -442,23 +446,49 @@ async function storageUrl(path){
       </button>
     </div>
 
-    <!-- Toolbar paso 2: filtros -->
-    <div class="scan-filter-row" id="scan-filter-row" style="display:none;">
-      <button type="button" class="scan-btn" id="scf-color" onclick="scanApplyFilter('color')">
-        <span class="scan-btn-ico">🎨</span><span>Color</span>
-      </button>
-      <button type="button" class="scan-btn active" id="scf-doc" onclick="scanApplyFilter('doc')">
-        <span class="scan-btn-ico">📄</span><span>Documento</span>
-      </button>
-      <button type="button" class="scan-btn" id="scf-bw" onclick="scanApplyFilter('bw')">
-        <span class="scan-btn-ico">⬛</span><span>B&N</span>
-      </button>
-      <button type="button" class="scan-btn" id="scf-rot" onclick="scanRotate()">
-        <span class="scan-btn-ico">🔄</span><span>Rotar</span>
-      </button>
-      <button type="button" class="scan-btn" onclick="scanEditCorners()">
-        <span class="scan-btn-ico">✂️</span><span>Re-recortar</span>
-      </button>
+    <!-- Toolbar paso 2: filtros + ajustes -->
+    <div id="scan-filter-zone" style="display:none;flex-direction:column;gap:8px;">
+      <div class="scan-filter-row" id="scan-filter-row">
+        <button type="button" class="scan-btn" id="scf-color" onclick="scanApplyFilter('color')">
+          <span class="scan-btn-ico">🎨</span><span>Color</span>
+        </button>
+        <button type="button" class="scan-btn active" id="scf-doc" onclick="scanApplyFilter('doc')">
+          <span class="scan-btn-ico">📄</span><span>Documento</span>
+        </button>
+        <button type="button" class="scan-btn" id="scf-mag" onclick="scanApplyFilter('magic')">
+          <span class="scan-btn-ico">✨</span><span>Mágico</span>
+        </button>
+        <button type="button" class="scan-btn" id="scf-bw" onclick="scanApplyFilter('bw')">
+          <span class="scan-btn-ico">⬛</span><span>B&N</span>
+        </button>
+        <button type="button" class="scan-btn" id="scf-rot" onclick="scanRotate()">
+          <span class="scan-btn-ico">🔄</span><span>Rotar</span>
+        </button>
+        <button type="button" class="scan-btn" onclick="scanEditCorners()">
+          <span class="scan-btn-ico">✂️</span><span>Re-recortar</span>
+        </button>
+      </div>
+      <div class="scan-adjust-row" id="scan-adjust-row">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;">
+          <span style="font-size:18px;">☀️</span>
+          <span style="font-size:10px;color:var(--ws);min-width:50px;">Brillo</span>
+          <input type="range" id="adj-brightness" min="-50" max="50" value="0" oninput="scanAdjustChange()" style="flex:1;">
+          <span id="adj-brightness-v" style="font-size:10px;color:var(--am);min-width:30px;text-align:right;">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;">
+          <span style="font-size:18px;">🔆</span>
+          <span style="font-size:10px;color:var(--ws);min-width:50px;">Contraste</span>
+          <input type="range" id="adj-contrast" min="-50" max="100" value="0" oninput="scanAdjustChange()" style="flex:1;">
+          <span id="adj-contrast-v" style="font-size:10px;color:var(--am);min-width:30px;text-align:right;">0</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:8px 12px;">
+          <span style="font-size:18px;">🔍</span>
+          <span style="font-size:10px;color:var(--ws);min-width:50px;">Nitidez</span>
+          <input type="range" id="adj-sharpen" min="0" max="100" value="0" oninput="scanAdjustChange()" style="flex:1;">
+          <span id="adj-sharpen-v" style="font-size:10px;color:var(--am);min-width:30px;text-align:right;">0</span>
+        </div>
+        <button type="button" class="btn btn-o btn-sm" onclick="scanResetAdjust()" style="font-size:10px;">Restablecer ajustes</button>
+      </div>
     </div>
 
     <div class="scan-pages" id="scan-pages-list" style="display:none;"></div>
@@ -497,7 +527,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v46 · ESCANER PROFESIONAL (PERSPECTIVA + AUTO-DETECT)</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v47 · STEFFI SCAN + ADMIN EDITA + AJUSTES PRO</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -548,14 +578,18 @@ async function storageUrl(path){
 
         <!-- Uploads -->
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Contrato con Propietario (versión digital)</div>
-        <div class="upload-row">
-          <div class="upload-zone" id="uz-dig" onclick="document.getElementById('fi-dig').click()">
-            <div class="uz-ico">📋</div>
-            <div class="uz-lbl">Archivo Digital</div>
-            <div class="uz-sub">PDF · DOC · DOCX</div>
-            <div class="uz-ok" id="txt-dig"></div>
-            <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" capture="environment" style="display:none;" onchange="onUpNuevaObra('dig',this)">
-          </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+          <button type="button" class="btn btn-y btn-sm" onclick="scanOpen('steffiDig','contrato')" style="display:inline-flex;align-items:center;gap:4px;">
+            📷 Escanear contrato
+          </button>
+          <label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+            📁 Subir archivo
+            <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="onUpNuevaObra('dig',this)">
+          </label>
+          <span id="txt-dig" style="font-size:11px;color:var(--Gc);align-self:center;"></span>
+        </div>
+        <div style="display:none;">
+          <div class="upload-zone" id="uz-dig"></div>
         </div>
         <div class="al al-z" style="margin:10px 0 14px;">📌 <b>El escaneado firmado del propietario lo sube David</b> (PIN 5565) en su panel "Carga Propietario", junto con planos firmados, materiales y especificaciones técnicas.</div>
 
@@ -1195,6 +1229,20 @@ async function storageUrl(path){
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">📚 HISTORIAL DE CONSULTAS Y DESCARGAS</div>
           <div id="adm-historial-export" style="font-size:10px;color:var(--wd);max-height:160px;overflow-y:auto;"></div>
           <button type="button" class="btn btn-o btn-sm" onclick="admCargarHistorialExport()" style="margin-top:8px;">🔄 Actualizar historial</button>
+        </div>
+      </div>
+      <div class="card" style="border-color:var(--am);">
+        <div class="ct" style="color:var(--am);">🛠️ Editar Documentos de Cualquier Obra</div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 <b>Función de admin:</b> reemplazá o subí documentos que el equipo se olvidó cargar, cargó mal, o subió rotos. Esta acción queda registrada en la auditoría.</div>
+        <div class="f" style="margin-bottom:12px;">
+          <label>Seleccioná obra</label>
+          <select id="admedit-sel-obra" onchange="admEditSelObra(this.value)">
+            <option value="">— Elegir obra —</option>
+          </select>
+        </div>
+        <div id="admedit-form" style="display:none;">
+          <div id="admedit-info" style="margin-bottom:14px;"></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;" id="admedit-docs"></div>
         </div>
       </div>
       <div class="card" style="border-color:var(--R);">
@@ -2436,6 +2484,8 @@ function abrirPerfil(){
 // ═══════════════════════════════════════════════════
 function renderAdmFull(){
   var k=function(id){return document.getElementById(id);};
+  // T10: render del selector de edición admin
+  if(typeof admEditRenderSel==='function')admEditRenderSel();
   var totalObras=obras.length;
   var montoUSD=obras.filter(function(o){return o.monto>0;}).reduce(function(s,o){return s+o.monto;},0);
   var totalCt=contratos.length;
@@ -3734,7 +3784,7 @@ function _scanSetStep(step){
   var cornersWrap=document.getElementById('scan-corners-wrap');
   var canvas=document.getElementById('scan-canvas');
   var detectBar=document.getElementById('scan-detect-toolbar');
-  var filterBar=document.getElementById('scan-filter-row');
+  var filterBar=document.getElementById('scan-filter-zone');
   var pagesList=document.getElementById('scan-pages-list');
   var finishBtn=document.getElementById('scan-finish-btn');
   if(step==='shoot'){
@@ -3743,7 +3793,7 @@ function _scanSetStep(step){
     cornersWrap.style.display='none';
     canvas.style.display='none';
     detectBar.style.display='none';
-    filterBar.style.display='none';
+    if(filterBar)filterBar.style.display='none';
     if(scanCtx.pages.length>0){
       pagesList.style.display='flex';
       finishBtn.style.display='inline-flex';
@@ -3753,24 +3803,26 @@ function _scanSetStep(step){
       finishBtn.style.display='none';
     }
   } else if(step==='detect'){
-    info.textContent='Ajustá las esquinas del documento y tocá Aplicar';
+    info.textContent='Ajustá las 4 esquinas del documento (arrastrá los puntos amarillos) y tocá Aplicar';
     empty.style.display='none';
     cornersWrap.style.display='inline-block';
     canvas.style.display='none';
     detectBar.style.display='flex';
-    filterBar.style.display='none';
+    if(filterBar)filterBar.style.display='none';
     pagesList.style.display='none';
     finishBtn.style.display='none';
   } else if(step==='edit'){
-    info.textContent='Elegí un filtro y agregá más páginas si necesitás';
+    info.textContent='Ajustá brillo/contraste/nitidez y elegí filtro. Tocá ➕ para agregar otra página.';
     empty.style.display='none';
     cornersWrap.style.display='none';
     canvas.style.display='block';
     detectBar.style.display='none';
-    filterBar.style.display='flex';
+    if(filterBar)filterBar.style.display='flex';
     pagesList.style.display='flex';
     finishBtn.style.display='inline-flex';
     _scanRenderThumbs();
+    // Resetear sliders
+    scanResetAdjust();
   }
 }
 
@@ -4108,40 +4160,76 @@ function _scanProcessImage(){
     ctx.rotate(rot*Math.PI/180);
     ctx.drawImage(img,-w/2,-h/2);
     ctx.restore();
-    // Aplicar filtros usando OpenCV si está disponible (mejor calidad)
+    // Aplicar ajustes manuales (brillo / contraste) ANTES del filtro
+    var brightness=page.brightness||0;
+    var contrast=page.contrast||0;
+    var sharpen=page.sharpen||0;
+    if(brightness!==0||contrast!==0){
+      _scanApplyBrightnessContrast(canvas,brightness,contrast);
+    }
+    // Aplicar filtros
     var filter=page.filter||'doc';
-    if(filter!=='color'&&window.cv&&window.cv.Mat){
+    if(window.cv&&window.cv.Mat){
       try{
         var cv=window.cv;
-        var mat=cv.imread(canvas);
-        var gray=new cv.Mat();
-        cv.cvtColor(mat,gray,cv.COLOR_RGBA2GRAY);
         if(filter==='doc'){
-          // Threshold adaptativo Gaussiano para texto sobre papel
+          var mat=cv.imread(canvas);
+          var gray=new cv.Mat();
+          cv.cvtColor(mat,gray,cv.COLOR_RGBA2GRAY);
           var bin=new cv.Mat();
           cv.adaptiveThreshold(gray,bin,255,cv.ADAPTIVE_THRESH_GAUSSIAN_C,cv.THRESH_BINARY,21,10);
-          // Mezclar con gris para mantener algo de tono (no full B&N)
           var alpha=0.7;
           var dst=new cv.Mat();
           cv.addWeighted(gray,1-alpha,bin,alpha,0,dst);
           cv.imshow(canvas,dst);
           mat.delete();gray.delete();bin.delete();dst.delete();
         } else if(filter==='bw'){
-          // Otsu para B&N puro
+          var mat=cv.imread(canvas);
+          var gray=new cv.Mat();
+          cv.cvtColor(mat,gray,cv.COLOR_RGBA2GRAY);
           var bin=new cv.Mat();
           cv.threshold(gray,bin,0,255,cv.THRESH_BINARY+cv.THRESH_OTSU);
           cv.imshow(canvas,bin);
           mat.delete();gray.delete();bin.delete();
+        } else if(filter==='magic'){
+          // Filtro "mágico": mejora automática (white balance + saturation + sharpen)
+          var mat=cv.imread(canvas);
+          // Auto-balance: estirar histograma por canal
+          var channels=new cv.MatVector();
+          cv.split(mat,channels);
+          for(var ch=0;ch<3;ch++){
+            var minMax=cv.minMaxLoc(channels.get(ch));
+            var lo=minMax.minVal,hi=minMax.maxVal;
+            if(hi>lo){
+              // ((v-lo)/(hi-lo))*255
+              var scale=255/(hi-lo);
+              channels.get(ch).convertTo(channels.get(ch),-1,scale,-lo*scale);
+            }
+          }
+          cv.merge(channels,mat);
+          // Saturación +20%
+          var hsv=new cv.Mat();
+          cv.cvtColor(mat,hsv,cv.COLOR_RGB2HSV);
+          var hsvCh=new cv.MatVector();
+          cv.split(hsv,hsvCh);
+          hsvCh.get(1).convertTo(hsvCh.get(1),-1,1.2,0);
+          cv.merge(hsvCh,hsv);
+          cv.cvtColor(hsv,mat,cv.COLOR_HSV2RGB);
+          cv.imshow(canvas,mat);
+          mat.delete();hsv.delete();channels.delete();hsvCh.delete();
         }
       }catch(e){
-        console.warn('OpenCV filter failed, using fallback',e);
-        _scanFilterFallback(canvas,filter);
+        console.warn('OpenCV filter failed, fallback',e);
+        if(filter!=='color')_scanFilterFallback(canvas,filter);
       }
-    } else if(filter!=='color'){
+    } else if(filter!=='color'&&filter!=='magic'){
       _scanFilterFallback(canvas,filter);
     }
+    // Aplicar sharpening DESPUÉS del filtro
+    if(sharpen>0){
+      _scanApplySharpen(canvas,sharpen);
+    }
     page.processed=canvas.toDataURL('image/jpeg',0.92);
-    // Mostrar en el canvas principal
     var mainCv=document.getElementById('scan-canvas');
     mainCv.width=canvas.width;
     mainCv.height=canvas.height;
@@ -4149,6 +4237,103 @@ function _scanProcessImage(){
     _scanRenderThumbs();
   };
   img.src=src;
+}
+
+function _scanApplyBrightnessContrast(canvas,brightness,contrast){
+  var ctx=canvas.getContext('2d');
+  var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  var d=imgData.data;
+  var c=parseFloat(contrast)/100;
+  var b=parseFloat(brightness);
+  // factor de contraste
+  var f=(259*(c*100+255))/(255*(259-c*100));
+  for(var i=0;i<d.length;i+=4){
+    for(var k=0;k<3;k++){
+      var v=d[i+k];
+      // contraste
+      v=f*(v-128)+128;
+      // brillo
+      v=v+b;
+      if(v<0)v=0;if(v>255)v=255;
+      d[i+k]=v;
+    }
+  }
+  ctx.putImageData(imgData,0,0);
+}
+
+function _scanApplySharpen(canvas,amount){
+  // Convolución 3x3 con kernel de sharpening
+  var ctx=canvas.getContext('2d');
+  var src=ctx.getImageData(0,0,canvas.width,canvas.height);
+  var w=src.width,h=src.height;
+  var dst=ctx.createImageData(w,h);
+  var sd=src.data,dd=dst.data;
+  // Intensidad del kernel
+  var k=amount/100; // 0..1
+  // Kernel: centro 1+4k, vecinos directos -k
+  for(var y=1;y<h-1;y++){
+    for(var x=1;x<w-1;x++){
+      var i=(y*w+x)*4;
+      for(var c=0;c<3;c++){
+        var c0=sd[i+c];
+        var cN=sd[((y-1)*w+x)*4+c];
+        var cS=sd[((y+1)*w+x)*4+c];
+        var cE=sd[(y*w+x+1)*4+c];
+        var cW=sd[(y*w+x-1)*4+c];
+        var v=c0*(1+4*k)-(cN+cS+cE+cW)*k;
+        if(v<0)v=0;if(v>255)v=255;
+        dd[i+c]=v;
+      }
+      dd[i+3]=sd[i+3];
+    }
+  }
+  // Bordes: copiar tal cual
+  for(var x=0;x<w;x++){
+    for(var c=0;c<4;c++){
+      dd[x*4+c]=sd[x*4+c];
+      dd[((h-1)*w+x)*4+c]=sd[((h-1)*w+x)*4+c];
+    }
+  }
+  for(var y=0;y<h;y++){
+    for(var c=0;c<4;c++){
+      dd[(y*w)*4+c]=sd[(y*w)*4+c];
+      dd[(y*w+w-1)*4+c]=sd[(y*w+w-1)*4+c];
+    }
+  }
+  ctx.putImageData(dst,0,0);
+}
+
+function scanAdjustChange(){
+  if(scanCtx.currentIdx<0)return;
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  page.brightness=parseInt(document.getElementById('adj-brightness').value);
+  page.contrast=parseInt(document.getElementById('adj-contrast').value);
+  page.sharpen=parseInt(document.getElementById('adj-sharpen').value);
+  document.getElementById('adj-brightness-v').textContent=page.brightness>0?'+'+page.brightness:page.brightness;
+  document.getElementById('adj-contrast-v').textContent=page.contrast>0?'+'+page.contrast:page.contrast;
+  document.getElementById('adj-sharpen-v').textContent=page.sharpen;
+  // Aplicar (con debounce simple)
+  if(scanCtx._adjTimer)clearTimeout(scanCtx._adjTimer);
+  scanCtx._adjTimer=setTimeout(function(){_scanProcessImage();},150);
+}
+
+function scanResetAdjust(){
+  if(scanCtx.currentIdx<0)return;
+  var page=scanCtx.pages[scanCtx.currentIdx];
+  page.brightness=0;page.contrast=0;page.sharpen=0;
+  var bEl=document.getElementById('adj-brightness');
+  var cEl=document.getElementById('adj-contrast');
+  var sEl=document.getElementById('adj-sharpen');
+  if(bEl)bEl.value=0;
+  if(cEl)cEl.value=0;
+  if(sEl)sEl.value=0;
+  var bV=document.getElementById('adj-brightness-v');
+  var cV=document.getElementById('adj-contrast-v');
+  var sV=document.getElementById('adj-sharpen-v');
+  if(bV)bV.textContent='0';
+  if(cV)cV.textContent='0';
+  if(sV)sV.textContent='0';
+  _scanProcessImage();
 }
 
 function _scanFilterFallback(canvas,filter){
@@ -4264,7 +4449,127 @@ async function _scanUploadToDestino(file){
   else if(scanCtx.destino==='ca'){await caUpload(scanCtx.tipo,fakeInput);}
   else if(scanCtx.destino==='fat'){await fatUploadCroquis(fakeInput);}
   else if(scanCtx.destino==='ad'){await adSubirFirmado(scanCtx.tipo,fakeInput);}
+  else if(scanCtx.destino==='steffiDig'){await onUpNuevaObra('dig',fakeInput);}
+  else if(scanCtx.destino==='admin'){await admEditDocumento(scanCtx.tipo,fakeInput);}
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// TANDA 10 — PANEL ADMIN: EDICIÓN TOTAL DE DOCUMENTOS
+// ═══════════════════════════════════════════════════════════════
+var admEditObraId=null;
+
+function admEditRenderSel(){
+  var sel=document.getElementById('admedit-sel-obra');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Elegir obra —</option>'+
+    obras.map(function(o){
+      var n=0;
+      if(!o.contrato_propietario_escaneado)n++;
+      if(!o.planos_propietario_pdf)n++;
+      if(!o.materiales_pdf)n++;
+      if(!o.especificaciones_pdf)n++;
+      var badge=n>0?' ⚠️ '+n+' pendientes':' ✅';
+      return '<option value="'+o.id+'">'+(o.nom||'?')+badge+'</option>';
+    }).join('');
+}
+
+function admEditSelObra(oid){
+  admEditObraId=oid?parseInt(oid):null;
+  var form=document.getElementById('admedit-form');
+  if(!admEditObraId){if(form)form.style.display='none';return;}
+  var o=obras.find(function(x){return x.id===admEditObraId;});
+  if(!o){form.style.display='none';return;}
+  form.style.display='block';
+  // Info de la obra
+  var info=document.getElementById('admedit-info');
+  if(info){
+    var cerrador=o.cerrador_responsable?('🤝 Cerrador: '+o.cerrador_responsable):'';
+    var ff=o.fecha_firma_notaria?(' · 📅 '+new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO')):'';
+    info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;">'+
+      '<div style="font-weight:800;font-size:14px;color:var(--am);">'+o.nom+'</div>'+
+      '<div style="font-size:11px;color:var(--wd);margin-top:2px;">'+o.cod+(o.sup?' · '+o.sup+'m2':'')+'</div>'+
+      (cerrador?'<div style="font-size:10px;color:var(--ws);margin-top:4px;">'+cerrador+ff+'</div>':'')+
+      '</div>';
+  }
+  // Tarjetas de documentos editables
+  var docs=[
+    {tipo:'admin_cp_esc',label:'Contrato Propietario',ico:'📄',hasFile:!!o.contrato_propietario_escaneado,nombre:o.contrato_propietario_escaneado,by:o.contrato_propietario_subido_por,d:o.contrato_propietario_fecha},
+    {tipo:'admin_planos_prop',label:'Planos Propietario',ico:'📐',hasFile:!!o.planos_propietario_pdf,nombre:o.planos_propietario_pdf,by:o.planos_propietario_subido_por,d:o.planos_propietario_fecha},
+    {tipo:'admin_materiales',label:'Lista Materiales',ico:'🧱',hasFile:!!o.materiales_pdf,nombre:o.materiales_pdf,by:o.materiales_subido_por,d:o.materiales_fecha},
+    {tipo:'admin_especif',label:'Especificaciones',ico:'📋',hasFile:!!o.especificaciones_pdf,nombre:o.especificaciones_pdf,by:o.especificaciones_subido_por,d:o.especificaciones_fecha},
+    {tipo:'admin_croquis',label:'Croquis (Fátima)',ico:'🗺️',hasFile:!!o.croquis_imagen,nombre:o.croquis_imagen,by:null,d:null}
+  ];
+  var box=document.getElementById('admedit-docs');
+  box.innerHTML=docs.map(function(dc){
+    var status=dc.hasFile?
+      '<div style="font-size:10px;color:var(--Gc);margin-top:4px;">✅ Cargado'+(dc.by?' · '+dc.by:'')+(dc.d?' · '+new Date(dc.d).toLocaleDateString('es-BO'):'')+'</div>':
+      '<div style="font-size:10px;color:var(--Nc);margin-top:4px;">⚠️ Sin cargar</div>';
+    var verBtn=dc.hasFile&&dc.nombre?'<a href="'+_admUrlArchivo(dc.nombre)+'" target="_blank" class="btn btn-o btn-sm" style="text-decoration:none;">👁️ Ver</a>':'';
+    return '<div style="background:var(--p2);border:1px solid '+(dc.hasFile?'var(--G)':'var(--bd)')+';border-radius:8px;padding:12px;">'+
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
+      '<span style="font-size:20px;">'+dc.ico+'</span>'+
+      '<span style="font-size:11px;font-weight:700;color:var(--w);">'+dc.label+'</span>'+
+      '</div>'+
+      status+
+      '<div style="display:flex;gap:4px;margin-top:10px;flex-wrap:wrap;">'+
+      '<button type="button" class="btn btn-y btn-sm" onclick="scanOpen(\'admin\',\''+dc.tipo+'\')">📷 Escanear</button>'+
+      '<label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📁 Subir<input type="file" accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" style="display:none;" onchange="admEditDocumento(\''+dc.tipo+'\',this)"></label>'+
+      verBtn+
+      '</div>'+
+      '</div>';
+  }).join('');
+}
+
+function _admUrlArchivo(nombre){
+  if(!nombre)return '#';
+  if(nombre.indexOf('http')===0)return nombre;
+  return 'https://jsacnpgpnvoslrpurfxc.supabase.co/storage/v1/object/public/rec-archivos/'+nombre;
+}
+
+async function admEditDocumento(tipo,inp){
+  if(!admEditObraId){toast('Seleccioná una obra primero','warning');return;}
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>10*1024*1024){toast('Archivo muy grande. Máximo 10MB.','error');return;}
+  var mapping={
+    'admin_cp_esc':{col:'contrato_propietario_escaneado',byCol:'contrato_propietario_subido_por',dCol:'contrato_propietario_fecha',prefix:'adm_cp'},
+    'admin_planos_prop':{col:'planos_propietario_pdf',byCol:'planos_propietario_subido_por',dCol:'planos_propietario_fecha',prefix:'adm_pl'},
+    'admin_materiales':{col:'materiales_pdf',byCol:'materiales_subido_por',dCol:'materiales_fecha',prefix:'adm_mat'},
+    'admin_especif':{col:'especificaciones_pdf',byCol:'especificaciones_subido_por',dCol:'especificaciones_fecha',prefix:'adm_esp'},
+    'admin_croquis':{col:'croquis_imagen',byCol:null,dCol:null,prefix:'adm_croquis'}
+  };
+  var m=mapping[tipo];
+  if(!m){toast('Tipo no reconocido: '+tipo,'error');return;}
+  toast('Subiendo '+m.col+'...','info','📄');
+  try{
+    var ext=file.name.split('.').pop();
+    var fname=m.prefix+'_'+admEditObraId+'_'+Date.now()+'.'+ext;
+    var up=await sb.storage.from('rec-archivos').upload(fname,file,{upsert:true});
+    if(up.error)throw new Error(up.error.message);
+    var upd={};
+    upd[m.col]=fname;
+    if(m.byCol)upd[m.byCol]=CU.n+' (admin)';
+    if(m.dCol)upd[m.dCol]=new Date().toISOString();
+    await sb.from('rec_obras').update(upd).eq('id',admEditObraId);
+    // Actualizar local
+    var o=obras.find(function(x){return x.id===admEditObraId;});
+    if(o){
+      o[m.col]=fname;
+      if(m.byCol)o[m.byCol]=CU.n+' (admin)';
+      if(m.dCol)o[m.dCol]=new Date().toISOString();
+    }
+    dbLog(CU.n,'ADMIN editó documento '+m.col+' en obra '+(o?o.nom:admEditObraId));
+    toast('Documento actualizado correctamente','success','🛠️ Admin');
+    admEditSelObra(admEditObraId);
+    admEditRenderSel();
+  }catch(e){
+    console.error(e);
+    toast('Error: '+e.message,'error');
+  }
+}
+
+// (admEditRenderSel se llama desde renderAdmFull)
 
 
 </script>
