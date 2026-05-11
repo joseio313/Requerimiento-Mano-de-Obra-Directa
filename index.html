@@ -125,6 +125,21 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .uz-lbl{font-size:11px;font-weight:700;color:var(--wd);}
 .uz-sub{font-size:9px;color:var(--ws);margin-top:3px;}
 .uz-ok{font-size:10px;color:var(--Gc);margin-top:4px;font-weight:700;word-break:break-all;}
+
+/* UPLOAD CARD DUAL — cámara separada de archivo (TANDA 5 fix) */
+.up-card{background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.up-card.ok{border-color:var(--G);background:var(--Gbg);}
+.up-card-head{display:flex;align-items:center;gap:10px;}
+.up-card-ico{font-size:24px;}
+.up-card-title{font-size:12px;font-weight:800;color:var(--w);}
+.up-card-sub{font-size:9px;color:var(--ws);}
+.up-card-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.up-card-btn{padding:9px 8px;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;border:1px solid var(--bd);background:var(--p3);color:var(--w);text-align:center;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:4px;}
+.up-card-btn:hover{border-color:var(--am);background:var(--p1);}
+.up-card-btn.cam{background:rgba(245,196,0,.1);border-color:rgba(245,196,0,.3);}
+.up-card-btn.cam:hover{background:rgba(245,196,0,.2);border-color:var(--am);}
+.up-card-status{font-size:10px;color:var(--ws);font-weight:600;}
+.up-card.ok .up-card-status{color:var(--Gc);}
 .upload-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
 .upload-trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
 @media(max-width:600px){.upload-row,.upload-trio{grid-template-columns:1fr;}}
@@ -362,7 +377,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v41 · CARGA DIFERIDA + ESCANEO + TOAST</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v42 · ESCANEO DUAL (CÁMARA + ARCHIVO)</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -572,8 +587,14 @@ async function storageUrl(path){
             <div class="f full">
               <label>O croquis (imagen) <span style="color:var(--ws);font-size:9px;">— alternativa al link Maps</span></label>
               <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                <button type="button" class="btn btn-o btn-sm" onclick="document.getElementById('fi-fat-croquis').click()">📸 Subir croquis</button>
-                <input type="file" id="fi-fat-croquis" accept="image/*,.pdf" capture="environment" style="display:none;" onchange="fatUploadCroquis(this)">
+                <label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                  📷 Escanear con cámara
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="fatUploadCroquis(this)">
+                </label>
+                <label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+                  📁 Subir archivo
+                  <input type="file" accept="image/*,.pdf" style="display:none;" onchange="fatUploadCroquis(this)">
+                </label>
                 <span id="fat-croquis-status" style="font-size:11px;color:var(--ws);">— sin croquis cargado —</span>
               </div>
             </div>
@@ -823,29 +844,93 @@ async function storageUrl(path){
           <div class="al al-z" style="margin-bottom:14px;font-size:10px;">📌 <b>No es necesario tener todo al firmar.</b> Las especificaciones técnicas u otros documentos pueden cargarse después si aún no están terminados. El sistema te recordará lo que falta.</div>
 
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-            <div class="upload-zone" onclick="document.getElementById('fi-dv-ct').click()">
-              <div class="uz-ico">📄</div>
-              <div class="uz-lbl">Contrato firmado</div>
-              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
-              <input type="file" id="fi-dv-ct" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('contrato',this)">
+
+            <!-- CONTRATO -->
+            <div class="up-card" id="upc-dv-ct">
+              <div class="up-card-head">
+                <div class="up-card-ico">📄</div>
+                <div>
+                  <div class="up-card-title">Contrato firmado</div>
+                  <div class="up-card-sub">Por el propietario</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <label class="up-card-btn cam">
+                  📷 Escanear
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('contrato',this)">
+                </label>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('contrato',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-dv-ct">Sin cargar</div>
             </div>
-            <div class="upload-zone" onclick="document.getElementById('fi-dv-pl').click()">
-              <div class="uz-ico">📐</div>
-              <div class="uz-lbl">Planos firmados</div>
-              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
-              <input type="file" id="fi-dv-pl" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('planos',this)">
+
+            <!-- PLANOS -->
+            <div class="up-card" id="upc-dv-pl">
+              <div class="up-card-head">
+                <div class="up-card-ico">📐</div>
+                <div>
+                  <div class="up-card-title">Planos firmados</div>
+                  <div class="up-card-sub">Por el propietario</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <label class="up-card-btn cam">
+                  📷 Escanear
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('planos',this)">
+                </label>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('planos',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-dv-pl">Sin cargar</div>
             </div>
-            <div class="upload-zone" onclick="document.getElementById('fi-dv-mat').click()">
-              <div class="uz-ico">🧱</div>
-              <div class="uz-lbl">Lista de materiales</div>
-              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
-              <input type="file" id="fi-dv-mat" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('materiales',this)">
+
+            <!-- MATERIALES -->
+            <div class="up-card" id="upc-dv-mat">
+              <div class="up-card-head">
+                <div class="up-card-ico">🧱</div>
+                <div>
+                  <div class="up-card-title">Lista de materiales</div>
+                  <div class="up-card-sub">Firmada</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <label class="up-card-btn cam">
+                  📷 Escanear
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('materiales',this)">
+                </label>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('materiales',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-dv-mat">Sin cargar</div>
             </div>
-            <div class="upload-zone" onclick="document.getElementById('fi-dv-esp').click()">
-              <div class="uz-ico">📋</div>
-              <div class="uz-lbl">Especificaciones técnicas <span style="color:var(--ws);font-size:9px;">(opcional)</span></div>
-              <div class="uz-sub">PDF / JPG / PNG · 📷 cámara</div>
-              <input type="file" id="fi-dv-esp" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="dvUpload('especificaciones',this)">
+
+            <!-- ESPECIFICACIONES -->
+            <div class="up-card" id="upc-dv-esp">
+              <div class="up-card-head">
+                <div class="up-card-ico">📋</div>
+                <div>
+                  <div class="up-card-title">Especificaciones técnicas <span style="color:var(--ws);font-size:9px;">(opcional)</span></div>
+                  <div class="up-card-sub">Puede cargarse después</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <label class="up-card-btn cam">
+                  📷 Escanear
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="dvUpload('especificaciones',this)">
+                </label>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="dvUpload('especificaciones',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-dv-esp">Sin cargar</div>
             </div>
           </div>
           <div id="dv-msg" style="margin-top:14px;"></div>
@@ -884,17 +969,49 @@ async function storageUrl(path){
           <div id="ca-info-ct"></div>
           <div id="ca-status" style="margin-bottom:14px;"></div>
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-            <div class="upload-zone" onclick="document.getElementById('fi-ca-ct').click()">
-              <div class="uz-ico">📄</div>
-              <div class="uz-lbl">Contrato firmado contratista</div>
-              <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-ca-ct" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="caUpload('contrato',this)">
+
+            <!-- CONTRATO CONTRATISTA -->
+            <div class="up-card" id="upc-ca-ct">
+              <div class="up-card-head">
+                <div class="up-card-ico">📄</div>
+                <div>
+                  <div class="up-card-title">Contrato firmado contratista</div>
+                  <div class="up-card-sub">Firmado por contratista</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <label class="up-card-btn cam">
+                  📷 Escanear
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="caUpload('contrato',this)">
+                </label>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('contrato',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-ca-ct">Sin cargar</div>
             </div>
-            <div class="upload-zone" onclick="document.getElementById('fi-ca-pl').click()">
-              <div class="uz-ico">📐</div>
-              <div class="uz-lbl">Planos ejecución firmados</div>
-              <div class="uz-sub">PDF / JPG / PNG</div>
-              <input type="file" id="fi-ca-pl" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" capture="environment" style="display:none;" onchange="caUpload('planos',this)">
+
+            <!-- PLANOS EJECUCIÓN -->
+            <div class="up-card" id="upc-ca-pl">
+              <div class="up-card-head">
+                <div class="up-card-ico">📐</div>
+                <div>
+                  <div class="up-card-title">Planos ejecución firmados</div>
+                  <div class="up-card-sub">Generados por Carolina + firmados</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <label class="up-card-btn cam">
+                  📷 Escanear
+                  <input type="file" accept="image/*" capture="environment" style="display:none;" onchange="caUpload('planos',this)">
+                </label>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('planos',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-ca-pl">Sin cargar</div>
             </div>
           </div>
           <div id="ca-msg" style="margin-top:14px;"></div>
@@ -2707,12 +2824,32 @@ function dvSelObra(oid){
         '</div>';
     }).join('');
   }
+  // Pintar status en upload-cards
+  var cards=[
+    {id:'upc-dv-ct',v:o.contrato_propietario_escaneado,by:o.contrato_propietario_subido_por,d:o.contrato_propietario_fecha},
+    {id:'upc-dv-pl',v:o.planos_propietario_pdf,by:o.planos_propietario_subido_por,d:o.planos_propietario_fecha},
+    {id:'upc-dv-mat',v:o.materiales_pdf,by:o.materiales_subido_por,d:o.materiales_fecha},
+    {id:'upc-dv-esp',v:o.especificaciones_pdf,by:o.especificaciones_subido_por,d:o.especificaciones_fecha}
+  ];
+  cards.forEach(function(c){
+    var card=document.getElementById(c.id);
+    var st=document.getElementById('st-'+c.id);
+    if(!card||!st)return;
+    if(c.v){
+      card.classList.add('ok');
+      var fec=c.d?new Date(c.d).toLocaleDateString('es-BO'):'';
+      st.textContent='✅ Cargado · '+(c.by||'—')+' · '+fec;
+    } else {
+      card.classList.remove('ok');
+      st.textContent='⚠️ Sin cargar';
+    }
+  });
 }
 
 async function dvUpload(tipo,inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
-  if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
+  if(file.size>10*1024*1024){toast('Archivo muy grande. Máximo 10MB.','error');return;}
   if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
   var msg=document.getElementById('dv-msg');
   msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
@@ -2828,12 +2965,30 @@ function caSelCt(cid){
         '</div>';
     }).join('');
   }
+  // Pintar status en upload-cards Carolina
+  var cards=[
+    {id:'upc-ca-ct',v:c.firm_scan,by:c.contrato_firmado_subido_por,d:c.contrato_firmado_fecha},
+    {id:'upc-ca-pl',v:c.planos_contratista_pdf,by:c.planos_contratista_subido_por,d:c.planos_contratista_fecha}
+  ];
+  cards.forEach(function(cd){
+    var card=document.getElementById(cd.id);
+    var st=document.getElementById('st-'+cd.id);
+    if(!card||!st)return;
+    if(cd.v){
+      card.classList.add('ok');
+      var fec=cd.d?new Date(cd.d).toLocaleDateString('es-BO'):'';
+      st.textContent='✅ Cargado · '+(cd.by||'—')+' · '+fec;
+    } else {
+      card.classList.remove('ok');
+      st.textContent='⚠️ Sin cargar';
+    }
+  });
 }
 
 async function caUpload(tipo,inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
-  if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
+  if(file.size>10*1024*1024){toast('Archivo muy grande. Máximo 10MB.','error');return;}
   if(!caCtId){toast('Seleccioná un contrato primero.','warning');return;}
   var msg=document.getElementById('ca-msg');
   msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
@@ -2971,7 +3126,7 @@ let fatCroquisFile=null;
 async function fatUploadCroquis(inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
-  if(file.size>5*1024*1024){alert('Máximo 5MB.');return;}
+  if(file.size>5*1024*1024){toast('Máximo 5MB.','error');return;}
   if(!fatObraId){toast('Seleccioná una obra primero.','warning');return;}
   var st=document.getElementById('fat-croquis-status');
   st.textContent='⏳ Subiendo croquis...';
@@ -3198,7 +3353,10 @@ function _adRenderHistorial(o){
       var estado=a.archivo_firmado?'✅ FIRMADA':'⚠️ BORRADOR';
       var estColor=a.archivo_firmado?'var(--Gc)':'var(--Nc)';
       var btnVerFirmado=a.archivo_firmado?'<button type="button" class="btn btn-g btn-sm" data-fn="'+a.archivo_firmado+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver firmada</button>':'';
-      var btnSubirFirmado=!a.archivo_firmado?'<input type="file" id="fi-adfirm-'+a.id+'" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="adSubirFirmado('+a.id+',this)"><button type="button" class="btn btn-y btn-sm" onclick="document.getElementById(\''+'fi-adfirm-'+a.id+'\').click()">📥 Subir Firmado</button>':'';
+      var btnSubirFirmado=!a.archivo_firmado?
+        '<label class="btn btn-y btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📷 Escanear<input type="file" accept="image/*" capture="environment" style="display:none;" onchange="adSubirFirmado('+a.id+',this)"></label>'+
+        '<label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">📁 Archivo<input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="adSubirFirmado('+a.id+',this)"></label>'
+        :'';
       var btnEditar=!a.archivo_firmado?'<button type="button" class="btn btn-o btn-sm" onclick="adEditar('+a.id+')">✏️ Editar / Imprimir</button>':'';
       return '<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:8px;border-left:3px solid var(--P);">'+
         '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px;">'+
@@ -3231,7 +3389,7 @@ function adEditar(adId){
 async function adSubirFirmado(adId,inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
-  if(file.size>10*1024*1024){alert('Archivo muy grande. Máximo 10MB.');return;}
+  if(file.size>10*1024*1024){toast('Archivo muy grande. Máximo 10MB.','error');return;}
   if(!adObraId)return;
   try{
     var ext=file.name.split('.').pop();
