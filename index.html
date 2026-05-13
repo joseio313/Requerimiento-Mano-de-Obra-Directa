@@ -527,7 +527,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v47 · STEFFI SCAN + ADMIN EDITA + AJUSTES PRO</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v48 · SESION PERSISTENTE + STEFFI SIMPLIFICADO</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -574,42 +574,32 @@ async function storageUrl(path){
       <!-- PASO 1: NUEVA OBRA -->
       <div class="card" style="border-top:3px solid var(--am);">
         <div class="ct">⚖️ PASO 1 — Registrar Nueva Obra (Steffi)</div>
-        <div class="al al-z" style="margin-bottom:16px;">📌 Steffi carga el contrato firmado con el propietario del terreno. El sistema crea la obra y queda lista para que Fátima complete los datos técnicos.</div>
+        <div class="al al-z" style="margin-bottom:16px;">📌 Steffi sube el <b>archivo del contrato digital</b> (PDF/DOC) con el propietario y completa los apellidos. El sistema genera el nombre comercial y el código de obra automáticamente. El escaneado firmado lo sube David o Gustavo cuando se cierra.</div>
 
         <!-- Uploads -->
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">Contrato con Propietario (versión digital)</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-          <button type="button" class="btn btn-y btn-sm" onclick="scanOpen('steffiDig','contrato')" style="display:inline-flex;align-items:center;gap:4px;">
-            📷 Escanear contrato
-          </button>
-          <label class="btn btn-o btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
-            📁 Subir archivo
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--ws);margin-bottom:8px;font-weight:700;">📋 Contrato con Propietario (versión digital)</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;">
+          <label class="btn btn-y btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:4px;">
+            📁 Subir archivo del contrato
             <input type="file" id="fi-dig" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="onUpNuevaObra('dig',this)">
           </label>
-          <span id="txt-dig" style="font-size:11px;color:var(--Gc);align-self:center;"></span>
+          <span id="txt-dig" style="font-size:11px;color:var(--Gc);"></span>
         </div>
         <div style="display:none;">
           <div class="upload-zone" id="uz-dig"></div>
         </div>
-        <div class="al al-z" style="margin:10px 0 14px;">📌 <b>El escaneado firmado del propietario lo sube David</b> (PIN 5565) en su panel "Carga Propietario", junto con planos firmados, materiales y especificaciones técnicas.</div>
+        <div class="al al-z" style="margin:10px 0 14px;font-size:11px;">📌 El <b>escaneado firmado</b> del propietario lo sube David o Gustavo (cerrador) en su panel.</div>
 
-        <!-- Datos básicos (Steffi sabe el nombre del propietario/obra) -->
-        <div class="fg fg2" style="margin-bottom:14px;">
-          <div class="f"><label>Nombre de la Obra *</label><input id="n-nom" placeholder="ej. OBRA FERNÁNDEZ-MONTERO"></div>
-          <div class="f"><label>Código (se genera solo)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly></div>
-        </div>
-
-        <!-- ARTÍCULOS 2 Y 3 LITERALES -->
-        <div style="margin-bottom:14px;border-top:1px solid var(--bd);padding-top:14px;">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);margin-bottom:8px;font-weight:700;">📜 Texto Literal del Contrato Propietario</div>
-          <div style="font-size:10px;color:var(--wd);margin-bottom:10px;">Pegá tal cual el artículo 2 (objeto) y artículo 3 (alcance) del contrato. Sirve para que el equipo verifique palabras exactas y evite confusiones en obra.</div>
-          <div class="f" style="margin-bottom:10px;">
-            <label>Artículo 2 — OBJETO (texto literal)</label>
-            <textarea id="n-art2" rows="4" placeholder="Pegar texto del artículo 2 tal cual está en el contrato..."></textarea>
+        <!-- Datos básicos: nombres propietarios + datos de obra -->
+        <div style="border-top:1px solid var(--bd);padding-top:14px;margin-bottom:14px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);margin-bottom:10px;font-weight:700;">👤 Datos de los Propietarios</div>
+          <div class="fg fg2" style="margin-bottom:10px;">
+            <div class="f"><label>Apellido(s) Propietario 1 *</label><input id="n-prop1" placeholder="ej. Fernández Rojas" oninput="genNombreObra()"></div>
+            <div class="f"><label>Apellido(s) Propietario 2 <span style="color:var(--ws);font-size:9px;">(opcional)</span></label><input id="n-prop2" placeholder="ej. Montero Suárez" oninput="genNombreObra()"></div>
           </div>
-          <div class="f">
-            <label>Artículo 3 — ALCANCE / ESPECIFICACIONES (texto literal)</label>
-            <textarea id="n-art3" rows="6" placeholder="Pegar texto del artículo 3 tal cual está en el contrato..."></textarea>
+          <div class="fg fg2">
+            <div class="f"><label>Nombre Comercial de la Obra (auto)</label><input id="n-nom" placeholder="Se genera al escribir apellidos" readonly style="background:var(--p1);"></div>
+            <div class="f"><label>Código de Obra (auto)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly style="background:var(--p1);"></div>
           </div>
         </div>
 
@@ -1309,6 +1299,8 @@ function tryLogin(){
     return;
   }
   CU={...u};
+  // T12: persistir sesión (sobrevive al recargar)
+  try{sessionStorage.setItem('geat_session_pin',Object.keys(USERS).find(function(k){return USERS[k].n===u.n;}));}catch(e){}
   document.getElementById('screen-login').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
@@ -1317,7 +1309,29 @@ function tryLogin(){
   dbCargar();
   dbLog(u.n,'Sesión iniciada');
 }
-function logout(){CU=null;pinBuf='';document.getElementById('screen-login').style.display='flex';document.getElementById('app').style.display='none';updDots();}
+function logout(){
+  CU=null;pinBuf='';
+  try{sessionStorage.removeItem('geat_session_pin');}catch(e){}
+  document.getElementById('screen-login').style.display='flex';
+  document.getElementById('app').style.display='none';
+  updDots();
+}
+// T12: restaurar sesión al cargar la página
+function restaurarSesion(){
+  try{
+    var pin=sessionStorage.getItem('geat_session_pin');
+    if(!pin||!USERS[pin])return false;
+    var u=USERS[pin];
+    CU={...u};
+    document.getElementById('screen-login').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
+    buildNav();
+    goPanel(panelInicial());
+    dbCargar();
+    return true;
+  }catch(e){return false;}
+}
 function panelInicial(){return{admin:'adm-full',steffi:'steffi',fatima:'fatima',supervisor:'sup',david:'david',carolina:'carolina',lector:'sup'}[CU.r]||'adm-full';}
 
 // ═══════════════════════════════════════════════════
@@ -1408,42 +1422,59 @@ function genCodigo(){
   const seq=String(obras.length+1).padStart(3,'0');
   document.getElementById('n-cod').value=ini+'-'+yr+'-'+seq;
 }
+
+// T12 — generar nombre comercial desde apellidos de propietarios
+function genNombreObra(){
+  var p1=(document.getElementById('n-prop1')||{}).value||'';
+  var p2=(document.getElementById('n-prop2')||{}).value||'';
+  p1=p1.trim().toUpperCase().replace(/\s+/g,' ');
+  p2=p2.trim().toUpperCase().replace(/\s+/g,' ');
+  // Primer apellido de cada propietario (la primera palabra)
+  var ap1=p1.split(' ')[0]||'';
+  var ap2=p2.split(' ')[0]||'';
+  var nombre='';
+  if(ap1&&ap2)nombre='OBRA '+ap1+'-'+ap2;
+  else if(ap1)nombre='OBRA '+ap1;
+  var nEl=document.getElementById('n-nom');
+  if(nEl)nEl.value=nombre;
+  genCodigo();
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   const nomEl=document.getElementById('n-nom');
   if(nomEl)nomEl.addEventListener('input',genCodigo);
+  // T12: intentar restaurar sesión si existe
+  setTimeout(function(){restaurarSesion();},100);
 });
 function limpiarNuevaObra(){
   nueObraFiles={dig:null,esc:null};
+  const p1=document.getElementById('n-prop1');if(p1)p1.value='';
+  const p2=document.getElementById('n-prop2');if(p2)p2.value='';
   const nNom=document.getElementById('n-nom');if(nNom)nNom.value='';
   const nCod=document.getElementById('n-cod');if(nCod)nCod.value='';
   const nTd=document.getElementById('txt-dig');if(nTd)nTd.textContent='';
   const nUd=document.getElementById('uz-dig');if(nUd)nUd.classList.remove('ok');
-  const nA2=document.getElementById('n-art2');if(nA2)nA2.value='';
-  const nA3=document.getElementById('n-art3');if(nA3)nA3.value='';
 }
 async function guardarNuevaObra(){
+  const p1=(document.getElementById('n-prop1')||{}).value||'';
+  const p2=(document.getElementById('n-prop2')||{}).value||'';
+  if(!p1.trim()){toast('Ingresá al menos el apellido del propietario 1','warning');return;}
   const nom=document.getElementById('n-nom').value.trim();
-  if(!nom){alert('⚠️ Ingresá el nombre de la obra.');return;}
-  if(!nueObraFiles.dig){alert('⚠️ Subí el contrato digital. (El escaneado lo sube David)');return;}
+  if(!nom){toast('El nombre se genera solo. Llená los apellidos.','warning');return;}
+  if(!nueObraFiles.dig){toast('Subí el archivo del contrato (PDF/DOC). El escaneado firmado lo sube David.','warning');return;}
   let cod=document.getElementById('n-cod').value.trim();
   if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3);cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
-  const a2El=document.getElementById('n-art2');
-  const a3El=document.getElementById('n-art3');
-  const art2=a2El?a2El.value.trim()||null:null;
-  const art3=a3El?a3El.value.trim()||null:null;
-  const o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:'',obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[],articulo_2_propietario:art2,articulo_3_propietario:art3};
+  // Notas: guardamos los apellidos como referencia
+  var notasProp='Propietario 1: '+p1.trim()+(p2.trim()?(' | Propietario 2: '+p2.trim()):'');
+  const o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[]};
   obras.push(o);
   try{
     await dbGuardarObra(o);
-    // Guardar artículos por separado (no van en dbGuardarObra)
-    if(art2||art3){
-      await sb.from('rec_obras').update({articulo_2_propietario:art2,articulo_3_propietario:art3}).eq('id',o.id);
-    }
     if(nueObraFiles.dig){const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);await storageUpload(p,nueObraFiles.dig);o.cp_dig=p;await dbGuardarObra(o);}
     dbLog(CU.n,'Nueva obra registrada: '+nom);
-    alert('✅ Obra "'+nom+'" registrada.\n👉 Ahora Fátima completa los datos técnicos y David sube los escaneados firmados.');
+    toast('Obra "'+nom+'" registrada. Ahora Fátima completa datos técnicos.','success','✅');
     limpiarNuevaObra();renderTodo();
-  }catch(e){alert('❌ Error al guardar: '+e.message);obras=obras.filter(x=>x.id!==o.id);}
+  }catch(e){toast('Error al guardar: '+e.message,'error');obras=obras.filter(x=>x.id!==o.id);}
 }
 function renderSteffii(){
   if(CU&&CU.r!=='steffi'&&CU.r!=='admin')return;
