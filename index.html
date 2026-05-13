@@ -527,7 +527,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v50 · CONTRATISTA DESTACADO + DOCS LIMPIOS</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v51 · SIN REDUNDANCIA WHATSAPP/MAPS</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -2279,20 +2279,12 @@ function supSelObra(oid){
     html+='<div style="font-size:11px;color:var(--Gc);margin-top:6px;">🤝 Cerrador: <b>'+o.cerrador_responsable+'</b> · 📅 '+ff+'</div>';
   }
   html+='</div>';
-  // Acciones a la derecha: WhatsApp + Mapa
-  html+='<div style="display:flex;flex-direction:column;gap:6px;">';
-  if(ct&&ct.tel){
-    var telWA=_supTelLimpio(ct.tel);
-    var msgWA=encodeURIComponent('Hola '+(ct.nom||'')+', te contacto por la obra "'+(o.nom||'')+'".');
-    html+='<a href="https://wa.me/'+telWA+'?text='+msgWA+'" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;">💬 WhatsApp Contratista</a>';
-  }
-  if(o.map){
-    html+='<a href="'+o.map+'" target="_blank" class="btn btn-o btn-sm" style="text-decoration:none;">📍 Abrir Maps</a>';
-  }
+  // Acciones a la derecha: solo Descargar PDF (WhatsApp y Maps están en el bloque contratista)
   if(puedeDescargar){
+    html+='<div style="display:flex;flex-direction:column;gap:6px;">';
     html+='<button type="button" class="btn btn-y btn-sm" onclick="supDescargarPDF('+o.id+')">⬇️ Descargar PDF</button>';
+    html+='</div>';
   }
-  html+='</div>';
   html+='</div></div>';
 
   // ═══ BLOQUE 2: CONTRATISTA ASIGNADO (DESTACADO Y VISIBLE) ═══
@@ -2315,12 +2307,14 @@ function supSelObra(oid){
       html+='<a href="https://wa.me/'+telWAct+'?text='+msgWAct+'" target="_blank" class="btn btn-g" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;">💬 WhatsApp Directo</a>';
       html+='<a href="tel:+'+telWAct+'" class="btn btn-o" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">📞 Llamar</a>';
     }
+    if(o.map){
+      html+='<a href="'+o.map+'" target="_blank" class="btn btn-o" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">📍 Abrir Maps Obra</a>';
+    }
     html+='</div>';
     // Datos en grid
     html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;background:var(--p1);border-radius:6px;padding:12px;">';
     if(ct.tel)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">📞 Teléfono</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+ct.tel+'</div></div>';
     if(ct.ci_n)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">🪪 C.I.</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+ct.ci_n+'</div></div>';
-    if(ct.dir)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">🏠 Dirección</div><div style="font-size:12px;font-weight:600;color:var(--wd);">'+ct.dir+'</div></div>';
     if(ct.cond)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">💰 Forma de Pago</div><div style="font-size:14px;font-weight:800;color:var(--am);">'+ct.cond+'</div></div>';
     html+='</div>';
     // Cronograma quincenal si hay
