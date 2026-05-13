@@ -527,7 +527,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v49 · SUPERVISION REDISENADA + ACCESO MULTIROL</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v50 · CONTRATISTA DESTACADO + DOCS LIMPIOS</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -2295,7 +2295,58 @@ function supSelObra(oid){
   html+='</div>';
   html+='</div></div>';
 
-  // ═══ BLOQUE 2: CONTRATO PROPIETARIO (objeto, inclusiones, exclusiones) ═══
+  // ═══ BLOQUE 2: CONTRATISTA ASIGNADO (DESTACADO Y VISIBLE) ═══
+  if(ct){
+    var telWAct=ct.tel?_supTelLimpio(ct.tel):'';
+    var msgWAct=encodeURIComponent('Hola '+(ct.nom||'')+', te contacto por la obra "'+(o.nom||'')+'".');
+    html+='<div style="background:linear-gradient(135deg,rgba(245,196,0,.12),var(--p2));border:2px solid var(--am);border-radius:10px;padding:18px;margin-bottom:14px;box-shadow:0 4px 12px rgba(245,196,0,.08);">';
+    html+='<div style="font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--am);font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:8px;">';
+    html+='<span style="font-size:18px;">👷</span> Contratista Asignado</div>';
+    // Nombre destacado en grande
+    html+='<div style="font-size:22px;font-weight:900;color:var(--w);margin-bottom:8px;line-height:1.2;">'+(ct.nom||'Sin asignar')+'</div>';
+    // Estado del contrato
+    var estCt=ct.est_ct||'pendiente';
+    var estColor={firmado:'var(--Gc)',aprobado:'var(--am)',revision:'var(--Nc)',pendiente:'var(--ws)'}[estCt]||'var(--ws)';
+    var estIco={firmado:'✅',aprobado:'👍',revision:'🔍',pendiente:'⏳'}[estCt]||'⏳';
+    html+='<div style="font-size:11px;color:'+estColor+';font-weight:700;margin-bottom:14px;">'+estIco+' Estado: '+estCt.toUpperCase()+'</div>';
+    // Botones de contacto destacados
+    html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">';
+    if(telWAct){
+      html+='<a href="https://wa.me/'+telWAct+'?text='+msgWAct+'" target="_blank" class="btn btn-g" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:800;">💬 WhatsApp Directo</a>';
+      html+='<a href="tel:+'+telWAct+'" class="btn btn-o" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">📞 Llamar</a>';
+    }
+    html+='</div>';
+    // Datos en grid
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;background:var(--p1);border-radius:6px;padding:12px;">';
+    if(ct.tel)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">📞 Teléfono</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+ct.tel+'</div></div>';
+    if(ct.ci_n)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">🪪 C.I.</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+ct.ci_n+'</div></div>';
+    if(ct.dir)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">🏠 Dirección</div><div style="font-size:12px;font-weight:600;color:var(--wd);">'+ct.dir+'</div></div>';
+    if(ct.cond)html+='<div><div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">💰 Forma de Pago</div><div style="font-size:14px;font-weight:800;color:var(--am);">'+ct.cond+'</div></div>';
+    html+='</div>';
+    // Cronograma quincenal si hay
+    if(ct.cronograma_quincenal&&ct.cronograma_quincenal.length){
+      html+='<div style="margin-top:12px;background:var(--p1);border-radius:6px;padding:12px;">';
+      html+='<div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px;">📅 Cronograma Quincenal</div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:6px;">';
+      ct.cronograma_quincenal.forEach(function(q,i){
+        html+='<div style="background:var(--p2);border-radius:5px;padding:8px;text-align:center;border:1px solid var(--bd);">';
+        html+='<div style="font-size:9px;color:var(--ws);">Quincena '+(i+1)+'</div>';
+        html+='<div style="font-size:16px;font-weight:900;color:var(--am);margin:2px 0;">'+q.pct+'%</div>';
+        if(q.fecha)html+='<div style="font-size:9px;color:var(--ws);">'+new Date(q.fecha).toLocaleDateString('es-BO')+'</div>';
+        html+='</div>';
+      });
+      html+='</div></div>';
+    }
+    html+='</div>';
+  } else {
+    // Sin contratista asignado
+    html+='<div style="background:var(--p2);border:2px dashed var(--bd);border-radius:10px;padding:18px;margin-bottom:14px;text-align:center;">';
+    html+='<div style="font-size:24px;margin-bottom:6px;">👷</div>';
+    html+='<div style="font-size:12px;color:var(--ws);">Sin contratista asignado todavía</div>';
+    html+='</div>';
+  }
+
+  // ═══ BLOQUE 3: CONTRATO PROPIETARIO (objeto, inclusiones, exclusiones) ═══
   if(o.obj||o.inc||o.exc){
     html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--am);">';
     html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:800;margin-bottom:12px;">📋 Contrato con el Propietario</div>';
@@ -2351,8 +2402,6 @@ function supSelObra(oid){
   html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--Gc);">';
   html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--Gc);font-weight:800;margin-bottom:12px;">📑 Documentos Firmados</div>';
   var docs=[
-    {label:'Contrato propietario firmado',file:o.contrato_propietario_escaneado,by:o.contrato_propietario_subido_por||'David/Gustavo'},
-    {label:'Planos propietario firmados',file:o.planos_propietario_pdf,by:o.planos_propietario_subido_por||'David/Gustavo'},
     {label:'Lista materiales firmada',file:o.materiales_pdf,by:o.materiales_subido_por||'David/Gustavo'},
     {label:'Especificaciones técnicas firmadas',file:o.especificaciones_pdf,by:o.especificaciones_subido_por||'David/Gustavo'},
     {label:'Contrato contratista firmado',file:ct&&ct.firm_scan?ct.firm_scan:null,by:ct&&ct.contrato_firmado_subido_por?ct.contrato_firmado_subido_por:'Carolina'},
@@ -2395,32 +2444,7 @@ function supSelObra(oid){
     html+='</div>';
   }
 
-  // ═══ BLOQUE 6: CONTRATISTA + CRONOGRAMA + PENALIDADES ═══
-  if(ct){
-    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;">';
-    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--wd);font-weight:800;margin-bottom:12px;">👷 Contratista Asignado</div>';
-    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">';
-    html+='<div><div style="font-size:9px;color:var(--ws);">Nombre</div><div style="font-size:13px;font-weight:700;color:var(--w);">'+(ct.nom||'?')+'</div></div>';
-    if(ct.tel)html+='<div><div style="font-size:9px;color:var(--ws);">Teléfono</div><div style="font-size:13px;font-weight:700;color:var(--w);">'+ct.tel+'</div></div>';
-    if(ct.ci_n)html+='<div><div style="font-size:9px;color:var(--ws);">C.I.</div><div style="font-size:13px;font-weight:700;color:var(--w);">'+ct.ci_n+'</div></div>';
-    if(ct.cond)html+='<div><div style="font-size:9px;color:var(--ws);">Forma de Pago</div><div style="font-size:13px;font-weight:700;color:var(--am);">'+ct.cond+'</div></div>';
-    html+='</div>';
-    // Cronograma quincenal si hay
-    if(ct.cronograma_quincenal&&ct.cronograma_quincenal.length){
-      html+='<div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:10px;">';
-      html+='<div style="font-size:9px;color:var(--ws);font-weight:700;margin-bottom:6px;">CRONOGRAMA QUINCENAL DE AVANCE</div>';
-      html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;">';
-      ct.cronograma_quincenal.forEach(function(q,i){
-        html+='<div style="background:var(--p1);border-radius:5px;padding:8px;text-align:center;">';
-        html+='<div style="font-size:9px;color:var(--ws);">Q'+(i+1)+'</div>';
-        html+='<div style="font-size:14px;font-weight:800;color:var(--am);">'+q.pct+'%</div>';
-        if(q.fecha)html+='<div style="font-size:9px;color:var(--ws);">'+new Date(q.fecha).toLocaleDateString('es-BO')+'</div>';
-        html+='</div>';
-      });
-      html+='</div></div>';
-    }
-    html+='</div>';
-  }
+  // ═══ BLOQUE CONTRATISTA: ya se muestra arriba ═══
 
   // ═══ BLOQUE 7: NOTAS (si hay) ═══
   if(o.not){
