@@ -527,7 +527,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v48 · SESION PERSISTENTE + STEFFI SIMPLIFICADO</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v49 · SUPERVISION REDISENADA + ACCESO MULTIROL</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -922,17 +922,15 @@ async function storageUrl(path){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-sup">
 
-      <!-- BANNER ROL -->
-      <div style="background:linear-gradient(135deg,rgba(4,120,86,.15),var(--p2));border:1px solid var(--G);border-radius:8px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Gc);font-weight:800;margin-bottom:4px;">🏗️ SUPERVISIÓN DE OBRA — ARQ. RAÍ</div>
+      <!-- BANNER ROL DINÁMICO -->
+      <div id="sup-banner" style="background:linear-gradient(135deg,rgba(4,120,86,.15),var(--p2));border:1px solid var(--G);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Gc);font-weight:800;margin-bottom:4px;">🏗️ Panel de Supervisión</div>
         <div style="font-size:11px;color:var(--wd);line-height:1.6;">
-          <b style="color:var(--Gc);">Tu vista:</b> paquete completo de cada obra para usar en campo.<br>
-          <b>Ves todo:</b> datos del contratista, forma de pago, cronograma quincenal, módulos, obligaciones, penalidades, artículos literales del contrato propietario, documentos firmados (botón 👁️ Ver), adendas y croquis.<br>
-          <span style="color:var(--ws);font-size:10px;">🖨️ Botón Imprimir genera el paquete completo en formato oficio para llevar a obra.</span>
+          Vista consolidada de cada obra: datos técnicos, documentos firmados, ubicación, contacto del contratista y adendas.
         </div>
       </div>
       <div class="card" style="border-top:3px solid var(--Gc);">
-        <div class="ct" style="color:var(--Gc);">🏗️ SUPERVISIÓN DE CAMPO</div>
+        <div class="ct" style="color:var(--Gc);">🏗️ SUPERVISIÓN DE OBRA</div>
         <div class="f" style="margin-bottom:14px;">
           <label>Seleccionar Obra</label>
           <select id="sup-sel" onchange="supSelObra(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
@@ -1349,11 +1347,11 @@ function buildNav(){
       {id:'carolina',l:'📋 Carga Contratista'},
       {id:'sup',l:'🏗️ Supervisión'}
     ],
-    steffi:[{id:'steffi',l:'⚖️ Mi Panel'}],
-    fatima:[{id:'fatima',l:'📋 Mi Panel'}],
+    steffi:[{id:'steffi',l:'⚖️ Mi Panel'},{id:'sup',l:'🏗️ Supervisión'}],
+    fatima:[{id:'fatima',l:'📋 Mi Panel'},{id:'sup',l:'🏗️ Supervisión'}],
     supervisor:[{id:'sup',l:'🏗️ Supervisión'}],
-    david:[{id:'david',l:'📐 Carga del Propietario'}],
-    carolina:[{id:'carolina',l:'📋 Carga del Contratista'}],
+    david:[{id:'david',l:'📐 Carga del Propietario'},{id:'sup',l:'🏗️ Supervisión'}],
+    carolina:[{id:'carolina',l:'📋 Carga del Contratista'},{id:'sup',l:'🏗️ Supervisión'}],
     lector:[{id:'sup',l:'🏗️ Supervisión'}]
   };
   (maps[CU.r]||[]).forEach(b=>{
@@ -2221,219 +2219,241 @@ Contratista                          GAMBARTE ARQUITECTURA S.R.L.`;
 // PANEL SUPERVISOR
 // ═══════════════════════════════════════════════════
 function renderSup(){
+  // Mostrar todas las obras (no solo las con sup>0) para que vean también lo nuevo
   const sel=document.getElementById('sup-sel');if(!sel)return;
-  const activas=obras.filter(o=>o.sup>0);
-  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+activas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
+  const lista=obras.slice().sort(function(a,b){return (a.nom||'').localeCompare(b.nom||'');});
+  sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+
+    lista.map(function(o){
+      var estado=o.sup>0?'':' (sin datos técnicos)';
+      return '<option value="'+o.id+'">'+(o.nom||'?')+' · '+(o.cod||'')+estado+'</option>';
+    }).join('');
+  // Banner dinámico según rol
+  var banner=document.getElementById('sup-banner');
+  if(banner&&CU){
+    var puedeDescargar=(CU.r==='supervisor'||CU.r==='admin');
+    var permisoTxt=puedeDescargar?'✅ <b>Permiso de descarga activo</b>: podés bajar el paquete completo en PDF.':'👀 <b>Modo consulta:</b> podés ver toda la información. Para descargar PDF avisá a Arq. Raí o Josemiguel.';
+    banner.innerHTML='<div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Gc);font-weight:800;margin-bottom:4px;">🏗️ Panel de Supervisión — '+(CU.n||'')+'</div>'+
+      '<div style="font-size:11px;color:var(--wd);line-height:1.6;">'+
+      'Vista consolidada de cada obra: datos técnicos, documentos firmados, ubicación, contrato propietario, contacto del contratista y adendas.<br>'+
+      '<span style="font-size:10px;">'+permisoTxt+'</span>'+
+      '</div>';
+  }
 }
+
+// URL pública de archivo en Supabase Storage
+function _supUrl(nombre){
+  if(!nombre)return null;
+  if(String(nombre).indexOf('http')===0)return nombre;
+  return 'https://jsacnpgpnvoslrpurfxc.supabase.co/storage/v1/object/public/rec-archivos/'+nombre;
+}
+
+// Extraer solo número de teléfono limpio para WhatsApp
+function _supTelLimpio(tel){
+  if(!tel)return '';
+  var t=String(tel).replace(/[^0-9+]/g,'');
+  // Si no tiene +, asumir Bolivia (591)
+  if(t&&t.indexOf('+')!==0){
+    if(t.length===8)t='591'+t;
+    else if(t.indexOf('591')!==0)t='591'+t;
+  }
+  return t.replace('+','');
+}
+
 function supSelObra(oid){
   var c=document.getElementById('sup-content');if(!c)return;
   if(!oid){c.innerHTML='';return;}
   var o=obras.find(function(x){return x.id==oid;});if(!o)return;
   var ct=gCByObra(o.id);
-  var monto=o.monto||0;
-  var p1u=(monto*0.30).toFixed(2),p1b=Math.round(monto*0.30*6.96);
-  var p2u=(monto*0.40).toFixed(2),p2b=Math.round(monto*0.40*6.96);
-  var p3u=(monto*0.30).toFixed(2),p3b=Math.round(monto*0.30*6.96);
-  var diasRest='',pct=0,colorBarra='var(--am)';
-  if(o.fi&&o.di){
-    var ini=new Date(o.fi),fin=new Date(ini);fin.setDate(fin.getDate()+parseInt(o.di));
-    var hoy=new Date(),total=fin-ini,trans=hoy-ini;
-    pct=Math.min(100,Math.max(0,Math.round(trans/total*100)));
-    colorBarra=pct>90?'#f87171':pct>70?'#fb923c':'var(--am)';
-    var restMs=fin-hoy;
-    diasRest=restMs>0?Math.ceil(restMs/86400000)+' dias restantes':'PLAZO VENCIDO hace '+Math.abs(Math.ceil(restMs/86400000))+' dias';
-  }
-  var html='<div id="sup-paquete" style="margin-top:14px;">';
-  // Header
-  html+='<div style="background:linear-gradient(135deg,#1a1200,#2d2000);border:2px solid var(--am);border-radius:10px;padding:16px;margin-bottom:12px;">';
-  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:'+(o.fi&&o.di?10:0)+'px;">';
-  html+='<div>';
-  html+='<div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:rgba(245,196,0,.6);font-weight:700;">PAQUETE DE SUPERVISION</div>';
-  html+='<div style="font-size:22px;font-weight:900;color:var(--am);margin-top:3px;">'+o.nom+'</div>';
-  html+='<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">'+o.cod+' · '+o.sup+'m2 · '+o.cuad+' personas</div>';
-  html+='</div>';
-  html+='<button type="button" class="btn btn-g btn-sm" onclick="supImprimir()" style="font-weight:900;">Imprimir</button>';
-  html+='</div>';
-  if(o.fi&&o.di){
-    html+='<div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px;">';
-    html+='<span>Inicio: '+o.fi+'</span><span>'+diasRest+'</span><span>Fin: '+fechaFin(o.fi,o.di)+'</span>';
-    html+='</div>';
-    html+='<div style="background:rgba(255,255,255,.1);border-radius:100px;height:7px;">';
-    html+='<div style="background:'+colorBarra+';width:'+pct+'%;height:7px;border-radius:100px;"></div>';
-    html+='</div>';
-    html+='<div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:3px;text-align:right;">'+pct+'% del plazo · '+o.di+' dias totales</div>';
-    html+='</div>';
+  var puedeDescargar=(CU.r==='supervisor'||CU.r==='admin');
+
+  // ═══ BLOQUE 1: CABECERA DE OBRA ═══
+  var html='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;">';
+  html+='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">';
+  html+='<div style="flex:1;min-width:220px;">';
+  html+='<div style="font-size:18px;font-weight:900;color:var(--am);">'+(o.nom||'?')+'</div>';
+  html+='<div style="font-size:11px;color:var(--ws);margin-top:2px;">'+(o.cod||'')+'</div>';
+  if(o.sup>0)html+='<div style="font-size:11px;color:var(--wd);margin-top:6px;">📐 '+o.sup+' m² · 🛠️ '+(o.cuad||0)+' obreros · 🗓️ '+(o.di||0)+' días</div>';
+  // Cerrador + firma notaría
+  if(o.cerrador_responsable){
+    var ff=o.fecha_firma_notaria?new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO'):'—';
+    html+='<div style="font-size:11px;color:var(--Gc);margin-top:6px;">🤝 Cerrador: <b>'+o.cerrador_responsable+'</b> · 📅 '+ff+'</div>';
   }
   html+='</div>';
-  // Grid datos + contratista
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;">';
-  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Datos de Obra</div>';
-  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Codigo: <b style="color:var(--w);">'+o.cod+'</b></div>';
-  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Superficie: <b style="color:var(--w);">'+o.sup+'m2</b></div>';
-  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Cuadrilla: <b style="color:var(--w);">'+o.cuad+' personas</b></div>';
-  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Inicio: <b style="color:var(--w);">'+(o.fi||'—')+'</b></div>';
-  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Plazo: <b style="color:var(--w);">'+(o.di||'—')+' dias</b></div>';
-  html+='<div style="font-size:11px;color:var(--wd);margin-bottom:8px;">Fin estimado: <b style="color:var(--w);">'+fechaFin(o.fi,o.di)+'</b></div>';
-  if(o.map) html+='<a href="'+o.map+'" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;">📍 Maps</a>';
-  html+='</div>';
-  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;">';
-  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Contratista Asignado</div>';
-  if(ct){
-    html+='<div style="font-size:15px;font-weight:800;margin-bottom:5px;">'+ct.nom+'</div>';
-    html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">Tel: <b style="color:var(--w);">'+(ct.tel||'—')+'</b></div>';
-    html+='<div style="font-size:11px;color:var(--wd);margin-bottom:3px;">C.I.: '+(ct.ci_n||'—')+'</div>';
-    html+='<div style="font-size:11px;color:var(--wd);margin-bottom:8px;">Dir: '+(ct.dir||'—')+'</div>';
-    if(ct.tel) html+='<a href="https://wa.me/591'+ct.tel+'" target="_blank" class="btn btn-sm" style="background:#25d366;color:#000;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">💬 WhatsApp</a>';
-  } else {
-    html+='<div style="font-size:11px;color:var(--ws);">Sin contratista asignado.</div>';
+  // Acciones a la derecha: WhatsApp + Mapa
+  html+='<div style="display:flex;flex-direction:column;gap:6px;">';
+  if(ct&&ct.tel){
+    var telWA=_supTelLimpio(ct.tel);
+    var msgWA=encodeURIComponent('Hola '+(ct.nom||'')+', te contacto por la obra "'+(o.nom||'')+'".');
+    html+='<a href="https://wa.me/'+telWA+'?text='+msgWA+'" target="_blank" class="btn btn-g btn-sm" style="text-decoration:none;">💬 WhatsApp Contratista</a>';
+  }
+  if(o.map){
+    html+='<a href="'+o.map+'" target="_blank" class="btn btn-o btn-sm" style="text-decoration:none;">📍 Abrir Maps</a>';
+  }
+  if(puedeDescargar){
+    html+='<button type="button" class="btn btn-y btn-sm" onclick="supDescargarPDF('+o.id+')">⬇️ Descargar PDF</button>';
   }
   html+='</div>';
-  html+='</div>';
-  // Pagos
-  html+='<div style="background:rgba(4,120,86,.1);border:1px solid var(--G);border-radius:6px;padding:13px;margin-bottom:10px;">';
-  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Gc);margin-bottom:10px;">Forma de Pago</div>';
-  html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">';
-  html+='<div style="text-align:center;background:rgba(0,0,0,.2);border-radius:4px;padding:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">Pago 1 - 30%</div><div style="font-size:14px;font-weight:900;">$'+p1u+'</div><div style="font-size:9px;color:var(--wd);">Bs '+p1b.toLocaleString('es-BO')+'</div></div>';
-  html+='<div style="text-align:center;background:rgba(0,0,0,.2);border-radius:4px;padding:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">Pago 2 - 40%</div><div style="font-size:14px;font-weight:900;">$'+p2u+'</div><div style="font-size:9px;color:var(--wd);">Bs '+p2b.toLocaleString('es-BO')+'</div></div>';
-  html+='<div style="text-align:center;background:rgba(0,0,0,.2);border-radius:4px;padding:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">Pago 3 - 30%</div><div style="font-size:14px;font-weight:900;">$'+p3u+'</div><div style="font-size:9px;color:var(--wd);">Bs '+p3b.toLocaleString('es-BO')+'</div></div>';
-  html+='</div>';
-  html+='<div style="font-size:10px;color:var(--ws);margin-top:8px;">SOAT-C obligatorio en max. 3 dias del primer pago. Multa: Bs 50/dia.</div>';
-  html+='</div>';
-  // Objeto
-  if(o.obj) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Objeto del Contrato</div><div style="font-size:11px;line-height:1.7;color:var(--wd);">'+o.obj+'</div></div>';
-  // ─── Cerrador responsable + fecha firma notaría ───
-  if(o.cerrador_responsable||o.fecha_firma_notaria){
-    var ff=o.fecha_firma_notaria?new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO',{day:'2-digit',month:'long',year:'numeric'}):'—';
-    html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;">';
-    html+='<div><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:4px;">🤝 Cerrador Responsable</div>';
-    html+='<div style="font-size:13px;font-weight:700;color:var(--w);">'+(o.cerrador_responsable||'(no asignado)')+'</div></div>';
-    html+='<div style="text-align:right;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:4px;">📅 Firma en Notaría</div>';
-    html+='<div style="font-size:13px;font-weight:700;color:var(--w);">'+ff+'</div></div>';
-    html+='</div>';
-  }
-  // ─── Artículos literales del contrato propietario ───
-  if(o.articulo_2_propietario||o.articulo_3_propietario){
-    html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;">';
-    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:8px;">📜 Texto Literal — Contrato Propietario</div>';
-    html+='<div style="font-size:9px;color:var(--ws);margin-bottom:10px;">Lo que se firmó con el propietario, palabra por palabra:</div>';
-    if(o.articulo_2_propietario){
-      html+='<div style="margin-bottom:10px;">';
-      html+='<div style="font-size:10px;color:var(--am);font-weight:700;margin-bottom:4px;">ARTÍCULO 2 — OBJETO</div>';
-      html+='<div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;font-family:Georgia,serif;font-style:italic;">'+o.articulo_2_propietario+'</div>';
-      html+='</div>';
+  html+='</div></div>';
+
+  // ═══ BLOQUE 2: CONTRATO PROPIETARIO (objeto, inclusiones, exclusiones) ═══
+  if(o.obj||o.inc||o.exc){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--am);">';
+    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--am);font-weight:800;margin-bottom:12px;">📋 Contrato con el Propietario</div>';
+    if(o.obj){
+      html+='<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--ws);font-weight:700;margin-bottom:4px;">OBJETIVO</div><div style="font-size:12px;color:var(--wd);line-height:1.6;white-space:pre-line;">'+o.obj+'</div></div>';
     }
-    if(o.articulo_3_propietario){
-      html+='<div>';
-      html+='<div style="font-size:10px;color:var(--am);font-weight:700;margin-bottom:4px;">ARTÍCULO 3 — ALCANCE</div>';
-      html+='<div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;font-family:Georgia,serif;font-style:italic;">'+o.articulo_3_propietario+'</div>';
-      html+='</div>';
+    if(o.inc){
+      html+='<div style="margin-bottom:10px;"><div style="font-size:10px;color:var(--Gc);font-weight:700;margin-bottom:4px;">✅ INCLUSIONES</div><div style="font-size:12px;color:var(--wd);line-height:1.6;white-space:pre-line;">'+o.inc+'</div></div>';
+    }
+    if(o.exc){
+      html+='<div><div style="font-size:10px;color:var(--Rc);font-weight:700;margin-bottom:4px;">❌ EXCLUSIONES</div><div style="font-size:12px;color:var(--wd);line-height:1.6;white-space:pre-line;">'+o.exc+'</div></div>';
     }
     html+='</div>';
   }
-  // ─── Documentos firmados visualizables ───
-  var archivos=[
-    {f:o.contrato_propietario_escaneado,l:'📄 Contrato Propietario',by:o.contrato_propietario_subido_por},
-    {f:o.planos_propietario_pdf,l:'📐 Planos Propietario',by:o.planos_propietario_subido_por},
-    {f:o.materiales_pdf,l:'🧱 Lista Materiales',by:o.materiales_subido_por},
-    {f:o.especificaciones_pdf,l:'📋 Especificaciones Técnicas',by:o.especificaciones_subido_por}
+
+  // ═══ BLOQUE 3: DATOS TÉCNICOS (Fátima) ═══
+  if(o.sup>0||o.mods&&o.mods.length||o.fi){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--Zc);">';
+    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--Zc);font-weight:800;margin-bottom:12px;">🔧 Datos Técnicos (cargados por Fátima)</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px;">';
+    if(o.sup)html+='<div><div style="font-size:9px;color:var(--ws);">Superficie</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+o.sup+' m²</div></div>';
+    if(o.cuad)html+='<div><div style="font-size:9px;color:var(--ws);">Cuadrilla</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+o.cuad+' obreros</div></div>';
+    if(o.di)html+='<div><div style="font-size:9px;color:var(--ws);">Días ejecución</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+o.di+' días</div></div>';
+    if(o.fi){
+      var fIni=new Date(o.fi).toLocaleDateString('es-BO');
+      html+='<div><div style="font-size:9px;color:var(--ws);">Fecha inicio</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+fIni+'</div></div>';
+      if(o.di){
+        var fFin=new Date(o.fi);fFin.setDate(fFin.getDate()+parseInt(o.di));
+        html+='<div><div style="font-size:9px;color:var(--ws);">Fecha fin estimada</div><div style="font-size:14px;font-weight:700;color:var(--w);">'+fFin.toLocaleDateString('es-BO')+'</div></div>';
+      }
+    }
+    html+='</div>';
+    // Módulos
+    if(o.mods&&o.mods.length){
+      html+='<div style="margin-top:10px;border-top:1px solid var(--bd);padding-top:10px;">';
+      html+='<div style="font-size:9px;color:var(--ws);font-weight:700;margin-bottom:6px;">MÓDULOS A EJECUTAR ('+o.mods.length+')</div>';
+      html+='<div class="mods-grid">';
+      for(var mi=0;mi<o.mods.length;mi++){
+        html+='<div class="mod-item"><span class="mod-num">M'+String(mi+1).padStart(2,'0')+'</span> '+o.mods[mi]+'</div>';
+      }
+      html+='</div></div>';
+    }
+    // Croquis si tiene
+    if(o.croquis_imagen){
+      var croqUrl=_supUrl(o.croquis_imagen);
+      html+='<div style="margin-top:10px;"><div style="font-size:9px;color:var(--ws);font-weight:700;margin-bottom:6px;">🗺️ CROQUIS</div>';
+      html+='<a href="'+croqUrl+'" target="_blank"><img src="'+croqUrl+'" style="max-width:100%;max-height:200px;border-radius:6px;border:1px solid var(--bd);"></a></div>';
+    }
+    html+='</div>';
+  }
+
+  // ═══ BLOQUE 4: DOCUMENTOS FIRMADOS ═══
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--Gc);">';
+  html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--Gc);font-weight:800;margin-bottom:12px;">📑 Documentos Firmados</div>';
+  var docs=[
+    {label:'Contrato propietario firmado',file:o.contrato_propietario_escaneado,by:o.contrato_propietario_subido_por||'David/Gustavo'},
+    {label:'Planos propietario firmados',file:o.planos_propietario_pdf,by:o.planos_propietario_subido_por||'David/Gustavo'},
+    {label:'Lista materiales firmada',file:o.materiales_pdf,by:o.materiales_subido_por||'David/Gustavo'},
+    {label:'Especificaciones técnicas firmadas',file:o.especificaciones_pdf,by:o.especificaciones_subido_por||'David/Gustavo'},
+    {label:'Contrato contratista firmado',file:ct&&ct.firm_scan?ct.firm_scan:null,by:ct&&ct.contrato_firmado_subido_por?ct.contrato_firmado_subido_por:'Carolina'},
+    {label:'Planos ejecución firmados',file:ct&&ct.planos_contratista_pdf?ct.planos_contratista_pdf:null,by:ct&&ct.planos_contratista_subido_por?ct.planos_contratista_subido_por:'Carolina'}
   ];
-  if(ct){
-    archivos.push({f:ct.firm_scan,l:'📄 Contrato Contratista',by:ct.contrato_firmado_subido_por});
-    archivos.push({f:ct.planos_contratista_pdf,l:'📐 Planos Ejecución',by:ct.planos_contratista_subido_por});
-  }
-  var conArch=archivos.filter(function(a){return a.f;});
-  if(conArch.length){
-    html+='<div style="background:rgba(30,64,175,.05);border:1px solid var(--Z);border-radius:6px;padding:13px;margin-bottom:10px;">';
-    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Zc);margin-bottom:10px;">📎 Documentos Firmados</div>';
-    html+=conArch.map(function(a){
-      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd);gap:8px;flex-wrap:wrap;">'+
-        '<div><div style="font-size:11px;font-weight:700;">'+a.l+'</div><div style="font-size:9px;color:var(--ws);">Subido por '+(a.by||'—')+'</div></div>'+
-        '<button type="button" class="btn btn-o btn-sm" data-fn="'+a.f+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver</button>'+
-        '</div>';
-    }).join('');
+  html+='<div style="display:grid;gap:8px;">';
+  docs.forEach(function(d){
+    var has=!!d.file;
+    var url=has?_supUrl(d.file):'#';
+    var verBtn=has?'<a href="'+url+'" target="_blank" class="btn btn-o btn-sm" style="text-decoration:none;">👁️ Ver</a>':'';
+    var dlBtn=(has&&puedeDescargar)?'<a href="'+url+'" download class="btn btn-y btn-sm" style="text-decoration:none;">⬇️</a>':'';
+    var status=has?'<span style="color:var(--Gc);">✅</span>':'<span style="color:var(--Nc);">⚠️</span>';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--p1);border-radius:6px;gap:8px;flex-wrap:wrap;">';
+    html+='<div style="flex:1;min-width:180px;font-size:11px;">'+status+' <b>'+d.label+'</b><div style="font-size:9px;color:var(--ws);margin-left:18px;">'+(has?'por '+d.by:'pendiente')+'</div></div>';
+    html+='<div style="display:flex;gap:4px;">'+verBtn+dlBtn+'</div>';
     html+='</div>';
-  }
-  // ─── CRONOGRAMA QUINCENAL ───
-  if(ct&&ct.cronograma_quincenal&&ct.cronograma_quincenal.length){
-    html+='<div style="background:rgba(245,196,0,.05);border:1px solid var(--am);border-radius:6px;padding:13px;margin-bottom:10px;">';
-    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--am);margin-bottom:10px;">⏱ Cronograma Quincenal de Avance Pactado</div>';
-    html+='<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Avance mínimo verificable que el contratista debe cumplir cada quincena:</div>';
-    var pctAcum=0;
-    html+=ct.cronograma_quincenal.map(function(q){
-      pctAcum+=q.pct;
-      return '<div style="display:grid;grid-template-columns:50px 70px 1fr;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px;">'+
-        '<div style="color:var(--am);font-weight:700;">Q'+q.q+'</div>'+
-        '<div style="color:var(--wd);font-weight:700;">'+q.pct.toFixed(1)+'%</div>'+
-        '<div style="color:var(--wd);">'+(q.desc||'—')+(q.monto_bs?' · <span style="color:var(--Gc);">Bs '+q.monto_bs.toLocaleString('es-BO')+'</span>':'')+'</div>'+
-        '</div>';
-    }).join('');
-    html+='<div style="text-align:right;font-size:10px;color:var(--am);margin-top:6px;font-weight:700;">Acumulado: '+pctAcum.toFixed(1)+'%</div>';
-    html+='</div>';
-  }
-  // ─── ADENDAS POST-FIRMA ───
+  });
+  html+='</div></div>';
+
+  // ═══ BLOQUE 5: ADENDAS (si hay) ═══
   if(o.adendas&&o.adendas.length){
-    html+='<div style="background:rgba(91,33,182,.06);border:1px solid var(--P);border-radius:6px;padding:13px;margin-bottom:10px;">';
-    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Pc);margin-bottom:10px;">📑 Adendas — Modificaciones al Contrato ('+o.adendas.length+')</div>';
-    html+=o.adendas.map(function(a,i){
-      var fecha=new Date(a.fecha).toLocaleDateString('es-BO');
-      var btn=a.archivo?'<button type="button" class="btn btn-o btn-sm" data-fn="'+a.archivo+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver doc</button>':'';
-      return '<div style="background:rgba(0,0,0,.2);border-radius:4px;padding:10px;margin-bottom:6px;">'+
-        '<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px;">'+
-          '<div style="font-size:10px;color:var(--Pc);font-weight:700;">ADENDA #'+(i+1)+'</div>'+
-          '<div style="font-size:9px;color:var(--ws);">'+fecha+' · '+(a.subido_por||'—')+'</div>'+
-        '</div>'+
-        '<div style="font-size:11px;line-height:1.6;color:var(--wd);white-space:pre-line;margin-bottom:6px;">'+a.descripcion+'</div>'+
-        btn+
-        '</div>';
-    }).join('');
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;border-left:4px solid var(--Pc);">';
+    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--Pc);font-weight:800;margin-bottom:12px;">📑 Adendas ('+o.adendas.length+')</div>';
+    o.adendas.forEach(function(a,i){
+      var fAd=a.fecha?new Date(a.fecha).toLocaleDateString('es-BO'):'';
+      html+='<div style="background:var(--p1);border-radius:6px;padding:10px;margin-bottom:6px;">';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">';
+      html+='<div style="flex:1;"><b style="font-size:12px;">Adenda #'+(i+1)+'</b> <span style="font-size:10px;color:var(--ws);">· '+fAd+'</span></div>';
+      if(a.archivo_firmado){
+        var aUrl=_supUrl(a.archivo_firmado);
+        html+='<a href="'+aUrl+'" target="_blank" class="btn btn-o btn-sm" style="text-decoration:none;">👁️ Ver firmada</a>';
+        if(puedeDescargar)html+=' <a href="'+aUrl+'" download class="btn btn-y btn-sm" style="text-decoration:none;">⬇️</a>';
+      } else {
+        html+='<span style="font-size:10px;color:var(--Nc);">⚠️ Pendiente firma</span>';
+      }
+      html+='</div>';
+      if(a.motivo)html+='<div style="font-size:11px;color:var(--wd);margin-top:6px;">'+a.motivo+'</div>';
+      html+='</div>';
+    });
     html+='</div>';
   }
-  // ─── CROQUIS ───
-  if(o.croquis_imagen){
-    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
-    html+='<div><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:4px;">📍 Croquis de Ubicación</div>';
-    html+='<div style="font-size:10px;color:var(--wd);">Imagen alternativa al link Maps</div></div>';
-    html+='<button type="button" class="btn btn-o btn-sm" data-fn="'+o.croquis_imagen+'" onclick="_supVerArchivo(this.dataset.fn)">👁️ Ver croquis</button>';
+
+  // ═══ BLOQUE 6: CONTRATISTA + CRONOGRAMA + PENALIDADES ═══
+  if(ct){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;">';
+    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--wd);font-weight:800;margin-bottom:12px;">👷 Contratista Asignado</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;">';
+    html+='<div><div style="font-size:9px;color:var(--ws);">Nombre</div><div style="font-size:13px;font-weight:700;color:var(--w);">'+(ct.nom||'?')+'</div></div>';
+    if(ct.tel)html+='<div><div style="font-size:9px;color:var(--ws);">Teléfono</div><div style="font-size:13px;font-weight:700;color:var(--w);">'+ct.tel+'</div></div>';
+    if(ct.ci_n)html+='<div><div style="font-size:9px;color:var(--ws);">C.I.</div><div style="font-size:13px;font-weight:700;color:var(--w);">'+ct.ci_n+'</div></div>';
+    if(ct.cond)html+='<div><div style="font-size:9px;color:var(--ws);">Forma de Pago</div><div style="font-size:13px;font-weight:700;color:var(--am);">'+ct.cond+'</div></div>';
     html+='</div>';
-  }
-  // Inclusion / Exclusion
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">';
-  if(o.inc) html+='<div style="background:rgba(4,120,86,.08);border:1px solid var(--G);border-radius:6px;padding:13px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Gc);margin-bottom:8px;">INCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">'+o.inc+'</div></div>';
-  if(o.exc) html+='<div style="background:rgba(220,38,38,.08);border:1px solid var(--R);border-radius:6px;padding:13px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Rc);margin-bottom:8px;">EXCLUIDO</div><div style="font-size:11px;line-height:1.8;color:var(--wd);white-space:pre-line;">'+o.exc+'</div></div>';
-  html+='</div>';
-  // Condiciones
-  if(ct&&ct.cond) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Condiciones Especiales</div><div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">'+ct.cond+'</div></div>';
-  // Obligaciones
-  html+='<div style="background:rgba(30,64,175,.1);border:1px solid var(--Z);border-radius:6px;padding:13px;margin-bottom:10px;">';
-  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Zc);margin-bottom:8px;">Obligaciones del Contratista</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--wd);">';
-  html+='<div>✓ Limpieza diaria</div><div>✓ Reporte semanal con fotos</div>';
-  html+='<div>✓ Herramientas menores propias</div><div>✓ SOAT-C en max. 3 dias</div>';
-  html+='<div>✓ No modificar planos sin autorizacion</div><div>✓ 50% de la madera</div>';
-  html+='</div></div>';
-  // Penalidades
-  html+='<div style="background:rgba(220,38,38,.08);border:1px solid var(--R);border-radius:6px;padding:13px;margin-bottom:10px;">';
-  html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--Rc);margin-bottom:8px;">Penalidades</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--wd);">';
-  html+='<div>Retraso: 0.5%/dia (max 10%)</div><div>Sin SOAT-C: Bs 50/dia</div>';
-  html+='<div>Hurto: rescision + proceso penal</div><div>Abandono: retencion total pago</div>';
-  html+='</div></div>';
-  // Modulos
-  if(o.mods&&o.mods.length){
-    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;">';
-    html+='<div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Modulos a Ejecutar ('+o.mods.length+')</div>';
-    html+='<div class="mods-grid">';
-    for(var mi=0;mi<o.mods.length;mi++){
-      html+='<div class="mod-item"><span class="mod-num">M'+String(mi+1).padStart(2,'0')+'</span> '+o.mods[mi]+'</div>';
+    // Cronograma quincenal si hay
+    if(ct.cronograma_quincenal&&ct.cronograma_quincenal.length){
+      html+='<div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:10px;">';
+      html+='<div style="font-size:9px;color:var(--ws);font-weight:700;margin-bottom:6px;">CRONOGRAMA QUINCENAL DE AVANCE</div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:6px;">';
+      ct.cronograma_quincenal.forEach(function(q,i){
+        html+='<div style="background:var(--p1);border-radius:5px;padding:8px;text-align:center;">';
+        html+='<div style="font-size:9px;color:var(--ws);">Q'+(i+1)+'</div>';
+        html+='<div style="font-size:14px;font-weight:800;color:var(--am);">'+q.pct+'%</div>';
+        if(q.fecha)html+='<div style="font-size:9px;color:var(--ws);">'+new Date(q.fecha).toLocaleDateString('es-BO')+'</div>';
+        html+='</div>';
+      });
+      html+='</div></div>';
     }
-    html+='</div></div>';
+    html+='</div>';
   }
-  // Notas
-  if(o.not) html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:13px;margin-bottom:10px;"><div style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--ws);margin-bottom:8px;">Notas de Campo</div><div style="font-size:11px;line-height:1.7;color:var(--wd);white-space:pre-line;">'+o.not+'</div></div>';
-  html+='</div>';
+
+  // ═══ BLOQUE 7: NOTAS (si hay) ═══
+  if(o.not){
+    html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px;">';
+    html+='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--ws);font-weight:800;margin-bottom:8px;">📝 Notas de Campo</div>';
+    html+='<div style="font-size:12px;color:var(--wd);line-height:1.6;white-space:pre-line;">'+o.not+'</div>';
+    html+='</div>';
+  }
+
   c.innerHTML=html;
+}
+
+// Descargar paquete completo en PDF (solo para Raí + admin)
+async function supDescargarPDF(oid){
+  var o=obras.find(function(x){return x.id==oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  if(CU.r!=='supervisor'&&CU.r!=='admin'){toast('Solo Arq. Raí y Josemiguel pueden descargar.','warning');return;}
+  toast('Generando paquete PDF...','info','📄');
+  try{
+    // Imprimir la vista actual (el navegador permite "Guardar como PDF")
+    var ct=gCByObra(o.id);
+    var contenido=document.getElementById('sup-content').innerHTML;
+    var win=window.open('','_blank');
+    win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+(o.nom||'Obra')+' · GEAT</title>'+
+      '<style>body{font-family:Arial,sans-serif;padding:20px;color:#000;}h1{color:#000;}a{color:#0066cc;}'+
+      '.btn{display:none;}div{page-break-inside:avoid;}'+
+      'img{max-width:100%;}</style></head><body>'+
+      '<h1>'+(o.nom||'')+' — '+(o.cod||'')+'</h1>'+
+      '<p>GEAT Contratistas · Generado: '+new Date().toLocaleString('es-BO')+'</p>'+
+      contenido+
+      '<script>window.onload=function(){window.print();}<\/script></body></html>');
+    dbLog(CU.n,'Descargó PDF de obra: '+o.nom);
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 function supImprimir(){
