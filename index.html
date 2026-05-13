@@ -57,6 +57,64 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .hdr-user:hover{border-color:var(--am);color:var(--am);}
 .btn-exit{background:transparent;border:1px solid var(--bd);color:var(--ws);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:11px;}
 .btn-exit:hover{border-color:var(--R);color:var(--R);}
+.btn-theme{background:transparent;border:1px solid var(--bd);color:var(--am);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:14px;margin-right:8px;transition:all .2s;}
+.btn-theme:hover{border-color:var(--am);background:rgba(245,196,0,.1);}
+
+/* ═══ MODO DÍA (TANDA 14) ═══ */
+body.tema-dia{
+  --bg:#f5f0e6;            /* crema base */
+  --p1:#fdfaf3;            /* paneles */
+  --p2:#f0e9d8;            /* panel oscuro */
+  --p3:#e6dcc4;            /* paneles más oscuros */
+  --bd:#d4c9ad;            /* bordes */
+  --bh:#b8a87e;            /* bordes hover */
+  --am:#c89a00;            /* dorado (más oscuro para legibilidad) */
+  --amh:#a37e00;
+  --amd:rgba(200,154,0,.1);
+  --w:#1a1a1a;             /* texto principal NEGRO */
+  --wd:#3a3a3a;            /* texto secundario */
+  --ws:#6a6a6a;            /* texto débil */
+  background:var(--bg);
+  color:var(--w);
+}
+body.tema-dia .header{background:#1a1a1a;color:#fff;border-bottom:2px solid var(--am);}
+body.tema-dia .hdr-g{background:var(--am);color:#000;}
+body.tema-dia .hdr-t{color:#fff;}
+body.tema-dia .hdr-user{color:#fff;}
+body.tema-dia .btn-exit{color:#aaa;border-color:#444;}
+body.tema-dia .btn-theme{color:var(--am);border-color:#444;}
+body.tema-dia .btn-theme:hover{background:rgba(245,196,0,.15);}
+body.tema-dia .nav{background:#fdfaf3;border-bottom:1px solid var(--bd);}
+body.tema-dia .nb{color:#3a3a3a;}
+body.tema-dia .nb:hover{color:var(--am);}
+body.tema-dia .nb.on{color:var(--am);border-bottom-color:var(--am);}
+body.tema-dia .panel,
+body.tema-dia .card{background:var(--p1);color:var(--w);}
+body.tema-dia input,body.tema-dia select,body.tema-dia textarea{background:#fff;color:#1a1a1a;border:1px solid var(--bd);}
+body.tema-dia input[readonly]{background:var(--p2);}
+body.tema-dia label{color:var(--wd);}
+body.tema-dia .pin-dot{background:var(--p2);border:1px solid var(--bd);}
+body.tema-dia .pin-box{background:#fdfaf3;border:1px solid var(--bd);}
+body.tema-dia .pin-key{background:var(--p2);color:var(--w);border:1px solid var(--bd);}
+body.tema-dia .pin-key:hover{background:var(--amd);}
+body.tema-dia .upload-zone{background:#fff;border-color:var(--bd);}
+body.tema-dia .upload-zone:hover{border-color:var(--am);}
+body.tema-dia .up-card{background:#fff;border-color:var(--bd);}
+body.tema-dia .up-card.ok{background:#e8f5e9;}
+body.tema-dia .up-card-btn{background:#fdfaf3;color:var(--w);border-color:var(--bd);}
+body.tema-dia .up-card-btn:hover{border-color:var(--am);background:#f5f0e6;}
+body.tema-dia .up-card-btn.cam{background:rgba(200,154,0,.1);}
+body.tema-dia .toast{background:#fff;color:var(--w);border-color:var(--bd);}
+body.tema-dia .toast-title{color:var(--w);}
+body.tema-dia .toast-msg{color:var(--wd);}
+body.tema-dia .overlay{background:rgba(0,0,0,.5);}
+body.tema-dia .modal{background:#fdfaf3;color:var(--w);}
+body.tema-dia .mod-num{background:var(--am);color:#000;}
+body.tema-dia .mod-item{background:#fff;border:1px solid var(--bd);color:var(--w);}
+body.tema-dia .al-z{background:rgba(30,64,175,.08);border-color:rgba(30,64,175,.3);color:#1e40af;}
+body.tema-dia .al-g{background:rgba(4,120,86,.08);border-color:rgba(4,120,86,.3);color:#047857;}
+body.tema-dia .al-r{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.3);color:#991b1b;}
+body.tema-dia .al-n{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);color:#92400e;}
 
 /* NAV */
 .nav{background:var(--p1);border-bottom:1px solid var(--bd);padding:0 16px;display:flex;gap:0;overflow-x:auto;}
@@ -527,7 +585,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v51 · SIN REDUNDANCIA WHATSAPP/MAPS</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v52 · MODO DIA/NOCHE</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -537,6 +595,7 @@ async function storageUrl(path){
   <header class="hdr">
     <div class="hdr-l"><div class="hdr-g">G</div><span class="hdr-t">GEAT CONTRATISTAS</span></div>
     <div class="hdr-r">
+      <button class="btn-theme" id="btn-theme" onclick="toggleTema()" title="Cambiar modo día/noche">🌙</button>
       <div class="hdr-user" onclick="abrirPerfil()" id="hdr-nombre">👤 —</div>
       <button class="btn-exit" onclick="logout()">Salir</button>
     </div>
@@ -4639,6 +4698,43 @@ async function admEditDocumento(tipo,inp){
 }
 
 // (admEditRenderSel se llama desde renderAdmFull)
+
+
+// ═══════════════════════════════════════════════════════════════
+// TANDA 14 — MODO DÍA/NOCHE
+// ═══════════════════════════════════════════════════════════════
+function aplicarTema(tema){
+  var body=document.body;
+  var btn=document.getElementById('btn-theme');
+  if(tema==='dia'){
+    body.classList.add('tema-dia');
+    if(btn)btn.textContent='☀️';
+  } else {
+    body.classList.remove('tema-dia');
+    if(btn)btn.textContent='🌙';
+  }
+  try{localStorage.setItem('geat_tema',tema);}catch(e){}
+}
+
+function toggleTema(){
+  var actual=document.body.classList.contains('tema-dia')?'dia':'noche';
+  aplicarTema(actual==='dia'?'noche':'dia');
+}
+
+// Al cargar, restaurar tema guardado
+(function(){
+  try{
+    var t=localStorage.getItem('geat_tema');
+    if(t==='dia'){
+      // Esperar al DOM
+      if(document.readyState==='loading'){
+        document.addEventListener('DOMContentLoaded',function(){aplicarTema('dia');});
+      } else {
+        aplicarTema('dia');
+      }
+    }
+  }catch(e){}
+})();
 
 
 </script>
