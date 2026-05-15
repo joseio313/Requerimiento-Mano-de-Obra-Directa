@@ -1,9 +1,70 @@
+// ═══════════════════════════════════════════════════════════════
+// GEAT CONTRATISTAS — SERVICE WORKER MÍNIMO
+// Solo para hacer la app instalable (sin push, sin caché agresivo)
+// ═══════════════════════════════════════════════════════════════
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+  // Pass-through total
+});
+
+{
+  "name": "GEAT Contratistas",
+  "short_name": "GEAT",
+  "description": "Sistema de gestión de mano de obra directa — GAMBARTE ARQUITECTURA S.R.L.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#f5c400",
+  "lang": "es-BO",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Mi panel",
+      "short_name": "Panel",
+      "url": "./index.html"
+    }
+  ]
+}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GEAT — Asignación de Contratistas</title>
+<title>GEAT Contratistas</title>
+<!-- PWA: hacer la app instalable -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f5c400">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GEAT">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <style>
 :root{
   --bg:#0a0a0a;--p1:#141414;--p2:#1e1e1e;--p3:#282828;--bd:#333;--bh:#3a3a3a;
@@ -327,6 +388,26 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 .scan-adjust-row{display:flex;flex-direction:column;gap:6px;}
 .scan-adjust-row input[type=range]{accent-color:var(--am);}
 .scan-adjust-row input[type=range]::-webkit-slider-thumb{background:var(--am);}
+/* ═══ BANNER INSTALAR APP (PWA) ═══ */
+.pwa-banner{position:fixed;bottom:20px;left:20px;right:20px;background:linear-gradient(135deg,#f5c400,#ffd700);color:#000;border-radius:12px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9998;display:none;flex-direction:row;align-items:center;gap:12px;animation:pwaSlideUp .4s ease;}
+.pwa-banner.show{display:flex;}
+.pwa-banner-ico{font-size:32px;flex-shrink:0;}
+.pwa-banner-body{flex:1;}
+.pwa-banner-title{font-size:14px;font-weight:900;margin-bottom:2px;}
+.pwa-banner-text{font-size:11px;font-weight:600;line-height:1.3;}
+.pwa-banner-btns{display:flex;flex-direction:column;gap:6px;}
+.pwa-btn-install{background:#000;color:#f5c400;border:none;padding:10px 16px;border-radius:6px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;}
+.pwa-btn-install:hover{background:#222;}
+.pwa-btn-dismiss{background:transparent;border:none;color:#000;font-size:11px;cursor:pointer;opacity:.6;}
+.pwa-btn-dismiss:hover{opacity:1;}
+@keyframes pwaSlideUp{from{transform:translateY(120%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@media(min-width:768px){.pwa-banner{left:auto;right:20px;max-width:420px;}}
+
+/* iOS específico (Safari) */
+.pwa-ios-help{position:fixed;bottom:20px;left:20px;right:20px;background:#fdfaf3;color:#1a1a1a;border:2px solid #f5c400;border-radius:12px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9998;display:none;animation:pwaSlideUp .4s ease;}
+.pwa-ios-help.show{display:block;}
+.pwa-ios-help-close{position:absolute;top:8px;right:12px;background:none;border:none;font-size:18px;cursor:pointer;color:#666;}
+@media(min-width:768px){.pwa-ios-help{left:auto;right:20px;max-width:420px;}}
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -453,6 +534,31 @@ async function storageUrl(path){
 
 <!-- TOAST CONTAINER (TANDA 4) -->
 <div id="toast-container" class="toast-container"></div>
+
+<!-- BANNER INSTALAR APP — Android/Desktop -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-ico">📲</div>
+  <div class="pwa-banner-body">
+    <div class="pwa-banner-title">Instalar como app</div>
+    <div class="pwa-banner-text">Acceso directo desde tu pantalla, sin barra del navegador.</div>
+  </div>
+  <div class="pwa-banner-btns">
+    <button class="pwa-btn-install" onclick="pwaInstall()">Instalar</button>
+    <button class="pwa-btn-dismiss" onclick="pwaDismiss()">Después</button>
+  </div>
+</div>
+
+<!-- AYUDA INSTALAR APP — iOS Safari -->
+<div class="pwa-ios-help" id="pwa-ios-help">
+  <button class="pwa-ios-help-close" onclick="pwaDismiss()">✕</button>
+  <div style="font-size:14px;font-weight:900;margin-bottom:8px;color:#000;">📲 Instalar GEAT en tu iPhone</div>
+  <div style="font-size:11px;color:#3a3a3a;line-height:1.5;">
+    <b>1.</b> Tocá el botón <b>compartir</b> (cuadrado con flecha ⬆️) abajo del navegador<br>
+    <b>2.</b> Deslizá hacia abajo y tocá <b>"Agregar a pantalla de inicio"</b><br>
+    <b>3.</b> Tocá <b>"Agregar"</b> arriba a la derecha
+  </div>
+  <div style="font-size:10px;color:#666;margin-top:8px;">✨ Tendrás el ícono dorado "G" en tu pantalla, como cualquier app.</div>
+</div>
 
 <!-- SCANNER MODAL (TANDA 9 — escaneo profesional) -->
 <div id="scan-modal" class="scan-modal">
@@ -585,7 +691,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v52 · MODO DIA/NOCHE</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v53 · INSTALABLE COMO APP</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -4735,6 +4841,103 @@ function toggleTema(){
     }
   }catch(e){}
 })();
+
+
+// ═══════════════════════════════════════════════════════════════
+// TANDA 15 — PWA INSTALABLE (acceso directo como app)
+// ═══════════════════════════════════════════════════════════════
+
+// Registrar service worker para habilitar instalación
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('service-worker.js').then(function(reg){
+      console.log('[PWA] Service Worker registrado');
+    }).catch(function(err){
+      console.warn('[PWA] No se pudo registrar SW',err);
+    });
+  });
+}
+
+// Variables para el banner
+var pwaDeferredPrompt=null;
+var PWA_DISMISS_KEY='geat_pwa_dismissed';
+var PWA_DISMISS_DAYS=7; // mostrar de nuevo cada 7 días si lo cierra
+
+// Detectar si ya está instalada como app
+function pwaEstaInstalada(){
+  return window.matchMedia('(display-mode: standalone)').matches||
+    window.navigator.standalone===true;
+}
+
+// Detectar iOS Safari
+function pwaEsIOS(){
+  var ua=window.navigator.userAgent;
+  var isIOS=/iPad|iPhone|iPod/.test(ua)&&!window.MSStream;
+  var isSafari=/Safari/.test(ua)&&!/CriOS/.test(ua)&&!/FxiOS/.test(ua);
+  return isIOS&&isSafari;
+}
+
+// Verificar si fue descartado recientemente
+function pwaFueDescartado(){
+  try{
+    var d=localStorage.getItem(PWA_DISMISS_KEY);
+    if(!d)return false;
+    var diff=(Date.now()-parseInt(d))/(86400000);
+    return diff<PWA_DISMISS_DAYS;
+  }catch(e){return false;}
+}
+
+// Capturar el evento beforeinstallprompt (Android/Desktop)
+window.addEventListener('beforeinstallprompt',function(e){
+  e.preventDefault();
+  pwaDeferredPrompt=e;
+  // Mostrar banner después de 3 segundos (que el usuario primero vea la app)
+  if(!pwaFueDescartado()&&!pwaEstaInstalada()){
+    setTimeout(function(){
+      var banner=document.getElementById('pwa-banner');
+      if(banner)banner.classList.add('show');
+    },3000);
+  }
+});
+
+// Función para mostrar el prompt nativo
+async function pwaInstall(){
+  if(!pwaDeferredPrompt){
+    if(typeof toast==='function')toast('No se puede instalar desde este navegador. Probá Chrome o Edge.','warning');
+    return;
+  }
+  pwaDeferredPrompt.prompt();
+  var result=await pwaDeferredPrompt.userChoice;
+  if(result.outcome==='accepted'){
+    if(typeof toast==='function')toast('¡GEAT instalado! Buscá el ícono en tu pantalla.','success','📲');
+  }
+  pwaDeferredPrompt=null;
+  pwaDismiss();
+}
+
+function pwaDismiss(){
+  var banner=document.getElementById('pwa-banner');
+  var iosHelp=document.getElementById('pwa-ios-help');
+  if(banner)banner.classList.remove('show');
+  if(iosHelp)iosHelp.classList.remove('show');
+  try{localStorage.setItem(PWA_DISMISS_KEY,Date.now().toString());}catch(e){}
+}
+
+// iOS no dispara beforeinstallprompt, mostrar instrucciones manualmente
+window.addEventListener('load',function(){
+  if(pwaEsIOS()&&!pwaEstaInstalada()&&!pwaFueDescartado()){
+    setTimeout(function(){
+      var iosHelp=document.getElementById('pwa-ios-help');
+      if(iosHelp)iosHelp.classList.add('show');
+    },4000);
+  }
+});
+
+// Si la app se instala, ocultar banner
+window.addEventListener('appinstalled',function(){
+  pwaDismiss();
+  if(typeof toast==='function')toast('¡App instalada correctamente!','success','📲');
+});
 
 
 </script>
