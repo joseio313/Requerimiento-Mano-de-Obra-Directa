@@ -520,7 +520,15 @@ async function storageUrl(path){
 
     <!-- Área de preview -->
     <div class="scan-preview" id="scan-preview">
-      <div style="color:#666;font-size:13px;text-align:center;padding:30px;" id="scan-empty">Tomá una foto para comenzar</div>
+      <div style="color:#999;font-size:13px;text-align:center;padding:30px;" id="scan-empty">
+        <div style="font-size:40px;margin-bottom:12px;">📄</div>
+        <div style="margin-bottom:16px;">Elegí cómo agregar el documento:</div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button type="button" class="btn btn-y" onclick="scanPickCamera()" style="font-size:13px;">📷 Tomar foto</button>
+          <button type="button" class="btn btn-o" onclick="scanPickGallery()" style="font-size:13px;">🖼️ Elegir de galería</button>
+        </div>
+        <div style="font-size:10px;color:#666;margin-top:14px;">Si la cámara se cierra sola, usá "Elegir de galería"</div>
+      </div>
 
       <!-- Paso 1: detección de esquinas (oculto inicialmente) -->
       <div class="scan-corners-wrap" id="scan-corners-wrap" style="display:none;">
@@ -609,6 +617,7 @@ async function storageUrl(path){
     <label class="btn btn-y btn-lg" style="cursor:pointer;flex:1;text-align:center;">
       📷 Tomar foto
       <input type="file" id="scan-cam-input" accept="image/*" capture="environment" style="display:none;" onchange="scanCapture(this)">
+      <input type="file" id="scan-gal-input" accept="image/*" style="display:none;" onchange="scanCapture(this)">
     </label>
     <button type="button" class="btn btn-g btn-lg" id="scan-finish-btn" onclick="scanFinish()" style="flex:1;display:none;">✅ Finalizar y subir</button>
     <button type="button" class="btn btn-o" onclick="scanClose()">Cancelar</button>
@@ -639,7 +648,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v54 · 7 BUGS FIX + CLAUSULAS FAVORITAS</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v55 · FIX CAMARA + IMPRESION SIN REDUNDAR</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1857,18 +1866,11 @@ async function steffImprimir(ctId){
     @page{size:216mm 330mm;margin:22mm 18mm;}
     body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.65;color:#000;}
     .hdr{text-align:center;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:16px;}
-    pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;line-height:1.65;}
-    .firmas{display:flex;justify-content:space-between;margin-top:70px;}
-    .fc{text-align:center;width:45%;}
-    .fl{border-top:1px solid #000;padding-top:5px;font-size:10pt;}
+    pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;line-height:1.65;margin:0;}
     @media print{button{display:none;}}
   </style></head><body>
   <div class="hdr"><div style="font-size:15pt;font-weight:900;letter-spacing:3px;">GEAT</div><div style="font-size:9pt;color:#555;">GAMBARTE ARQUITECTURA S.R.L.</div></div>
   <pre>${textoFinal}</pre>
-  <div class="firmas">
-    <div class="fc"><div class="fl"><strong>${ct.nom}</strong><br>C.I. ${ct.ci_n||'___'}<br>Contratista</div></div>
-    <div class="fc"><div class="fl"><strong>JOSÉ MIGUEL GAMBARTE VIDAURRE</strong><br>C.I. 7714413 SC<br>GAMBARTE ARQUITECTURA S.R.L.</div></div>
-  </div>
   <script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
   dbLog(CU.n,'Contrato impreso: '+ct.nom);
@@ -2286,7 +2288,7 @@ function generarContrato(nom,ci_n,dir,o,cond,neg,crono){
     cronoBloque='\n════════════════════════════════════════════════════\nCLÁUSULA — CRONOGRAMA QUINCENAL DE AVANCE OBLIGATORIO\n════════════════════════════════════════════════════\n\nEl CONTRATISTA se compromete a cumplir el siguiente cronograma de avance verificable. El incumplimiento del % mínimo por quincena habilita a GEAT a aplicar penalidades y, en caso reiterado, rescindir el contrato.\n\n';
     crono.forEach(function(q){
       cronoBloque+='  Q'+q.q+' — '+q.pct.toFixed(1)+'% de avance ';
-      if(q.monto_bs)cronoBloque+='($'+ (montoUSD*q.pct/100).toFixed(0) +' USD / Bs '+q.monto_bs.toLocaleString('es-BO')+')';
+      if(q.monto_bs)cronoBloque+='(Bs '+q.monto_bs.toLocaleString('es-BO')+')';
       if(q.desc)cronoBloque+=' · '+q.desc;
       cronoBloque+='\n';
     });
@@ -2331,21 +2333,20 @@ CLÁUSULA TERCERA — MONTO Y FORMA DE PAGO
 ════════════════════════════════════════════════════
 
 PRECIO TOTAL ACORDADO:
-  USD ${montoUSD.toFixed(2)} equivalente a Bs ${montoBs.toLocaleString('es-BO')}
-  (Tipo de cambio oficial: Bs 6.96 / USD)
+  Bs ${montoBs.toLocaleString('es-BO')} (Bolivianos)
 
 PAGOS EN 3 CUOTAS:
 
   PAGO 1 — 30% ANTICIPO AL INICIO:
-    USD ${p1u}  /  Bs ${p1b.toLocaleString('es-BO')}
+    Bs ${p1b.toLocaleString('es-BO')}
     Condición: Contra firma del presente contrato + SOAT-C provisional
 
   PAGO 2 — 40% AL ALCANZAR 50% DE AVANCE:
-    USD ${p2u}  /  Bs ${p2b.toLocaleString('es-BO')}
+    Bs ${p2b.toLocaleString('es-BO')}
     Condición: Verificación de avance por Arq. Supervisor
 
   PAGO 3 — 30% A LA ENTREGA FINAL:
-    USD ${p3u}  /  Bs ${p3b.toLocaleString('es-BO')}
+    Bs ${p3b.toLocaleString('es-BO')}
     Condición: Obra completada y aprobada por propietario y supervisor
 
 NOTAS DE PAGO:
@@ -4037,8 +4038,7 @@ function scanOpen(destino,tipo){
   document.getElementById('scan-modal').classList.add('on');
   // Precargar OpenCV en background
   _scanLoadOpenCV().catch(function(e){console.warn('OpenCV no disponible',e.message);});
-  // Auto-click en tomar foto
-  setTimeout(function(){document.getElementById('scan-cam-input').click();},250);
+  // T17: NO auto-click — el usuario elige cámara o galería (auto-click bota celulares)
 }
 
 function _scanTipoLabel(d,t){
@@ -4107,14 +4107,23 @@ function scanClose(){
   scanCtx.currentIdx=-1;
 }
 
+// T17 — Elegir fuente de imagen (evita el crash del auto-click)
+function scanPickCamera(){
+  var inp=document.getElementById('scan-cam-input');
+  if(inp){inp.value='';inp.click();}
+}
+function scanPickGallery(){
+  var inp=document.getElementById('scan-gal-input');
+  if(inp){inp.value='';inp.click();}
+}
+
 function scanRetake(){
-  // Eliminar la página actual (no procesada) y volver a tomar
   if(scanCtx.currentIdx>=0&&scanCtx.currentIdx<scanCtx.pages.length){
     scanCtx.pages.splice(scanCtx.currentIdx,1);
     scanCtx.currentIdx=-1;
   }
   _scanSetStep('shoot');
-  document.getElementById('scan-cam-input').click();
+  // T17: no auto-click, mostrar opciones de nuevo
 }
 
 function scanCapture(inp){
@@ -4641,7 +4650,7 @@ function _scanRenderThumbs(){
       '<button type="button" class="scan-page-rm" onclick="event.stopPropagation();scanRmPage('+i+')">✕</button>'+
       '</div>';
   }).join('')+
-  '<div class="scan-page add" onclick="document.getElementById(\'scan-cam-input\').click()" title="Agregar página">+</div>';
+  '<div class="scan-page add" onclick="scanPickGallery()" title="Agregar página desde galería">+</div>';
 }
 
 function scanGoPage(i){
