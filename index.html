@@ -834,7 +834,7 @@ async function storageUrl(path){
 
           <div class="fg fg2" style="margin-bottom:14px;">
             <div class="f"><label>Superficie m² *</label><input type="number" id="fat-sup" oninput="fatCalc()" placeholder="120"></div>
-            <div class="f"><label>Precio referencia ($USD/m²) <span style="color:var(--ws);font-size:9px;">(uso interno)</span></label><input type="number" id="fat-pre" value="75" oninput="fatCalc()"></div>
+            <div class="f"><label>Precio USD/m²</label><input type="number" id="fat-pre" value="75" oninput="fatCalc()"></div>
             <div class="f"><label>Cuadrilla (auto)</label><input id="fat-cua" readonly></div>
             <div class="f"><label>Monto Total (auto)</label><input id="fat-mon" readonly></div>
             <div class="f"><label>Fecha Inicio</label><input type="date" id="fat-fi" oninput="fatCalcFecha()"></div>
@@ -1678,8 +1678,7 @@ function steffAbrirEditor(oid){
     var borrador=null;
     try{borrador=localStorage.getItem(borradorKey);}catch(e){}
     if(borrador&&borrador!==ct.texto){
-      // Hay borrador no guardado, preguntar si quiere recuperarlo
-      if(confirm('📝 Tenés un borrador sin guardar de este contrato. ¿Querés recuperarlo?')){
+      if(confirm('Tenés un borrador sin guardar de este contrato. Recuperarlo?')){
         ta.value=borrador;
       } else {
         ta.value=ct.texto;
@@ -1688,18 +1687,16 @@ function steffAbrirEditor(oid){
     } else {
       ta.value=ct.texto;
     }
-    // T16: autosave cada cambio
     ta.addEventListener('input',function(){
       try{localStorage.setItem(borradorKey,ta.value);}catch(e){}
       var indEl=document.getElementById('ed-ind-'+ct.id);
-      if(indEl)indEl.textContent='✏️ Borrador local guardado';
+      if(indEl)indEl.textContent='Borrador guardado automaticamente';
     });
     wrap.appendChild(ta);
-    // Indicador autosave
     var ind=document.createElement('div');
     ind.id='ed-ind-'+ct.id;
     ind.style.cssText='font-size:10px;color:var(--ws);margin-top:4px;';
-    ind.textContent='💾 Los cambios se guardan automáticamente como borrador. Tocá "Guardar Cambios" para guardar en el servidor.';
+    ind.textContent='Los cambios se guardan como borrador. Toca Guardar Cambios para guardar en el servidor.';
     wrap.appendChild(ind);
     // Botones
     var brow=document.createElement('div');
@@ -1708,18 +1705,17 @@ function steffAbrirEditor(oid){
     if(!bloq){
       var bGuardar=document.createElement('button');
       bGuardar.type='button';bGuardar.className='btn btn-y';
-      bGuardar.textContent='💾 Guardar Cambios';
+      bGuardar.textContent='Guardar Cambios';
       bGuardar.onclick=(function(cid,oidv){return function(){steffGuardar(cid,oidv);};})(ct.id,oid);
       brow.appendChild(bGuardar);
       var bIA=document.createElement('button');
       bIA.type='button';bIA.className='btn btn-p';bIA.id='btn-ia-'+ct.id;
-      bIA.textContent='🤖 Editar con IA';
+      bIA.textContent='Editar con IA';
       bIA.onclick=(function(cid){return function(){steffIA(cid);};})(ct.id);
       brow.appendChild(bIA);
-      // T16: botón nuevo "Mis cláusulas favoritas"
       var bCl=document.createElement('button');
       bCl.type='button';bCl.className='btn btn-o';
-      bCl.textContent='📚 Mis cláusulas';
+      bCl.textContent='Mis clausulas';
       bCl.onclick=(function(cid){return function(){abrirClausulasFavoritas(cid);};})(ct.id);
       brow.appendChild(bCl);
     }
@@ -1795,11 +1791,9 @@ async function steffGuardar(ctId,oid){
   if(ct.est_ct==='generado')ct.est_ct='revisado';
   ct.historial=[...(ct.historial||[]),{n:CU.n,f:ahora,e:ct.ed_count}];
   await dbGuardarContrato(ct);
-  // T16: limpiar borrador local
   try{localStorage.removeItem('geat_borrador_ct_'+ctId);}catch(e){}
   dbLog(CU.n,'Contrato editado ed.'+ct.ed_count+': '+ct.nom);
-  if(typeof toast==='function')toast('Guardado. Edición '+ct.ed_count+'/3.','success','💾');
-  else alert('✅ Guardado. Edición '+ct.ed_count+'/3.');
+  alert('✅ Guardado. Edición '+ct.ed_count+'/3.');
   steffAbrirEditor(oid);
 }
 
@@ -1845,7 +1839,7 @@ async function steffAprobar(ctId){
 
 async function steffImprimir(ctId){
   const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
-  // T16 FIX BUG 4+5: si el editor está abierto, tomar el texto actual y GUARDARLO antes de imprimir
+  // T16 BUG 5: tomar el texto actual del editor y guardarlo antes de imprimir
   const ta=document.getElementById('ed-txt-'+ctId);
   let textoFinal=ct.texto||'';
   if(ta&&ta.value&&ta.value!==ct.texto){
@@ -1853,9 +1847,10 @@ async function steffImprimir(ctId){
     ct.texto=textoFinal;
     try{
       await dbGuardarContrato(ct);
+      try{localStorage.removeItem('geat_borrador_ct_'+ctId);}catch(e){}
       dbLog(CU.n,'Auto-guardado al imprimir: '+ct.nom);
-      if(typeof toast==='function')toast('Cambios guardados antes de imprimir','success','💾');
-    }catch(e){console.error('No se pudo autosave',e);}
+      if(typeof toast==='function')toast('Cambios guardados antes de imprimir','success');
+    }catch(e){console.error('autosave fallo',e);}
   }
   const win=window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html><head><style>
@@ -1874,22 +1869,7 @@ async function steffImprimir(ctId){
     <div class="fc"><div class="fl"><strong>${ct.nom}</strong><br>C.I. ${ct.ci_n||'___'}<br>Contratista</div></div>
     <div class="fc"><div class="fl"><strong>JOSÉ MIGUEL GAMBARTE VIDAURRE</strong><br>C.I. 7714413 SC<br>GAMBARTE ARQUITECTURA S.R.L.</div></div>
   </div>
-  <script>window.onload=function(){window.print();}<\/script>
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
-<div class="overlay" id="ov-clausulas" style="display:none;">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
-      <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
-    </div>
-    <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
-    </div>
-  </div>
-</div>
-
-</body></html>`);
+  <script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
   dbLog(CU.n,'Contrato impreso: '+ct.nom);
 }
@@ -2009,7 +1989,6 @@ function fatCalc(){
   const cuad=Math.max(4,Math.ceil(s/100*4));
   const montoUSD=s*p,montoBs=Math.round(montoUSD*6.96);
   document.getElementById('fat-cua').value=cuad+' personas';
-  // T16 — Solo Bs visible para Fátima (USD queda solo en panel admin)
   document.getElementById('fat-mon').value='Bs '+montoBs.toLocaleString('es-BO');
 }
 function fatCalcFecha(){
@@ -2083,9 +2062,7 @@ function renderFatCompletadas(){
 async function _compressImage(file,maxDim,quality){
   maxDim=maxDim||1800;
   quality=quality||0.85;
-  // Solo imágenes; PDFs y otros pasan tal cual
-  if(!file.type.startsWith('image/'))return file;
-  // Si ya pesa menos de 1MB, no comprimir
+  if(!file.type||!file.type.startsWith('image/'))return file;
   if(file.size<1024*1024)return file;
   return new Promise(function(resolve){
     var reader=new FileReader();
@@ -2095,19 +2072,15 @@ async function _compressImage(file,maxDim,quality){
         var w=img.width,h=img.height;
         if(w>maxDim||h>maxDim){
           var ratio=Math.min(maxDim/w,maxDim/h);
-          w=Math.round(w*ratio);
-          h=Math.round(h*ratio);
+          w=Math.round(w*ratio);h=Math.round(h*ratio);
         }
         var canvas=document.createElement('canvas');
         canvas.width=w;canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
         canvas.toBlob(function(blob){
           if(!blob){resolve(file);return;}
-          // Crear file con mismo nombre pero comprimido
           var newName=file.name.replace(/\.[^.]+$/,'')+'.jpg';
-          var compressed=new File([blob],newName,{type:'image/jpeg'});
-          console.log('[Compress] '+file.name+': '+Math.round(file.size/1024)+'KB → '+Math.round(compressed.size/1024)+'KB');
-          resolve(compressed);
+          resolve(new File([blob],newName,{type:'image/jpeg'}));
         },'image/jpeg',quality);
       };
       img.onerror=function(){resolve(file);};
@@ -2121,21 +2094,18 @@ async function _compressImage(file,maxDim,quality){
 async function onUpCt(tipo,inp){
   if(!inp.files||!inp.files[0])return;
   var f=inp.files[0];
-  // Validar tamaño máximo (20MB antes de comprimir)
   if(f.size>20*1024*1024){
-    if(typeof toast==='function')toast('Archivo demasiado grande (máx 20MB)','error');
+    if(typeof toast==='function')toast('Archivo muy grande (máx 20MB)','error');
     return;
   }
   try{
-    // Comprimir si es imagen
     f=await _compressImage(f);
     ctFiles[tipo]=f;
     document.getElementById('uz-'+tipo).classList.add('ok');
     document.getElementById('txt-'+tipo).textContent='✓ '+f.name.slice(0,22);
     if(typeof toast==='function')toast(tipo.toUpperCase()+' cargado','success');
   }catch(e){
-    console.error(e);
-    if(typeof toast==='function')toast('Error al procesar archivo: '+e.message,'error');
+    if(typeof toast==='function')toast('Error: '+e.message,'error');
   }
 }
 
@@ -2698,22 +2668,7 @@ async function supDescargarPDF(oid){
       '<h1>'+(o.nom||'')+' — '+(o.cod||'')+'</h1>'+
       '<p>GEAT Contratistas · Generado: '+new Date().toLocaleString('es-BO')+'</p>'+
       contenido+
-      '<script>window.onload=function(){window.print();}<\/script>
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
-<div class="overlay" id="ov-clausulas" style="display:none;">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
-      <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
-    </div>
-    <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
-    </div>
-  </div>
-</div>
-
-</body></html>');
+      '<script>window.onload=function(){window.print();}<\/script></body></html>');
     dbLog(CU.n,'Descargó PDF de obra: '+o.nom);
   }catch(e){toast('Error: '+e.message,'error');}
 }
@@ -2767,22 +2722,7 @@ function supImprimir(){
   body+='<div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>Arq. Rai</strong><br>Supervisor de Obra</div></div>';
   body+='<div style="text-align:center;"><div style="border-top:1px solid #000;width:180px;padding-top:5px;font-size:9pt;"><strong>'+(ct?ct.nom:'Contratista')+'</strong><br>C.I. '+(ct?ct.ci_n:'___')+'</div></div>';
   body+='</div>';
-  win.document.write('<!DOCTYPE html><html><head><style>@page{size:216mm 330mm;margin:20mm 18mm;}body{font-family:Arial,sans-serif;font-size:10.5pt;line-height:1.6;color:#000;}h2{font-size:14pt;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:12px 0 6px;padding-bottom:3px;}@media print{button{display:none;}}</style></head><body>'+body+'<script>window.onload=function(){window.print();}<\/script>
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
-<div class="overlay" id="ov-clausulas" style="display:none;">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
-      <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
-    </div>
-    <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
-    </div>
-  </div>
-</div>
-
-</body></html>');
+  win.document.write('<!DOCTYPE html><html><head><style>@page{size:216mm 330mm;margin:20mm 18mm;}body{font-family:Arial,sans-serif;font-size:10.5pt;line-height:1.6;color:#000;}h2{font-size:14pt;}h3{font-size:10pt;border-bottom:1px solid #ccc;margin:12px 0 6px;padding-bottom:3px;}@media print{button{display:none;}}</style></head><body>'+body+'<script>window.onload=function(){window.print();}<\/script></body></html>');
   win.document.close();
 }
 
@@ -2956,22 +2896,7 @@ async function admDesbloquear(ctId){
 function admVerContrato(ctId){
   var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.texto)return;
   var win=window.open('','_blank');
-  win.document.write('<html><head><style>body{font-family:Arial;font-size:11pt;padding:30px;color:#000;}pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;}</style></head><body><pre>'+ct.texto+'</pre>
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
-<div class="overlay" id="ov-clausulas" style="display:none;">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
-      <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
-    </div>
-    <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
-    </div>
-  </div>
-</div>
-
-</body></html>');
+  win.document.write('<html><head><style>body{font-family:Arial;font-size:11pt;padding:30px;color:#000;}pre{white-space:pre-wrap;font-family:Arial;font-size:11pt;}</style></head><body><pre>'+ct.texto+'</pre></body></html>');
   win.document.close();
 }
 async function admDescargarFirmado(ctId){
@@ -3226,22 +3151,7 @@ async function admReporteEjecutivo(){
     html+='</tbody></table>';
     html+='<p style="margin-top:30px;font-size:9pt;color:#999;text-align:center;">GAMBARTE ARQUITECTURA S.R.L. - Documento confidencial</p>';
     html+='<button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:10px 20px;background:#f5c400;border:none;border-radius:5px;font-weight:700;cursor:pointer;">Imprimir / PDF</button>';
-    html+='
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
-<div class="overlay" id="ov-clausulas" style="display:none;">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
-      <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
-    </div>
-    <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
-    </div>
-  </div>
-</div>
-
-</body></html>';
+    html+='</body></html>';
     var fecha=new Date().toISOString().slice(0,10);
     _admDescargarArchivo('GEAT_Reporte_'+fecha+'.html',html,'text/html;charset=utf-8;');
     dbLog(CU.n,'Reporte ejecutivo HTML generado');
@@ -3369,7 +3279,6 @@ async function dvUpload(tipo,inp){
   var msg=document.getElementById('dv-msg');
   if(msg)msg.innerHTML='<div class="al al-z">⏳ Procesando '+tipo+'...</div>';
   try{
-    // T16: comprimir si es imagen (evita crash de cámara en celular)
     file=await _compressImage(file);
     if(msg)msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
     var ext=file.name.split('.').pop();
@@ -3518,7 +3427,6 @@ async function caUpload(tipo,inp){
   var msg=document.getElementById('ca-msg');
   if(msg)msg.innerHTML='<div class="al al-z">⏳ Procesando '+tipo+'...</div>';
   try{
-    // T16: comprimir si es imagen
     file=await _compressImage(file);
     if(msg)msg.innerHTML='<div class="al al-z">⏳ Subiendo '+tipo+'...</div>';
     var ext=file.name.split('.').pop();
@@ -3846,22 +3754,7 @@ function adImprimir(){
     '<div class="hdr"><b>GAMBARTE ARQUITECTURA S.R.L.</b><br>NIT: ___________ · Santa Cruz de la Sierra · Bolivia</div>'+
     texto+
     '<button onclick="window.print()" style="position:fixed;bottom:20px;right:20px;padding:10px 20px;background:#f5c400;border:none;border-radius:5px;font-weight:700;cursor:pointer;">🖨️ Imprimir</button>'+
-    '
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
-<div class="overlay" id="ov-clausulas" style="display:none;">
-  <div class="modal" style="max-width:600px;">
-    <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
-      <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
-    </div>
-    <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
-    <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
-    </div>
-  </div>
-</div>
-
-</body></html>');
+    '</body></html>');
   win.document.close();
   // Mostrar zona de carga firmado
   setTimeout(function(){
@@ -5084,125 +4977,123 @@ window.addEventListener('appinstalled',function(){
   if(typeof toast==='function')toast('¡App instalada correctamente!','success','📲');
 });
 
-
 // ═══════════════════════════════════════════════════════════════
-// TANDA 16 — CLÁUSULAS FAVORITAS
+// TANDA 16 — CLÁUSULAS FAVORITAS (coexisten con la IA)
 // ═══════════════════════════════════════════════════════════════
 var _clausulaCtIdActivo=null;
 
 async function abrirClausulasFavoritas(ctId){
   _clausulaCtIdActivo=ctId;
-  document.getElementById('ov-clausulas').style.display='flex';
+  var ov=document.getElementById('ov-clausulas');
+  if(ov)ov.style.display='flex';
   await renderClausulas();
 }
 
 async function renderClausulas(){
   var body=document.getElementById('m-clausulas-body');
-  body.innerHTML='<div style="text-align:center;color:var(--ws);padding:20px;">⏳ Cargando cláusulas...</div>';
+  if(!body)return;
+  body.innerHTML='<div style="text-align:center;color:var(--ws);padding:20px;">Cargando clausulas...</div>';
   try{
-    var {data,error}=await sb.from('rec_clausulas_favoritas')
-      .select('*').order('usada_count',{ascending:false}).limit(50);
-    if(error)throw new Error(error.message);
+    var res=await sb.from('rec_clausulas_favoritas').select('*').order('usada_count',{ascending:false}).limit(50);
+    if(res.error)throw new Error(res.error.message);
+    var data=res.data;
     if(!data||!data.length){
       body.innerHTML='<div style="text-align:center;color:var(--ws);padding:30px;">'+
         '<div style="font-size:32px;margin-bottom:8px;">📭</div>'+
-        '<div>Aún no guardaste ninguna cláusula favorita.</div>'+
-        '<div style="font-size:11px;margin-top:8px;">Cuando agregues cláusulas útiles en tus contratos, podés guardarlas acá para reutilizarlas después.</div>'+
+        '<div>Aun no guardaste ninguna clausula favorita.</div>'+
+        '<div style="font-size:11px;margin-top:8px;">Cuando agregues clausulas utiles, guardalas aca para reutilizarlas.</div>'+
         '</div>';
       return;
     }
-    body.innerHTML=data.map(function(cl){
-      return '<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
-        '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;margin-bottom:8px;">'+
-          '<div style="font-weight:700;color:var(--am);font-size:13px;">'+(cl.titulo||'(sin título)')+'</div>'+
-          '<div style="font-size:9px;color:var(--ws);">Usada '+(cl.usada_count||0)+'x</div>'+
-        '</div>'+
-        '<div style="font-size:11px;color:var(--wd);line-height:1.5;max-height:80px;overflow:auto;background:var(--p1);padding:8px;border-radius:4px;margin-bottom:8px;white-space:pre-wrap;">'+cl.texto.substring(0,300)+(cl.texto.length>300?'...':'')+'</div>'+
+    var h='';
+    for(var i=0;i<data.length;i++){
+      var cl=data[i];
+      var preview=(cl.texto||'').substring(0,300)+((cl.texto||'').length>300?'...':'');
+      h+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">'+
+        '<div style="font-weight:700;color:var(--am);font-size:13px;">'+(cl.titulo||'(sin titulo)')+'</div>'+
+        '<div style="font-size:9px;color:var(--ws);">Usada '+(cl.usada_count||0)+'x</div></div>'+
+        '<div style="font-size:11px;color:var(--wd);line-height:1.5;max-height:80px;overflow:auto;background:var(--p1);padding:8px;border-radius:4px;margin-bottom:8px;white-space:pre-wrap;">'+preview+'</div>'+
         '<div style="display:flex;gap:6px;">'+
-          '<button class="btn btn-y btn-sm" onclick="insertarClausula('+cl.id+')">📥 Insertar en contrato</button>'+
-          '<button class="btn btn-o btn-sm" onclick="eliminarClausula('+cl.id+')">🗑️</button>'+
-        '</div>'+
-        '</div>';
-    }).join('');
+        '<button class="btn btn-y btn-sm" onclick="insertarClausula('+cl.id+')">Insertar en contrato</button>'+
+        '<button class="btn btn-o btn-sm" onclick="eliminarClausula('+cl.id+')">Eliminar</button>'+
+        '</div></div>';
+    }
+    body.innerHTML=h;
   }catch(e){
-    body.innerHTML='<div style="color:var(--Rc);">Error: '+e.message+'</div>';
+    body.innerHTML='<div style="color:var(--Rc);padding:16px;">Error: '+e.message+'</div>';
   }
 }
 
 function abrirGuardarClausula(){
-  if(!_clausulaCtIdActivo){toast('Abrí un contrato primero','warning');return;}
+  if(!_clausulaCtIdActivo){if(typeof toast==='function')toast('Abri un contrato primero','warning');return;}
   var ta=document.getElementById('ed-txt-'+_clausulaCtIdActivo);
-  if(!ta){toast('No se encontró el editor','error');return;}
+  if(!ta){if(typeof toast==='function')toast('No se encontro el editor','error');return;}
   var seleccion='';
   if(ta.selectionStart!==ta.selectionEnd){
     seleccion=ta.value.substring(ta.selectionStart,ta.selectionEnd);
   }
   if(!seleccion){
-    seleccion=prompt('📋 Pegá o escribí el texto de la cláusula que querés guardar:');
+    seleccion=prompt('Pega o escribi el texto de la clausula que queres guardar:');
     if(!seleccion||!seleccion.trim())return;
   }
-  var titulo=prompt('📝 Dale un título corto a esta cláusula (ej: "Garantía 6 meses", "Penalidad por demora"):');
+  var titulo=prompt('Dale un titulo corto a esta clausula (ej: Garantia 6 meses):');
   if(!titulo||!titulo.trim())return;
   guardarClausulaFavorita(titulo.trim(),seleccion.trim());
 }
 
 async function guardarClausulaFavorita(titulo,texto){
   try{
-    var {error}=await sb.from('rec_clausulas_favoritas').insert({
-      titulo:titulo,texto:texto,creada_por:CU.n
-    });
-    if(error)throw new Error(error.message);
-    toast('Cláusula "'+titulo+'" guardada','success','📚');
-    dbLog(CU.n,'Cláusula favorita guardada: '+titulo);
+    var res=await sb.from('rec_clausulas_favoritas').insert({titulo:titulo,texto:texto,creada_por:CU.n});
+    if(res.error)throw new Error(res.error.message);
+    if(typeof toast==='function')toast('Clausula "'+titulo+'" guardada','success');
+    dbLog(CU.n,'Clausula favorita guardada: '+titulo);
     await renderClausulas();
-  }catch(e){toast('Error: '+e.message,'error');}
+  }catch(e){if(typeof toast==='function')toast('Error: '+e.message,'error');}
 }
 
 async function insertarClausula(clId){
-  if(!_clausulaCtIdActivo){toast('Abrí un contrato primero','warning');return;}
+  if(!_clausulaCtIdActivo){if(typeof toast==='function')toast('Abri un contrato primero','warning');return;}
   try{
-    var {data:cl,error}=await sb.from('rec_clausulas_favoritas')
-      .select('*').eq('id',clId).single();
-    if(error)throw new Error(error.message);
+    var res=await sb.from('rec_clausulas_favoritas').select('*').eq('id',clId).single();
+    if(res.error)throw new Error(res.error.message);
+    var cl=res.data;
     var ta=document.getElementById('ed-txt-'+_clausulaCtIdActivo);
-    if(!ta){toast('No se encontró el editor','error');return;}
+    if(!ta){if(typeof toast==='function')toast('No se encontro el editor','error');return;}
     var start=ta.selectionStart;
     var antes=ta.value.substring(0,start);
     var despues=ta.value.substring(start);
     ta.value=antes+'\n\n'+cl.texto+'\n\n'+despues;
     ta.dispatchEvent(new Event('input'));
-    await sb.from('rec_clausulas_favoritas').update({
-      usada_count:(cl.usada_count||0)+1,
-      ultima_uso:new Date().toISOString()
-    }).eq('id',clId);
-    document.getElementById('ov-clausulas').style.display='none';
-    toast('Cláusula insertada. No olvides Guardar Cambios.','success','📥');
-  }catch(e){toast('Error: '+e.message,'error');}
+    await sb.from('rec_clausulas_favoritas').update({usada_count:(cl.usada_count||0)+1,ultima_uso:new Date().toISOString()}).eq('id',clId);
+    var ov=document.getElementById('ov-clausulas');
+    if(ov)ov.style.display='none';
+    if(typeof toast==='function')toast('Clausula insertada. No olvides Guardar Cambios.','success');
+  }catch(e){if(typeof toast==='function')toast('Error: '+e.message,'error');}
 }
 
 async function eliminarClausula(clId){
-  if(!confirm('¿Eliminar esta cláusula favorita?'))return;
+  if(!confirm('Eliminar esta clausula favorita?'))return;
   try{
-    var {error}=await sb.from('rec_clausulas_favoritas').delete().eq('id',clId);
-    if(error)throw new Error(error.message);
-    toast('Cláusula eliminada','info');
+    var res=await sb.from('rec_clausulas_favoritas').delete().eq('id',clId);
+    if(res.error)throw new Error(res.error.message);
+    if(typeof toast==='function')toast('Clausula eliminada','info');
     await renderClausulas();
-  }catch(e){toast('Error: '+e.message,'error');}
+  }catch(e){if(typeof toast==='function')toast('Error: '+e.message,'error');}
 }
-
 
 </script>
 
-<!-- MODAL CLÁUSULAS FAVORITAS (T16) -->
+<!-- MODAL CLAUSULAS FAVORITAS (T16) -->
 <div class="overlay" id="ov-clausulas" style="display:none;">
   <div class="modal" style="max-width:600px;">
     <div class="modal-h">
-      <h3>📚 Mis Cláusulas Favoritas</h3>
+      <h3>📚 Mis Clausulas Favoritas</h3>
       <button class="modal-x" onclick="document.getElementById('ov-clausulas').style.display='none';">✕</button>
     </div>
     <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
     <div style="padding:12px 16px;border-top:1px solid var(--bd);">
-      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva cláusula</button>
+      <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva clausula</button>
     </div>
   </div>
 </div>
