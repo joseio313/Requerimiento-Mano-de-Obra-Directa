@@ -515,9 +515,10 @@ async function storageUrl(path){
     <button type="button" class="scan-close" onclick="scanClose()">✕</button>
   </div>
   <div class="scan-body">
-    <div class="scan-step-info" id="scan-step-info">Agregá una o varias fotos del documento</div>
+    <div class="scan-step-info" id="scan-step-info">Tomá una foto del documento</div>
 
     <div class="scan-preview" id="scan-preview">
+      <!-- PASO INICIO -->
       <div style="color:#999;font-size:13px;text-align:center;padding:30px;" id="scan-empty">
         <div style="font-size:40px;margin-bottom:12px;">📄</div>
         <div style="margin-bottom:16px;">Elegí cómo agregar el documento:</div>
@@ -525,20 +526,27 @@ async function storageUrl(path){
           <button type="button" class="btn btn-y" onclick="scanPickCamera()" style="font-size:13px;">📷 Tomar foto</button>
           <button type="button" class="btn btn-o" onclick="scanPickGallery()" style="font-size:13px;">🖼️ Elegir de galería</button>
         </div>
-        <div style="font-size:10px;color:#666;margin-top:14px;">Podés agregar varias páginas. Se juntan en un PDF.</div>
       </div>
+
+      <!-- PASO RECORTE -->
+      <div id="scan-crop-zone" style="display:none;text-align:center;">
+        <canvas id="scan-crop-canvas" style="max-width:100%;touch-action:none;border-radius:6px;"
+          onmousedown="scanCropStart(event)" onmousemove="scanCropMove(event)" onmouseup="scanCropEnd()" onmouseleave="scanCropEnd()"
+          ontouchstart="scanCropStart(event)" ontouchmove="scanCropMove(event)" ontouchend="scanCropEnd()"></canvas>
+      </div>
+
       <input type="file" id="scan-cam-input" accept="image/*" capture="environment" style="display:none;" onchange="scanCapture(this)">
       <input type="file" id="scan-gal-input" accept="image/*" style="display:none;" onchange="scanCapture(this)">
     </div>
 
-    <!-- Filtro simple B/N o color -->
+    <!-- FILTROS -->
     <div id="scan-filter-zone" style="display:none;flex-direction:column;gap:8px;">
       <div style="font-size:10px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;">Filtro</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button type="button" class="scan-btn active" id="scf-color" onclick="scanSetFiltro('color')">
+        <button type="button" class="scan-btn" id="scf-color" onclick="scanSetFiltro('color')">
           <span class="scan-btn-ico">🎨</span><span>Color</span>
         </button>
-        <button type="button" class="scan-btn" id="scf-doc" onclick="scanSetFiltro('doc')">
+        <button type="button" class="scan-btn active" id="scf-doc" onclick="scanSetFiltro('doc')">
           <span class="scan-btn-ico">📄</span><span>Documento</span>
         </button>
         <button type="button" class="scan-btn" id="scf-bw" onclick="scanSetFiltro('bw')">
@@ -550,10 +558,26 @@ async function storageUrl(path){
     <div class="scan-pages" id="scan-pages-list" style="display:none;"></div>
   </div>
   <div class="scan-footer">
-    <button type="button" class="btn btn-y" onclick="scanPickCamera()">📷 Cámara</button>
-    <button type="button" class="btn btn-o" onclick="scanPickGallery()">🖼️ Galería</button>
-    <button type="button" class="btn btn-g btn-lg" id="scan-finish-btn" onclick="scanFinish()" style="flex:1;display:none;">✅ Finalizar y subir</button>
-    <button type="button" class="btn btn-o" onclick="scanClose()">Cancelar</button>
+    <!-- Footer paso INICIO -->
+    <div id="scan-footer-inicio" style="display:flex;gap:8px;width:100%;">
+      <button type="button" class="btn btn-y" onclick="scanPickCamera()" style="flex:1;">📷 Cámara</button>
+      <button type="button" class="btn btn-o" onclick="scanPickGallery()" style="flex:1;">🖼️ Galería</button>
+      <button type="button" class="btn btn-g btn-lg" id="scan-finish-btn" onclick="scanFinish()" style="flex:1;display:none;">✅ Finalizar</button>
+      <button type="button" class="btn btn-o" onclick="scanClose()">Cancelar</button>
+    </div>
+    <!-- Footer paso RECORTE -->
+    <div id="scan-footer-recorte" style="display:none;gap:8px;width:100%;flex-wrap:wrap;">
+      <button type="button" class="btn btn-o btn-sm" onclick="scanCropFull()">Sin recorte</button>
+      <button type="button" class="btn btn-o btn-sm" onclick="scanCropReset()">Reiniciar</button>
+      <button type="button" class="btn btn-y btn-lg" onclick="scanAplicarRecorte()" style="flex:1;">✂️ Recortar y enderezar</button>
+      <button type="button" class="btn btn-o" onclick="scanClose()">Cancelar</button>
+    </div>
+    <!-- Footer paso FILTRO -->
+    <div id="scan-footer-filtro" style="display:none;gap:8px;width:100%;flex-wrap:wrap;">
+      <button type="button" class="btn btn-o" onclick="scanOtraPagina()">➕ Otra página</button>
+      <button type="button" class="btn btn-g btn-lg" onclick="scanFinish()" style="flex:1;">✅ Finalizar y subir</button>
+      <button type="button" class="btn btn-o" onclick="scanClose()">Cancelar</button>
+    </div>
   </div>
 </div>
 
@@ -581,7 +605,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v57 · SCANNER ESTANDAR RAPIDO</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v58 · SCANNER RECORTE + ENDEREZADO</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -3927,11 +3951,12 @@ function _carolinaCalcularEstado(c,o){
     fechaLimite:new Date(firma.getTime()+6*86400000).toLocaleDateString('es-BO')
   };
 }
-
 // ═══════════════════════════════════════════════════════════════
-// TANDA 17 — SCANNER ESTÁNDAR LIVIANO (sin OpenCV, carga instantánea)
+// TANDA 18 — SCANNER CON RECORTE MANUAL + ENDEREZADO (sin OpenCV)
+// Flujo: captura -> recorte 4 esquinas -> enderezado -> filtro -> PDF
 // ═══════════════════════════════════════════════════════════════
-var scanCtx={destino:null,tipo:null,pages:[],filtro:'color'};
+var scanCtx={destino:null,tipo:null,pages:[],filtro:'doc',step:'inicio',
+  tempImg:null,corners:null,dragIdx:-1,canvasScale:1};
 
 function scanOpen(destino,tipo){
   if(destino==='dv'&&!dvObraId){toast('Seleccioná una obra primero','warning');return;}
@@ -3940,7 +3965,10 @@ function scanOpen(destino,tipo){
   scanCtx.destino=destino;
   scanCtx.tipo=tipo;
   scanCtx.pages=[];
-  scanCtx.filtro='color';
+  scanCtx.filtro='doc';
+  scanCtx.step='inicio';
+  scanCtx.tempImg=null;
+  scanCtx.corners=null;
   document.getElementById('scan-title').textContent='📷 Escanear ('+_scanTipoLabel(destino,tipo)+')';
   document.getElementById('scan-modal').classList.add('on');
   _scanRender();
@@ -3958,7 +3986,8 @@ function _scanTipoLabel(d,t){
 function scanClose(){
   if(scanCtx.pages.length>0&&!confirm('¿Cerrar sin guardar? Se perderán las páginas.'))return;
   document.getElementById('scan-modal').classList.remove('on');
-  scanCtx.destino=null;scanCtx.tipo=null;scanCtx.pages=[];
+  scanCtx.destino=null;scanCtx.tipo=null;scanCtx.pages=[];scanCtx.step='inicio';
+  scanCtx.tempImg=null;scanCtx.corners=null;
 }
 
 function scanPickCamera(){
@@ -3970,30 +3999,16 @@ function scanPickGallery(){
   if(inp){inp.value='';inp.click();}
 }
 
-function scanSetFiltro(f){
-  scanCtx.filtro=f;
-  ['color','doc','bw'].forEach(function(x){
-    var b=document.getElementById('scf-'+x);
-    if(b)b.classList.toggle('active',x===f);
-  });
-  // Reaplicar filtro a todas las páginas
-  for(var i=0;i<scanCtx.pages.length;i++){
-    scanCtx.pages[i].processed=_scanAplicarFiltro(scanCtx.pages[i].original,f);
-  }
-  _scanRender();
-}
-
-// Captura: lee la foto, la redimensiona y aplica filtro — TODO liviano con canvas
+// ─── PASO 1: Captura — carga la imagen y pasa a recorte ───
 function scanCapture(inp){
   if(!inp.files||!inp.files[0])return;
   var file=inp.files[0];
   if(file.size>25*1024*1024){toast('Imagen muy grande (máx 25MB)','error');return;}
-  toast('Procesando imagen...','info');
+  toast('Cargando imagen...','info');
   var reader=new FileReader();
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
-      // Redimensionar a máx 1600px (rápido y liviano)
       var maxDim=1600;
       var w=img.width,h=img.height;
       if(w>maxDim||h>maxDim){
@@ -4003,11 +4018,15 @@ function scanCapture(inp){
       var canvas=document.createElement('canvas');
       canvas.width=w;canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
-      var original=canvas.toDataURL('image/jpeg',0.85);
-      var processed=_scanAplicarFiltro(original,scanCtx.filtro);
-      scanCtx.pages.push({original:original,processed:processed});
+      scanCtx.tempImg={src:canvas.toDataURL('image/jpeg',0.9),w:w,h:h};
+      // Esquinas iniciales: 8% de margen
+      var mx=w*0.08,my=h*0.08;
+      scanCtx.corners=[
+        {x:mx,y:my},{x:w-mx,y:my},
+        {x:w-mx,y:h-my},{x:mx,y:h-my}
+      ];
+      scanCtx.step='recorte';
       _scanRender();
-      toast('Página '+scanCtx.pages.length+' agregada','success');
     };
     img.onerror=function(){toast('No se pudo leer la imagen','error');};
     img.src=e.target.result;
@@ -4016,109 +4035,305 @@ function scanCapture(inp){
   reader.readAsDataURL(file);
 }
 
-// Filtro liviano: color / documento (contraste) / B&N — solo canvas, sin librerías
-function _scanAplicarFiltro(dataURL,filtro){
-  if(filtro==='color')return dataURL;
+// ─── PASO 2: Recorte — dibuja imagen + 4 esquinas arrastrables ───
+function _scanDrawRecorte(){
+  var canvas=document.getElementById('scan-crop-canvas');
+  if(!canvas||!scanCtx.tempImg)return;
+  var cont=document.getElementById('scan-preview');
+  var maxW=cont?cont.clientWidth-20:340;
+  if(maxW<200)maxW=320;
+  var scale=Math.min(1,maxW/scanCtx.tempImg.w);
+  scanCtx.canvasScale=scale;
+  var cw=Math.round(scanCtx.tempImg.w*scale);
+  var ch=Math.round(scanCtx.tempImg.h*scale);
+  canvas.width=cw;canvas.height=ch;
+  var ctx=canvas.getContext('2d');
   var img=new Image();
-  // Sincrono via canvas — la imagen ya está cargada en memoria
-  var canvas=document.createElement('canvas');
-  // Cargar de forma sincrona usando un canvas temporal
-  var tmpImg=document.createElement('img');
-  tmpImg.src=dataURL;
-  // Como tmpImg puede no estar listo, usamos un approach con el data ya decodificado
-  // Mejor: crear canvas del mismo size y procesar pixeles
-  return _scanFiltroSync(dataURL,filtro);
+  img.onload=function(){
+    ctx.clearRect(0,0,cw,ch);
+    ctx.drawImage(img,0,0,cw,ch);
+    // Oscurecer afuera del polígono
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0,0,cw,ch);
+    var c=scanCtx.corners;
+    ctx.moveTo(c[0].x*scale,c[0].y*scale);
+    for(var i=1;i<4;i++)ctx.lineTo(c[i].x*scale,c[i].y*scale);
+    ctx.closePath();
+    ctx.fillStyle='rgba(0,0,0,0.55)';
+    ctx.fill('evenodd');
+    ctx.restore();
+    // Polígono del documento
+    ctx.beginPath();
+    ctx.moveTo(c[0].x*scale,c[0].y*scale);
+    for(var j=1;j<4;j++)ctx.lineTo(c[j].x*scale,c[j].y*scale);
+    ctx.closePath();
+    ctx.strokeStyle='#f5c400';
+    ctx.lineWidth=2;
+    ctx.stroke();
+    // Esquinas (círculos)
+    for(var k=0;k<4;k++){
+      ctx.beginPath();
+      ctx.arc(c[k].x*scale,c[k].y*scale,11,0,Math.PI*2);
+      ctx.fillStyle='#f5c400';
+      ctx.fill();
+      ctx.strokeStyle='#000';
+      ctx.lineWidth=2;
+      ctx.stroke();
+    }
+  };
+  img.src=scanCtx.tempImg.src;
 }
 
-// Procesa filtro de forma diferida pero rápida
-function _scanFiltroSync(dataURL,filtro){
-  // Devuelve el dataURL original; el procesamiento real se hace en _scanRender con canvas listo
-  return {pendiente:true,src:dataURL,filtro:filtro};
+function _scanCanvasPoint(ev){
+  var canvas=document.getElementById('scan-crop-canvas');
+  var rect=canvas.getBoundingClientRect();
+  var cx=(ev.touches?ev.touches[0].clientX:ev.clientX)-rect.left;
+  var cy=(ev.touches?ev.touches[0].clientY:ev.clientY)-rect.top;
+  return {x:cx/scanCtx.canvasScale,y:cy/scanCtx.canvasScale};
 }
 
-function _scanRender(){
-  var empty=document.getElementById('scan-empty');
-  var list=document.getElementById('scan-pages-list');
-  var fzone=document.getElementById('scan-filter-zone');
-  var finishBtn=document.getElementById('scan-finish-btn');
-  var info=document.getElementById('scan-step-info');
-  if(scanCtx.pages.length===0){
-    if(empty)empty.style.display='block';
-    if(list)list.style.display='none';
-    if(fzone)fzone.style.display='none';
-    if(finishBtn)finishBtn.style.display='none';
-    if(info)info.textContent='Agregá una o varias fotos del documento';
-    return;
+function scanCropStart(ev){
+  ev.preventDefault();
+  var p=_scanCanvasPoint(ev);
+  var best=-1,bestDist=9999;
+  for(var i=0;i<4;i++){
+    var dx=scanCtx.corners[i].x-p.x,dy=scanCtx.corners[i].y-p.y;
+    var d=Math.sqrt(dx*dx+dy*dy);
+    if(d<bestDist){bestDist=d;best=i;}
   }
-  if(empty)empty.style.display='none';
-  if(list)list.style.display='flex';
-  if(fzone)fzone.style.display='flex';
-  if(finishBtn)finishBtn.style.display='block';
-  if(info)info.textContent=scanCtx.pages.length+' página(s) — elegí filtro y finalizá';
-  // Render thumbnails
-  var h='';
-  for(var i=0;i<scanCtx.pages.length;i++){
-    var p=scanCtx.pages[i];
-    var src=(p.processed&&p.processed.src)?p.processed.src:(typeof p.processed==='string'?p.processed:p.original);
-    h+='<div class="scan-page">'+
-      '<img src="'+src+'" style="width:100%;border-radius:4px;">'+
-      '<div style="font-size:9px;color:var(--ws);text-align:center;margin-top:2px;">Pág '+(i+1)+'</div>'+
-      '<button type="button" class="scan-page-rm" onclick="scanRmPage('+i+')">✕</button>'+
-      '</div>';
-  }
-  if(list)list.innerHTML=h;
-  // Aplicar filtros pendientes con canvas (rápido)
-  _scanProcesarFiltrosPendientes();
+  // Solo agarra si está cerca (60px en coords reales)
+  if(bestDist<60/scanCtx.canvasScale)scanCtx.dragIdx=best;
 }
 
-function _scanProcesarFiltrosPendientes(){
-  for(var i=0;i<scanCtx.pages.length;i++){
-    var p=scanCtx.pages[i];
-    if(p.processed&&p.processed.pendiente){
-      (function(idx,pagina){
-        var img=new Image();
-        img.onload=function(){
-          var canvas=document.createElement('canvas');
-          canvas.width=img.width;canvas.height=img.height;
-          var ctx=canvas.getContext('2d');
-          ctx.drawImage(img,0,0);
-          var filtro=pagina.processed.filtro;
-          if(filtro==='doc'||filtro==='bw'){
-            var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
-            var d=imgData.data;
-            for(var j=0;j<d.length;j+=4){
-              var gray=0.299*d[j]+0.587*d[j+1]+0.114*d[j+2];
-              if(filtro==='bw'){
-                var v=gray>128?255:0;
-                d[j]=d[j+1]=d[j+2]=v;
-              } else {
-                // Documento: aumentar contraste, base gris
-                var c=(gray-128)*1.4+128;
-                c=Math.max(0,Math.min(255,c));
-                d[j]=d[j+1]=d[j+2]=c;
-              }
-            }
-            ctx.putImageData(imgData,0,0);
-          }
-          scanCtx.pages[idx].processed=canvas.toDataURL('image/jpeg',0.85);
-          // Re-render solo el thumbnail
-          var list=document.getElementById('scan-pages-list');
-          if(list){
-            var imgs=list.querySelectorAll('img');
-            if(imgs[idx])imgs[idx].src=scanCtx.pages[idx].processed;
-          }
-        };
-        img.src=pagina.processed.src;
-      })(i,p);
+function scanCropMove(ev){
+  if(scanCtx.dragIdx<0)return;
+  ev.preventDefault();
+  var p=_scanCanvasPoint(ev);
+  p.x=Math.max(0,Math.min(scanCtx.tempImg.w,p.x));
+  p.y=Math.max(0,Math.min(scanCtx.tempImg.h,p.y));
+  scanCtx.corners[scanCtx.dragIdx]=p;
+  _scanDrawRecorte();
+}
+
+function scanCropEnd(){
+  scanCtx.dragIdx=-1;
+}
+
+function scanCropReset(){
+  var w=scanCtx.tempImg.w,h=scanCtx.tempImg.h;
+  var mx=w*0.08,my=h*0.08;
+  scanCtx.corners=[
+    {x:mx,y:my},{x:w-mx,y:my},
+    {x:w-mx,y:h-my},{x:mx,y:h-my}
+  ];
+  _scanDrawRecorte();
+}
+
+function scanCropFull(){
+  var w=scanCtx.tempImg.w,h=scanCtx.tempImg.h;
+  scanCtx.corners=[{x:0,y:0},{x:w,y:0},{x:w,y:h},{x:0,y:h}];
+  _scanDrawRecorte();
+}
+
+// ─── Enderezado: transformación de perspectiva (homografía) en canvas ───
+function _scanWarpPerspective(srcCanvas,corners,outW,outH){
+  // corners en orden: TL, TR, BR, BL (coords de srcCanvas)
+  var out=document.createElement('canvas');
+  out.width=outW;out.height=outH;
+  var octx=out.getContext('2d');
+  var sctx=srcCanvas.getContext('2d');
+  var srcData=sctx.getImageData(0,0,srcCanvas.width,srcCanvas.height);
+  var outData=octx.createImageData(outW,outH);
+  var sd=srcData.data,od=outData.data;
+  var sw=srcCanvas.width,sh=srcCanvas.height;
+  var TL=corners[0],TR=corners[1],BR=corners[2],BL=corners[3];
+  // Mapeo bilineal inverso: para cada pixel destino (u,v) normalizado [0,1]
+  for(var y=0;y<outH;y++){
+    var v=y/(outH-1);
+    for(var x=0;x<outW;x++){
+      var u=x/(outW-1);
+      // Interpolación bilineal de las 4 esquinas
+      var topX=TL.x+(TR.x-TL.x)*u;
+      var topY=TL.y+(TR.y-TL.y)*u;
+      var botX=BL.x+(BR.x-BL.x)*u;
+      var botY=BL.y+(BR.y-BL.y)*u;
+      var sx=topX+(botX-topX)*v;
+      var sy=topY+(botY-topY)*v;
+      var ix=Math.round(sx),iy=Math.round(sy);
+      var oi=(y*outW+x)*4;
+      if(ix>=0&&ix<sw&&iy>=0&&iy<sh){
+        var si=(iy*sw+ix)*4;
+        od[oi]=sd[si];od[oi+1]=sd[si+1];od[oi+2]=sd[si+2];od[oi+3]=255;
+      } else {
+        od[oi]=255;od[oi+1]=255;od[oi+2]=255;od[oi+3]=255;
+      }
     }
   }
+  octx.putImageData(outData,0,0);
+  return out;
+}
+
+function _scanDist(a,b){
+  var dx=a.x-b.x,dy=a.y-b.y;
+  return Math.sqrt(dx*dx+dy*dy);
+}
+
+// ─── PASO 3: Aplicar recorte + enderezar + ir a filtro ───
+function scanAplicarRecorte(){
+  if(!scanCtx.tempImg||!scanCtx.corners)return;
+  toast('Enderezando documento...','info');
+  var img=new Image();
+  img.onload=function(){
+    var src=document.createElement('canvas');
+    src.width=scanCtx.tempImg.w;src.height=scanCtx.tempImg.h;
+    src.getContext('2d').drawImage(img,0,0);
+    var c=scanCtx.corners;
+    // Dimensiones de salida = promedio de lados opuestos
+    var wTop=_scanDist(c[0],c[1]),wBot=_scanDist(c[3],c[2]);
+    var hLeft=_scanDist(c[0],c[3]),hRight=_scanDist(c[1],c[2]);
+    var outW=Math.round(Math.max(wTop,wBot));
+    var outH=Math.round(Math.max(hLeft,hRight));
+    outW=Math.max(200,Math.min(2000,outW));
+    outH=Math.max(200,Math.min(2400,outH));
+    var warped=_scanWarpPerspective(src,c,outW,outH);
+    var original=warped.toDataURL('image/jpeg',0.9);
+    var processed=_scanFiltrarCanvas(warped,scanCtx.filtro);
+    scanCtx.pages.push({original:original,processed:processed});
+    scanCtx.tempImg=null;
+    scanCtx.corners=null;
+    scanCtx.step='filtro';
+    _scanRender();
+    toast('Página '+scanCtx.pages.length+' lista','success');
+  };
+  img.src=scanCtx.tempImg.src;
+}
+
+// Filtro sobre un canvas, devuelve dataURL
+function _scanFiltrarCanvas(srcCanvas,filtro){
+  if(filtro==='color')return srcCanvas.toDataURL('image/jpeg',0.9);
+  var canvas=document.createElement('canvas');
+  canvas.width=srcCanvas.width;canvas.height=srcCanvas.height;
+  var ctx=canvas.getContext('2d');
+  ctx.drawImage(srcCanvas,0,0);
+  var imgData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  var d=imgData.data;
+  for(var j=0;j<d.length;j+=4){
+    var gray=0.299*d[j]+0.587*d[j+1]+0.114*d[j+2];
+    if(filtro==='bw'){
+      var v=gray>135?255:0;
+      d[j]=d[j+1]=d[j+2]=v;
+    } else {
+      var cc=(gray-128)*1.45+138;
+      cc=Math.max(0,Math.min(255,cc));
+      d[j]=d[j+1]=d[j+2]=cc;
+    }
+  }
+  ctx.putImageData(imgData,0,0);
+  return canvas.toDataURL('image/jpeg',0.9);
+}
+
+function scanSetFiltro(f){
+  scanCtx.filtro=f;
+  ['color','doc','bw'].forEach(function(x){
+    var b=document.getElementById('scf-'+x);
+    if(b)b.classList.toggle('active',x===f);
+  });
+  // Reaplicar a todas las páginas desde el original
+  for(var i=0;i<scanCtx.pages.length;i++){
+    (function(idx){
+      var img=new Image();
+      img.onload=function(){
+        var cv=document.createElement('canvas');
+        cv.width=img.width;cv.height=img.height;
+        cv.getContext('2d').drawImage(img,0,0);
+        scanCtx.pages[idx].processed=_scanFiltrarCanvas(cv,scanCtx.filtro);
+        var list=document.getElementById('scan-pages-list');
+        if(list){var imgs=list.querySelectorAll('img');if(imgs[idx])imgs[idx].src=scanCtx.pages[idx].processed;}
+      };
+      img.src=scanCtx.pages[idx].original;
+    })(i);
+  }
+}
+
+// Volver a tomar otra foto (agregar página)
+function scanOtraPagina(){
+  scanCtx.step='inicio';
+  scanCtx.tempImg=null;
+  scanCtx.corners=null;
+  _scanRender();
 }
 
 function scanRmPage(i){
   scanCtx.pages.splice(i,1);
+  if(scanCtx.pages.length===0)scanCtx.step='inicio';
   _scanRender();
 }
 
+// ─── Render según el paso actual ───
+function _scanRender(){
+  var empty=document.getElementById('scan-empty');
+  var cropZone=document.getElementById('scan-crop-zone');
+  var list=document.getElementById('scan-pages-list');
+  var fzone=document.getElementById('scan-filter-zone');
+  var finishBtn=document.getElementById('scan-finish-btn');
+  var info=document.getElementById('scan-step-info');
+  var footerInicio=document.getElementById('scan-footer-inicio');
+  var footerRecorte=document.getElementById('scan-footer-recorte');
+  var footerFiltro=document.getElementById('scan-footer-filtro');
+  // ocultar todo
+  if(empty)empty.style.display='none';
+  if(cropZone)cropZone.style.display='none';
+  if(list)list.style.display='none';
+  if(fzone)fzone.style.display='none';
+  if(finishBtn)finishBtn.style.display='none';
+  if(footerInicio)footerInicio.style.display='none';
+  if(footerRecorte)footerRecorte.style.display='none';
+  if(footerFiltro)footerFiltro.style.display='none';
+
+  if(scanCtx.step==='inicio'){
+    if(empty)empty.style.display='block';
+    if(footerInicio)footerInicio.style.display='flex';
+    if(info)info.textContent=scanCtx.pages.length>0?
+      (scanCtx.pages.length+' página(s) — agregá otra o finalizá'):
+      'Tomá una foto del documento';
+    // si ya hay páginas, mostrar lista + finalizar
+    if(scanCtx.pages.length>0){
+      if(list)list.style.display='flex';
+      if(fzone)fzone.style.display='flex';
+      if(finishBtn)finishBtn.style.display='block';
+      _scanRenderThumbs();
+    }
+  } else if(scanCtx.step==='recorte'){
+    if(cropZone)cropZone.style.display='block';
+    if(footerRecorte)footerRecorte.style.display='flex';
+    if(info)info.textContent='Arrastrá las 4 esquinas a los bordes del documento';
+    _scanDrawRecorte();
+  } else if(scanCtx.step==='filtro'){
+    if(list)list.style.display='flex';
+    if(fzone)fzone.style.display='flex';
+    if(finishBtn)finishBtn.style.display='block';
+    if(footerFiltro)footerFiltro.style.display='flex';
+    if(info)info.textContent=scanCtx.pages.length+' página(s) — elegí filtro y finalizá';
+    _scanRenderThumbs();
+  }
+}
+
+function _scanRenderThumbs(){
+  var list=document.getElementById('scan-pages-list');
+  if(!list)return;
+  var h='';
+  for(var i=0;i<scanCtx.pages.length;i++){
+    h+='<div class="scan-page">'+
+      '<img src="'+scanCtx.pages[i].processed+'" style="width:100%;border-radius:4px;">'+
+      '<div style="font-size:9px;color:var(--ws);text-align:center;margin-top:2px;">Pág '+(i+1)+'</div>'+
+      '<button type="button" class="scan-page-rm" onclick="scanRmPage('+i+')">✕</button>'+
+      '</div>';
+  }
+  list.innerHTML=h;
+}
+
+// ─── Finalizar: generar PDF y subir ───
 async function scanFinish(){
   if(scanCtx.pages.length===0){toast('Agregá al menos una página','warning');return;}
   toast('Generando PDF de '+scanCtx.pages.length+' página(s)...','info','📄');
@@ -4128,8 +4343,7 @@ async function scanFinish(){
     var pdf=new jsPDFLib({orientation:'portrait',unit:'mm',format:'a4'});
     var pageW=210,pageH=297,margin=8;
     for(var i=0;i<scanCtx.pages.length;i++){
-      var p=scanCtx.pages[i];
-      var src=(p.processed&&p.processed.src)?p.processed.src:(typeof p.processed==='string'?p.processed:p.original);
+      var src=scanCtx.pages[i].processed;
       var dim=await _scanImgDim(src);
       var maxW=pageW-2*margin,maxH=pageH-2*margin;
       var ratio=Math.min(maxW/dim.w,maxH/dim.h);
@@ -4142,7 +4356,7 @@ async function scanFinish(){
     var file=new File([pdfBlob],'escaneado_'+Date.now()+'.pdf',{type:'application/pdf'});
     await _scanUploadToDestino(file);
     document.getElementById('scan-modal').classList.remove('on');
-    scanCtx.destino=null;scanCtx.tipo=null;scanCtx.pages=[];
+    scanCtx.destino=null;scanCtx.tipo=null;scanCtx.pages=[];scanCtx.step='inicio';
   }catch(e){
     console.error(e);
     toast('Error generando PDF: '+e.message,'error');
