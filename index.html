@@ -537,7 +537,7 @@ async function storageUrl(path){
 <!-- AYUDA INSTALAR APP — iOS Safari -->
 <div class="pwa-ios-help" id="pwa-ios-help">
   <button class="pwa-ios-help-close" onclick="pwaDismiss()">✕</button>
-  <div style="font-size:14px;font-weight:900;margin-bottom:8px;color:#000;">📲 Instalar GEAT en tu iPhone</div>
+  <div style="font-size:14px;font-weight:900;margin-bottom:8px;color:#000;">📲 Instalar Gestión Operativa 1 en tu iPhone</div>
   <div style="font-size:11px;color:#3a3a3a;line-height:1.5;">
     <b>1.</b> Tocá el botón <b>compartir</b> (cuadrado con flecha ⬆️) abajo del navegador<br>
     <b>2.</b> Deslizá hacia abajo y tocá <b>"Agregar a pantalla de inicio"</b><br>
@@ -623,8 +623,8 @@ async function storageUrl(path){
 <div id="screen-login">
   <div class="pin-box">
     <div class="logo-g">G</div>
-    <h1>GEAT</h1>
-    <p>GESTIÓN OPERATIVA DE OBRAS</p>
+    <h1>GESTIÓN OPERATIVA 1</h1>
+    <p>GAMBARTE ARQUITECTURA S.R.L.</p>
     <div class="pin-display">
       <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
@@ -643,7 +643,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v65 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v66 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -3263,7 +3263,7 @@ async function admReporteEjecutivo(){
     var totalBs=Math.round(totalUSD*6.96);
     var fechaHoy=new Date().toLocaleDateString('es-BO',{day:'numeric',month:'long',year:'numeric'});
     var html='';
-    html+='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte GEAT - '+fechaHoy+'</title>';
+    html+='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte Gestión Operativa 1 - '+fechaHoy+'</title>';
     html+='<style>body{font-family:Arial,sans-serif;font-size:11pt;line-height:1.6;color:#000;padding:30px;max-width:1100px;margin:0 auto;}';
     html+='h1{font-size:18pt;text-align:center;border-bottom:3px solid #f5c400;padding-bottom:10px;}';
     html+='h2{font-size:13pt;background:#f5c400;color:#000;padding:6px 12px;margin-top:20px;}';
@@ -4958,7 +4958,7 @@ async function pwaInstall(){
   pwaDeferredPrompt.prompt();
   var result=await pwaDeferredPrompt.userChoice;
   if(result.outcome==='accepted'){
-    if(typeof toast==='function')toast('¡GEAT instalado! Buscá el ícono en tu pantalla.','success','📲');
+    if(typeof toast==='function')toast('¡Gestión Operativa 1 instalado! Buscá el ícono en tu pantalla.','success','📲');
   }
   pwaDeferredPrompt=null;
   pwaDismiss();
