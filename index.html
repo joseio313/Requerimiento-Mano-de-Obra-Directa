@@ -605,7 +605,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v62 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v63 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1494,10 +1494,21 @@ function onUpNuevaObra(tipo,inp){
 function genCodigo(){
   const nom=document.getElementById('n-nom').value.trim();
   if(!nom)return;
-  const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3);
+  const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3).toUpperCase();
   const yr=new Date().getFullYear();
-  const seq=String(obras.length+1).padStart(3,'0');
-  document.getElementById('n-cod').value=ini+'-'+yr+'-'+seq;
+  // T19 FIX: contar cuántas obras existen con el mismo prefijo "INI-YR-"
+  // así nunca duplicamos código aunque el conteo local difiera
+  var prefijo=ini+'-'+yr+'-';
+  var maxSeq=0;
+  for(var i=0;i<obras.length;i++){
+    var c=obras[i].cod||'';
+    if(c.indexOf(prefijo)===0){
+      var n=parseInt(c.substring(prefijo.length))||0;
+      if(n>maxSeq)maxSeq=n;
+    }
+  }
+  var seq=String(maxSeq+1).padStart(3,'0');
+  document.getElementById('n-cod').value=prefijo+seq;
 }
 
 // T12 — generar nombre comercial desde apellidos de propietarios
@@ -1540,18 +1551,60 @@ async function guardarNuevaObra(){
   if(!nom){toast('El nombre se genera solo. Llená los apellidos.','warning');return;}
   if(!nueObraFiles.dig){toast('Subí el archivo del contrato (PDF/DOC). El escaneado firmado lo sube David.','warning');return;}
   let cod=document.getElementById('n-cod').value.trim();
-  if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3);cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
+  if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3).toUpperCase();cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
   // Notas: guardamos los apellidos como referencia
   var notasProp='Propietario 1: '+p1.trim()+(p2.trim()?(' | Propietario 2: '+p2.trim()):'');
   const o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[]};
   obras.push(o);
+  // T19 FIX: retry hasta 5 veces con código nuevo si choca con UNIQUE constraint
+  var intento=0,exito=false,lastErr=null;
+  while(intento<5&&!exito){
+    try{
+      await dbGuardarObra(o);
+      exito=true;
+    }catch(e){
+      lastErr=e;
+      // Si es error de código duplicado, buscar un sufijo libre y reintentar
+      if(e.message&&e.message.indexOf('rec_obras_codigo_key')>=0){
+        intento++;
+        // Refrescar lista de códigos existentes desde la BD
+        try{
+          var resCods=await sb.from('rec_obras').select('codigo');
+          var existentes=(resCods.data||[]).map(function(r){return r.codigo;});
+          var parts=o.cod.split('-');
+          if(parts.length===3){
+            var prefijo=parts[0]+'-'+parts[1]+'-';
+            var maxN=0;
+            existentes.forEach(function(c){
+              if(c&&c.indexOf(prefijo)===0){
+                var nn=parseInt(c.substring(prefijo.length))||0;
+                if(nn>maxN)maxN=nn;
+              }
+            });
+            o.cod=prefijo+String(maxN+1).padStart(3,'0');
+            document.getElementById('n-cod').value=o.cod;
+            toast('Código ya existía, usando: '+o.cod,'info');
+          }
+        }catch(_e){}
+      } else {
+        break;
+      }
+    }
+  }
+  if(!exito){
+    obras=obras.filter(x=>x.id!==o.id);
+    toast('Error al guardar: '+(lastErr?lastErr.message:'desconocido'),'error');
+    return;
+  }
   try{
-    await dbGuardarObra(o);
     if(nueObraFiles.dig){const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);await storageUpload(p,nueObraFiles.dig);o.cp_dig=p;await dbGuardarObra(o);}
-    dbLog(CU.n,'Nueva obra registrada: '+nom);
-    toast('Obra "'+nom+'" registrada. Ahora Fátima completa datos técnicos.','success','✅');
+    dbLog(CU.n,'Nueva obra registrada: '+nom+' ('+o.cod+')');
+    toast('Obra "'+nom+'" registrada con código '+o.cod,'success','✅');
     limpiarNuevaObra();renderTodo();
-  }catch(e){toast('Error al guardar: '+e.message,'error');obras=obras.filter(x=>x.id!==o.id);}
+  }catch(e){
+    toast('Obra guardada pero error subiendo archivo: '+e.message,'warning');
+    renderTodo();
+  }
 }
 function renderSteffii(){
   if(CU&&CU.r!=='steffi'&&CU.r!=='admin')return;
