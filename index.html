@@ -407,7 +407,11 @@ function mapObra(o){return{
   fecha_primer_pago_propietario:o.fecha_primer_pago_propietario||null,
   especificaciones_diferida:o.especificaciones_diferida||false,
   cerrador_responsable:o.cerrador_responsable||null,
-  cerrador_fecha_registro:o.cerrador_fecha_registro||null
+  cerrador_fecha_registro:o.cerrador_fecha_registro||null,
+  // T19 — confirmación docs propietario
+  docs_prop_confirmados:o.docs_prop_confirmados||false,
+  docs_prop_confirmados_en:o.docs_prop_confirmados_en||null,
+  docs_prop_confirmados_por:o.docs_prop_confirmados_por||null
 };}
 function mapContrato(c){return{
   id:c.id,nom:c.nombre_contratista||'',tel:c.telefono||'',
@@ -426,8 +430,16 @@ function mapContrato(c){return{
   contrato_firmado_subido_por:c.contrato_firmado_subido_por||null,
   contrato_firmado_fecha:c.contrato_firmado_fecha||null,
   cronograma_quincenal:c.cronograma_quincenal||[],
-  plazo_planos_dias:c.plazo_planos_dias||6,
-  planos_pendientes_alerta:c.planos_pendientes_alerta||false
+  plazo_planos_dias:c.plazo_planos_dias||8,
+  planos_pendientes_alerta:c.planos_pendientes_alerta||false,
+  // T19 — 2 nuevos docs de Carolina + confirmación
+  calculo_estructural_pdf:c.calculo_estructural_pdf||null,
+  calculo_estructural_subido_por:c.calculo_estructural_subido_por||null,
+  uso_suelo_pdf:c.uso_suelo_pdf||null,
+  uso_suelo_subido_por:c.uso_suelo_subido_por||null,
+  docs_caro_confirmados:c.docs_caro_confirmados||false,
+  docs_caro_confirmados_en:c.docs_caro_confirmados_en||null,
+  docs_caro_confirmados_por:c.docs_caro_confirmados_por||null
 };}
 async function dbGuardarObra(o){
   const esTemp=typeof o.id==='number'&&o.id>1e12;
@@ -605,7 +617,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v63 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v64 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1136,6 +1148,11 @@ async function storageUrl(path){
             </div>
           </div>
           <div id="dv-msg" style="margin-top:14px;"></div>
+
+          <!-- BOTÓN CONFIRMAR (T19) -->
+          <div id="dv-confirm-zone" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px;">
+            <div id="dv-confirm-status"></div>
+          </div>
         </div>
       </div>
       <div class="card">
@@ -1209,8 +1226,51 @@ async function storageUrl(path){
               </div>
               <div class="up-card-status" id="st-upc-ca-pl">Sin cargar</div>
             </div>
+
+            <!-- CÁLCULO ESTRUCTURAL (T19) -->
+            <div class="up-card" id="upc-ca-ce">
+              <div class="up-card-head">
+                <div class="up-card-ico">🔬</div>
+                <div>
+                  <div class="up-card-title">Cálculo estructural</div>
+                  <div class="up-card-sub">PDF del ingeniero estructural</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','calculo')">📷 Escanear</button>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('calculo',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-ca-ce">Sin cargar</div>
+            </div>
+
+            <!-- INFORME USO DE SUELO (T19) -->
+            <div class="up-card" id="upc-ca-us">
+              <div class="up-card-head">
+                <div class="up-card-ico">🗺️</div>
+                <div>
+                  <div class="up-card-title">Informe uso de suelo</div>
+                  <div class="up-card-sub">PDF informe municipal</div>
+                </div>
+              </div>
+              <div class="up-card-btns">
+                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','uso_suelo')">📷 Escanear</button>
+                <label class="up-card-btn">
+                  📁 Archivo
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('uso_suelo',this)">
+                </label>
+              </div>
+              <div class="up-card-status" id="st-upc-ca-us">Sin cargar</div>
+            </div>
           </div>
           <div id="ca-msg" style="margin-top:14px;"></div>
+
+          <!-- BOTÓN CONFIRMAR (T19) -->
+          <div id="ca-confirmar-zone" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px;">
+            <div id="ca-confirm-status"></div>
+          </div>
         </div>
       </div>
       <div class="card">
@@ -2636,7 +2696,9 @@ function supSelObra(oid){
     {label:'Lista materiales firmada',file:o.materiales_pdf,by:o.materiales_subido_por||'David/Gustavo'},
     {label:'Especificaciones técnicas firmadas',file:o.especificaciones_pdf,by:o.especificaciones_subido_por||'David/Gustavo'},
     {label:'Contrato contratista firmado',file:ct&&ct.firm_scan?ct.firm_scan:null,by:ct&&ct.contrato_firmado_subido_por?ct.contrato_firmado_subido_por:'Carolina'},
-    {label:'Planos ejecución firmados',file:ct&&ct.planos_contratista_pdf?ct.planos_contratista_pdf:null,by:ct&&ct.planos_contratista_subido_por?ct.planos_contratista_subido_por:'Carolina'}
+    {label:'Planos ejecución firmados',file:ct&&ct.planos_contratista_pdf?ct.planos_contratista_pdf:null,by:ct&&ct.planos_contratista_subido_por?ct.planos_contratista_subido_por:'Carolina'},
+    {label:'Cálculo estructural (ingeniero)',file:ct&&ct.calculo_estructural_pdf?ct.calculo_estructural_pdf:null,by:ct&&ct.calculo_estructural_subido_por?ct.calculo_estructural_subido_por:'Carolina'},
+    {label:'Informe uso de suelo',file:ct&&ct.uso_suelo_pdf?ct.uso_suelo_pdf:null,by:ct&&ct.uso_suelo_subido_por?ct.uso_suelo_subido_por:'Carolina'}
   ];
   html+='<div style="display:grid;gap:8px;">';
   docs.forEach(function(d){
@@ -3307,10 +3369,79 @@ function dvSelObra(oid){
       st.textContent='⚠️ Sin cargar';
     }
   });
+  // T19 — Render botón confirmar
+  _dvRenderConfirmar(o);
+}
+
+// T19 — Botón "Confirmar carga" para David/Gustavo
+function _dvRenderConfirmar(o){
+  var zone=document.getElementById('dv-confirm-status');
+  if(!zone)return;
+  var docsCargados=0,total=4;
+  if(o.contrato_propietario_escaneado)docsCargados++;
+  if(o.planos_propietario_pdf)docsCargados++;
+  if(o.materiales_pdf)docsCargados++;
+  if(o.especificaciones_pdf)docsCargados++;
+  if(o.docs_prop_confirmados){
+    var fecha=o.docs_prop_confirmados_en?new Date(o.docs_prop_confirmados_en).toLocaleString('es-BO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    zone.innerHTML='<div style="background:rgba(4,120,86,.12);border:1px solid var(--G);border-radius:8px;padding:14px;">'+
+      '<div style="font-size:11px;color:var(--Gc);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🔒 CARGA CONFIRMADA — BLOQUEADA</div>'+
+      '<div style="font-size:11px;color:var(--wd);">Confirmada por <b>'+(o.docs_prop_confirmados_por||'—')+'</b> el '+fecha+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);margin-top:6px;">Si necesitás modificar algo, avisá al admin.</div>'+
+      '</div>';
+  } else if(docsCargados===0){
+    zone.innerHTML='<div style="font-size:11px;color:var(--ws);">Cargá los documentos. Cuando termines, vas a poder confirmar la carga.</div>';
+  } else {
+    var color=docsCargados===total?'var(--Gc)':'var(--Nc)';
+    zone.innerHTML='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:14px;">'+
+      '<div style="font-size:11px;color:'+color+';font-weight:700;margin-bottom:8px;">📥 '+docsCargados+'/'+total+' documentos cargados</div>'+
+      '<div style="font-size:10px;color:var(--ws);margin-bottom:10px;">Podés modificar/reemplazar mientras no confirmes. Una vez confirmado se bloquea.</div>'+
+      '<button class="btn btn-y" onclick="dvConfirmarCarga()">✅ Confirmar carga (no podré modificar después)</button>'+
+      '</div>';
+  }
+}
+
+async function dvConfirmarCarga(){
+  if(!dvObraId){toast('Seleccioná una obra primero','warning');return;}
+  var o=obras.find(function(x){return x.id===dvObraId;});
+  if(!o)return;
+  var docsCargados=0;
+  if(o.contrato_propietario_escaneado)docsCargados++;
+  if(o.planos_propietario_pdf)docsCargados++;
+  if(o.materiales_pdf)docsCargados++;
+  if(o.especificaciones_pdf)docsCargados++;
+  if(docsCargados===0){toast('Cargá al menos un documento antes de confirmar','warning');return;}
+  if(docsCargados<4){
+    if(!confirm('Cargaste solo '+docsCargados+' de 4 documentos. ¿Confirmar igual? Después no podrás modificar.'))return;
+  } else {
+    if(!confirm('¿Confirmás la carga completa? Después no vas a poder modificar.'))return;
+  }
+  try{
+    await sb.from('rec_obras').update({
+      docs_prop_confirmados:true,
+      docs_prop_confirmados_en:new Date().toISOString(),
+      docs_prop_confirmados_por:CU.n
+    }).eq('id',dvObraId);
+    o.docs_prop_confirmados=true;
+    o.docs_prop_confirmados_en=new Date().toISOString();
+    o.docs_prop_confirmados_por=CU.n;
+    dbLog(CU.n,'Confirmó carga propietario: '+o.nom);
+    toast('Carga confirmada y bloqueada','success','🔒');
+    dvSelObra(dvObraId);
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 async function dvUpload(tipo,inp){
   if(!inp.files||!inp.files[0])return;
+  // T19: bloquear si ya confirmado
+  if(dvObraId){
+    var oCk=obras.find(function(x){return x.id===dvObraId;});
+    if(oCk&&oCk.docs_prop_confirmados){
+      toast('Carga confirmada y bloqueada. Avisá al admin para desbloquear.','warning');
+      inp.value='';
+      return;
+    }
+  }
   var file=inp.files[0];
   if(file.size>20*1024*1024){toast('Archivo muy grande. Máximo 20MB.','error');return;}
   if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
@@ -3440,7 +3571,9 @@ function caSelCt(cid){
   // Pintar status en upload-cards Carolina
   var cards=[
     {id:'upc-ca-ct',v:c.firm_scan,by:c.contrato_firmado_subido_por,d:c.contrato_firmado_fecha},
-    {id:'upc-ca-pl',v:c.planos_contratista_pdf,by:c.planos_contratista_subido_por,d:c.planos_contratista_fecha}
+    {id:'upc-ca-pl',v:c.planos_contratista_pdf,by:c.planos_contratista_subido_por,d:c.planos_contratista_fecha},
+    {id:'upc-ca-ce',v:c.calculo_estructural_pdf,by:c.calculo_estructural_subido_por,d:null},
+    {id:'upc-ca-us',v:c.uso_suelo_pdf,by:c.uso_suelo_subido_por,d:null}
   ];
   cards.forEach(function(cd){
     var card=document.getElementById(cd.id);
@@ -3449,16 +3582,85 @@ function caSelCt(cid){
     if(cd.v){
       card.classList.add('ok');
       var fec=cd.d?new Date(cd.d).toLocaleDateString('es-BO'):'';
-      st.textContent='✅ Cargado · '+(cd.by||'—')+' · '+fec;
+      st.textContent='✅ Cargado · '+(cd.by||'—')+(fec?' · '+fec:'');
     } else {
       card.classList.remove('ok');
       st.textContent='⚠️ Sin cargar';
     }
   });
+  // T19 — Render zona "Confirmar carga"
+  _caRenderConfirmar(c);
+}
+
+// T19 — Botón "Confirmar carga" para Carolina
+function _caRenderConfirmar(c){
+  var zone=document.getElementById('ca-confirm-status');
+  if(!zone)return;
+  var docsCargados=0,total=4;
+  if(c.firm_scan)docsCargados++;
+  if(c.planos_contratista_pdf)docsCargados++;
+  if(c.calculo_estructural_pdf)docsCargados++;
+  if(c.uso_suelo_pdf)docsCargados++;
+  if(c.docs_caro_confirmados){
+    var fecha=c.docs_caro_confirmados_en?new Date(c.docs_caro_confirmados_en).toLocaleString('es-BO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    zone.innerHTML='<div style="background:rgba(4,120,86,.12);border:1px solid var(--G);border-radius:8px;padding:14px;">'+
+      '<div style="font-size:11px;color:var(--Gc);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🔒 CARGA CONFIRMADA — BLOQUEADA</div>'+
+      '<div style="font-size:11px;color:var(--wd);">Confirmada por <b>'+(c.docs_caro_confirmados_por||'—')+'</b> el '+fecha+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);margin-top:6px;">Si necesitás modificar algo, avisá al admin para desbloquear.</div>'+
+      '</div>';
+  } else if(docsCargados===0){
+    zone.innerHTML='<div style="font-size:11px;color:var(--ws);">Cargá los documentos. Cuando termines, vas a poder confirmar la carga.</div>';
+  } else {
+    var color=docsCargados===total?'var(--Gc)':'var(--Nc)';
+    zone.innerHTML='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:14px;">'+
+      '<div style="font-size:11px;color:'+color+';font-weight:700;margin-bottom:8px;">📥 '+docsCargados+'/'+total+' documentos cargados</div>'+
+      '<div style="font-size:10px;color:var(--ws);margin-bottom:10px;">Podés modificar/reemplazar mientras no confirmes. Una vez confirmado se bloquea.</div>'+
+      '<button class="btn btn-y" onclick="caConfirmarCarga()">✅ Confirmar carga (no podré modificar después)</button>'+
+      '</div>';
+  }
+}
+
+async function caConfirmarCarga(){
+  if(!caCtId){toast('Seleccioná un contrato primero','warning');return;}
+  var c=contratos.find(function(x){return x.id===caCtId;});
+  if(!c)return;
+  var docsCargados=0;
+  if(c.firm_scan)docsCargados++;
+  if(c.planos_contratista_pdf)docsCargados++;
+  if(c.calculo_estructural_pdf)docsCargados++;
+  if(c.uso_suelo_pdf)docsCargados++;
+  if(docsCargados===0){toast('Cargá al menos un documento antes de confirmar','warning');return;}
+  if(docsCargados<4){
+    if(!confirm('Cargaste solo '+docsCargados+' de 4 documentos. ¿Confirmar igual? Después no podrás modificar.'))return;
+  } else {
+    if(!confirm('¿Confirmás la carga completa? Después no vas a poder modificar.'))return;
+  }
+  try{
+    await sb.from('rec_contratos').update({
+      docs_caro_confirmados:true,
+      docs_caro_confirmados_en:new Date().toISOString(),
+      docs_caro_confirmados_por:CU.n
+    }).eq('id',caCtId);
+    c.docs_caro_confirmados=true;
+    c.docs_caro_confirmados_en=new Date().toISOString();
+    c.docs_caro_confirmados_por=CU.n;
+    dbLog(CU.n,'Confirmó carga de contratista: '+c.nom);
+    toast('Carga confirmada y bloqueada','success','🔒');
+    caSelCt(caCtId);
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 async function caUpload(tipo,inp){
   if(!inp.files||!inp.files[0])return;
+  // T19: bloquear si ya confirmado
+  if(caCtId){
+    var ct=contratos.find(function(x){return x.id===caCtId;});
+    if(ct&&ct.docs_caro_confirmados){
+      toast('Carga confirmada y bloqueada. Avisá al admin para desbloquear.','warning');
+      inp.value='';
+      return;
+    }
+  }
   var file=inp.files[0];
   if(file.size>20*1024*1024){toast('Archivo muy grande. Máximo 20MB.','error');return;}
   if(!caCtId){toast('Seleccioná un contrato primero.','warning');return;}
@@ -3477,10 +3679,16 @@ async function caUpload(tipo,inp){
       update.contrato_firmado_subido_por=CU.n;
       update.contrato_firmado_fecha=new Date().toISOString();
       update.estado_contrato='firmado';
-    } else {
+    } else if(tipo==='planos'){
       update.planos_contratista_pdf=fname;
       update.planos_contratista_subido_por=CU.n;
       update.planos_contratista_fecha=new Date().toISOString();
+    } else if(tipo==='calculo'){
+      update.calculo_estructural_pdf=fname;
+      update.calculo_estructural_subido_por=CU.n;
+    } else if(tipo==='uso_suelo'){
+      update.uso_suelo_pdf=fname;
+      update.uso_suelo_subido_por=CU.n;
     }
     await sb.from('rec_contratos').update(update).eq('id',caCtId);
     var c=contratos.find(function(x){return x.id===caCtId;});
@@ -3957,11 +4165,25 @@ function _dvCargarFechaNotaria(o){
     var fechaReg=new Date(fechaRegISO).toLocaleString('es-BO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     var hoy=new Date(),f=new Date(o.fecha_firma_notaria);
     var diasTrans=Math.floor((hoy-f)/86400000);
-    var diasRest=6-diasTrans;
+    // T19 — PLAZOS: David/Gustavo 1 día (propietario), Carolina 8 días (contratista)
+    var diasPropRest=1-diasTrans;
+    var diasRest=8-diasTrans;
     var alerta='';
-    if(diasRest<0)alerta='<div style="color:var(--Rc);font-size:11px;font-weight:700;margin-top:8px;">🔴 Carolina debió subir planos hace '+Math.abs(diasRest)+' días — VENCIDO</div>';
-    else if(diasRest<=2)alerta='<div style="color:var(--Nc);font-size:11px;font-weight:700;margin-top:8px;">🟠 Quedan '+diasRest+' días para que Carolina suba planos</div>';
-    else alerta='<div style="color:var(--Gc);font-size:11px;margin-top:8px;">🟢 '+diasRest+' días para que Carolina suba planos</div>';
+    // Alerta 1: plazo propietario (David/Gustavo) — solo si no completó los 4 docs
+    var docsPropFaltan=0;
+    if(!o.contrato_propietario_escaneado)docsPropFaltan++;
+    if(!o.planos_propietario_pdf)docsPropFaltan++;
+    if(!o.materiales_pdf)docsPropFaltan++;
+    if(!o.especificaciones_pdf)docsPropFaltan++;
+    if(docsPropFaltan>0){
+      if(diasPropRest<0)alerta+='<div style="color:var(--Rc);font-size:11px;font-weight:700;margin-top:8px;">🔴 Propietario: docs VENCIDOS hace '+Math.abs(diasPropRest)+' día(s). Faltan '+docsPropFaltan+' — Subir igual</div>';
+      else if(diasPropRest===0)alerta+='<div style="color:var(--Nc);font-size:11px;font-weight:700;margin-top:8px;">🟠 Propietario: HOY vence el plazo de 1 día. Faltan '+docsPropFaltan+' docs</div>';
+      else alerta+='<div style="color:var(--Gc);font-size:11px;margin-top:8px;">🟢 Propietario: '+diasPropRest+' día para subir '+docsPropFaltan+' docs faltantes</div>';
+    }
+    // Alerta 2: plazo contratista (Carolina)
+    if(diasRest<0)alerta+='<div style="color:var(--Rc);font-size:11px;font-weight:700;margin-top:4px;">🔴 Contratista: Carolina debió subir docs hace '+Math.abs(diasRest)+' días — Subir igual</div>';
+    else if(diasRest<=2)alerta+='<div style="color:var(--Nc);font-size:11px;font-weight:700;margin-top:4px;">🟠 Contratista: '+diasRest+' días restantes</div>';
+    else alerta+='<div style="color:var(--Gc);font-size:11px;margin-top:4px;">🟢 Contratista: '+diasRest+' días para que Carolina suba docs</div>';
     box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">'+
       '<div style="flex:1;min-width:200px;">'+
         '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:8px;">🔒 FIRMA EN NOTARÍA — REGISTRADA</div>'+
@@ -3995,13 +4217,13 @@ function _carolinaCalcularEstado(c,o){
   var firma=new Date(o.fecha_firma_notaria);
   var hoy=new Date();
   var diasTrans=Math.floor((hoy-firma)/86400000);
-  var diasRest=6-diasTrans;
+  var diasRest=8-diasTrans;
   return {
     diasTrans:diasTrans,
     diasRest:diasRest,
     vencido:diasRest<0,
     proximo:diasRest>=0&&diasRest<=2,
-    fechaLimite:new Date(firma.getTime()+6*86400000).toLocaleDateString('es-BO')
+    fechaLimite:new Date(firma.getTime()+8*86400000).toLocaleDateString('es-BO')
   };
 }
 // ═══════════════════════════════════════════════════════════════
