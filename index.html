@@ -643,7 +643,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v66 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v67 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -742,6 +742,13 @@ async function storageUrl(path){
           <button class="btn btn-y btn-lg" onclick="guardarNuevaObra()">💾 REGISTRAR OBRA</button>
           <button class="btn btn-o" onclick="limpiarNuevaObra()">🔄 Limpiar</button>
         </div>
+      </div>
+
+      <!-- PASO 1.5: MIS OBRAS REGISTRADAS (T21) -->
+      <div class="card" style="margin-top:6px;border-top:3px solid var(--am);">
+        <div class="ct">📋 Mis Obras Registradas</div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Acá ves las obras que registraste con su contrato digital. <b>Podés reemplazar el archivo</b> si subiste uno equivocado. <b>Podés eliminar la obra</b> solo si todavía nadie cargó datos técnicos o documentos firmados.</div>
+        <div id="steffi-mis-obras"></div>
       </div>
 
       <!-- PASO 4: LISTA OBRAS — revisar contratos -->
@@ -890,6 +897,22 @@ async function storageUrl(path){
             <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:4px;">📋 Cláusulas del Contrato con el Contratista</div>
             <div style="font-size:10px;color:var(--wd);">Texto pre-cargado con los estándares GEAT. Editá solo si hay condiciones especiales para esta obra.</div>
           </div>
+
+          <!-- T21 — Copiar de otra obra -->
+          <div style="background:var(--p2);border:1px dashed var(--bd);border-radius:6px;padding:12px;margin-bottom:10px;">
+            <div style="font-size:10px;color:var(--ws);margin-bottom:6px;font-weight:700;">⚡ ¿Mismo propietario / contrato similar?</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+              <div class="f" style="flex:1;min-width:200px;margin:0;">
+                <label style="font-size:9px;">Copiar OBJETO + INCLUSIONES + EXCLUSIONES de:</label>
+                <select id="fat-copiar-desde" style="font-size:12px;padding:8px;">
+                  <option value="">— Elegí otra obra —</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-y btn-sm" onclick="fatCopiarDeOtraObra()">📋 Copiar</button>
+            </div>
+            <div style="font-size:10px;color:var(--ws);margin-top:6px;">Útil cuando el mismo propietario tiene varias obras o cuando dos contratos son iguales.</div>
+          </div>
+
           <div class="fg" style="margin-bottom:14px;gap:10px;">
             <div class="f">
               <label>Objeto del Contrato <span style="color:var(--Gc);font-size:8px;">(pre-cargado GEAT)</span></label>
@@ -1719,6 +1742,8 @@ async function guardarNuevaObra(){
 }
 function renderSteffii(){
   if(CU&&CU.r!=='steffi'&&CU.r!=='admin')return;
+  // T21 — Render lista de obras propias (mis obras registradas)
+  _renderSteffiMisObras();
   // Lista obras para PASO 4
   const el=document.getElementById('steffi-obras-lista');if(!el)return;
   const cands=obras.filter(o=>{
@@ -1738,6 +1763,116 @@ function renderSteffii(){
       <span class="badge ${aprobado?'b-active':'b-gen'}">${aprobado?'✅ Aprobado':'📝 Revisar'}</span>
     </div>`;
   }).join('');
+}
+
+// T21 — Render "Mis obras registradas" para Steffi (ver/reemplazar/eliminar)
+function _renderSteffiMisObras(){
+  var el=document.getElementById('steffi-mis-obras');if(!el)return;
+  // Para admin: ve todas. Para Steffi: ve todas también (no las filtramos por creador)
+  if(!obras.length){
+    el.innerHTML='<p style="color:var(--ws);font-size:12px;padding:8px 0;">Todavía no registraste obras.</p>';
+    return;
+  }
+  // Ordenadas por creación descendente
+  var arr=obras.slice().sort(function(a,b){
+    var fa=a.created_at?new Date(a.created_at).getTime():a.id;
+    var fb=b.created_at?new Date(b.created_at).getTime():b.id;
+    return fb-fa;
+  });
+  var h='';
+  for(var i=0;i<arr.length;i++){
+    var o=arr[i];
+    var ct=gCByObra(o.id);
+    var puedeEliminar=_steffiPuedeEliminarObra(o);
+    var fileLabel=o.cp_dig?(o.cp_dig.split('/').pop()||'Archivo cargado'):null;
+    var tieneArchivo=!!o.cp_dig;
+    h+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">'+
+        '<div style="flex:1;min-width:200px;">'+
+          '<div style="font-size:13px;font-weight:800;color:var(--am);">'+o.nom+'</div>'+
+          '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+(o.cod||'sin código')+' · '+(o.sup||0)+'m²</div>'+
+        '</div>'+
+        '<div style="font-size:10px;color:'+(tieneArchivo?'var(--Gc)':'var(--Rc)')+';font-weight:700;">'+
+          (tieneArchivo?'📎 Contrato cargado':'⚠️ Sin contrato')+
+        '</div>'+
+      '</div>'+
+      (tieneArchivo?'<div style="font-size:10px;color:var(--ws);margin-top:6px;padding:6px 8px;background:var(--p1);border-radius:4px;word-break:break-all;">'+fileLabel+'</div>':'')+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">'+
+        (tieneArchivo?'<button class="btn btn-o btn-sm" onclick="steffVerContrato('+o.id+')">👁️ Ver archivo</button>':'')+
+        '<label class="btn btn-y btn-sm" style="cursor:pointer;">'+
+          '🔄 Reemplazar archivo'+
+          '<input type="file" accept=".pdf,.doc,.docx,application/pdf" style="display:none;" onchange="steffReemplazarContrato('+o.id+',this)">'+
+        '</label>'+
+        (puedeEliminar?'<button class="btn btn-o btn-sm" style="color:var(--Rc);border-color:var(--Rc);" onclick="steffEliminarObra('+o.id+')">🗑️ Eliminar obra</button>':'<span style="font-size:9px;color:var(--ws);padding:4px 8px;">🔒 No se puede eliminar (tiene avance)</span>')+
+      '</div>'+
+      '</div>';
+  }
+  el.innerHTML=h;
+}
+
+function _steffiPuedeEliminarObra(o){
+  // Solo puede eliminar si NO tiene avances:
+  // sin fecha notaría, sin docs propietario, sin datos técnicos cargados, sin contratos asociados
+  if(o.fecha_firma_notaria)return false;
+  if(o.contrato_propietario_escaneado||o.planos_propietario_pdf||o.materiales_pdf||o.especificaciones_pdf)return false;
+  if(o.superficie||o.dias_ejecucion||o.cuadrilla||o.modulos_n||o.croquis_imagen)return false;
+  // ¿Tiene contratos asociados?
+  var ctAsoc=contratos.filter(function(c){return c.oid===o.id;});
+  if(ctAsoc.length>0)return false;
+  return true;
+}
+
+async function steffVerContrato(oid){
+  var o=obras.find(function(x){return x.id===oid;});if(!o||!o.cp_dig)return;
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(o.cp_dig,3600);
+    if(res.error)throw new Error(res.error.message);
+    window.open(res.data.signedUrl,'_blank');
+  }catch(e){toast('Error abriendo archivo: '+e.message,'error');}
+}
+
+async function steffReemplazarContrato(oid,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>20*1024*1024){toast('Archivo muy grande. Máximo 20MB.','error');inp.value='';return;}
+  var o=obras.find(function(x){return x.id===oid;});if(!o)return;
+  if(!confirm('¿Reemplazar el contrato digital de "'+o.nom+'"?\n\nEl archivo anterior queda guardado en el historial.'))return;
+  toast('Subiendo nuevo archivo...','info');
+  try{
+    var p=storagePath('obras',o.id,'cp_dig',file.name);
+    await storageUpload(p,file);
+    var pathAnterior=o.cp_dig;
+    o.cp_dig=p;
+    await sb.from('rec_obras').update({contrato_propietario_nombre:p}).eq('id',o.id);
+    dbLog(CU.n,'Reemplazó contrato digital de obra: '+o.nom+(pathAnterior?' (anterior: '+pathAnterior+')':''));
+    toast('Archivo reemplazado correctamente','success','✅');
+    inp.value='';
+    _renderSteffiMisObras();
+  }catch(e){toast('Error: '+e.message,'error');inp.value='';}
+}
+
+async function steffEliminarObra(oid){
+  var o=obras.find(function(x){return x.id===oid;});if(!o)return;
+  if(!_steffiPuedeEliminarObra(o)){
+    toast('Esta obra ya tiene avances. No se puede eliminar.','warning');
+    return;
+  }
+  if(!confirm('⚠️ ELIMINAR la obra "'+o.nom+'" ('+o.cod+')?\n\nEsto borra:\n• El registro de la obra\n• El archivo del contrato digital subido\n\nNo se puede deshacer. ¿Continuar?'))return;
+  // Doble confirmación
+  if(!confirm('Última confirmación: ¿Eliminar "'+o.nom+'" definitivamente?'))return;
+  try{
+    // Eliminar archivo del storage si existe
+    if(o.cp_dig){
+      try{await sb.storage.from('rec-archivos').remove([o.cp_dig]);}catch(_e){}
+    }
+    // Eliminar de la BD
+    var res=await sb.from('rec_obras').delete().eq('id',o.id);
+    if(res.error)throw new Error(res.error.message);
+    obras=obras.filter(function(x){return x.id!==o.id;});
+    dbLog(CU.n,'Eliminó obra: '+o.nom+' ('+o.cod+')');
+    toast('Obra "'+o.nom+'" eliminada','success','🗑️');
+    renderTodo();
+  }catch(e){toast('Error al eliminar: '+e.message,'error');}
 }
 
 function steffAbrirEditor(oid){
@@ -2087,8 +2222,49 @@ function renderFatima(){
   const pendientes=obras.filter(o=>(o.cp_dig||o.cp_esc)&&!o.sup);
   sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+
     pendientes.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
+  // T21 — Poblar dropdown "copiar de"
+  _fatPoblarCopiarDesde();
   // Lista completadas
   renderFatCompletadas();
+}
+
+// T21 — Pobla el dropdown "Copiar OBJETO/INC/EXC desde otra obra"
+function _fatPoblarCopiarDesde(){
+  var sel=document.getElementById('fat-copiar-desde');
+  if(!sel)return;
+  // Obras que SÍ tienen objeto, inclusiones o exclusiones cargados — y NO sea la actual
+  var origenes=obras.filter(function(o){
+    if(fatObraId&&o.id===fatObraId)return false;
+    return (o.obj&&o.obj.length>20)||(o.inc&&o.inc.length>20)||(o.exc&&o.exc.length>20);
+  });
+  // Ordenar por más recientes
+  origenes.sort(function(a,b){return (b.id||0)-(a.id||0);});
+  sel.innerHTML='<option value="">— Elegí otra obra —</option>'+
+    origenes.map(function(o){
+      var camposTxt=[];
+      if(o.obj)camposTxt.push('obj');
+      if(o.inc)camposTxt.push('inc');
+      if(o.exc)camposTxt.push('exc');
+      return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+') · '+camposTxt.join('+')+'</option>';
+    }).join('');
+}
+
+function fatCopiarDeOtraObra(){
+  var sel=document.getElementById('fat-copiar-desde');
+  if(!sel||!sel.value){toast('Elegí una obra origen primero','warning');return;}
+  var origenId=parseInt(sel.value);
+  var origen=obras.find(function(x){return x.id===origenId;});
+  if(!origen){toast('No se encontró la obra origen','error');return;}
+  if(!fatObraId){toast('Elegí primero la obra a completar','warning');return;}
+  if(!confirm('Copiar OBJETO + INCLUSIONES + EXCLUSIONES desde "'+origen.nom+'"?\n\nEsto va a REEMPLAZAR los textos actuales (podés volver a editar después).'))return;
+  var elObj=document.getElementById('fat-obj');
+  var elInc=document.getElementById('fat-inc');
+  var elExc=document.getElementById('fat-exc');
+  if(elObj&&origen.obj)elObj.value=origen.obj;
+  if(elInc&&origen.inc)elInc.value=origen.inc;
+  if(elExc&&origen.exc)elExc.value=origen.exc;
+  toast('Copiado desde '+origen.nom+'. Revisá y editá si hace falta antes de guardar.','success','📋');
+  sel.value='';
 }
 
 function fatSelObra(oid){
@@ -2118,6 +2294,8 @@ function fatSelObra(oid){
   if(elInc) elInc.value=o.inc||FAT_INC;
   if(elExc) elExc.value=o.exc||FAT_EXC;
   if(elNot) elNot.value=o.not||'';
+  // T21 — Repoblar dropdown excluyendo la obra actual
+  _fatPoblarCopiarDesde();
   // Status del croquis si ya tiene
   var stCr=document.getElementById('fat-croquis-status');
   if(stCr){
