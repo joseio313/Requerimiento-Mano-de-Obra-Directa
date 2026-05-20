@@ -66,6 +66,32 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .hdr-user:hover{border-color:var(--am);color:var(--am);}
 .btn-exit{background:transparent;border:1px solid var(--bd);color:var(--ws);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:11px;}
 .btn-exit:hover{border-color:var(--R);color:var(--R);}
+/* T20 — NOTIFICACIONES (campana con dropdown que no sale de la pagina) */
+.notif-wrap{position:relative;display:inline-block;margin-right:8px;}
+.btn-notif{background:transparent;border:1px solid var(--bd);color:var(--am);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:14px;position:relative;transition:all .2s;}
+.btn-notif:hover{border-color:var(--am);background:rgba(245,196,0,.1);}
+.notif-badge{position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;font-size:9px;font-weight:900;padding:2px 5px;border-radius:10px;min-width:16px;line-height:1.2;}
+.notif-panel{position:absolute;top:100%;right:0;margin-top:8px;width:360px;max-width:90vw;background:var(--p1);border:1px solid var(--am);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:9990;display:none;flex-direction:column;max-height:70vh;}
+.notif-panel.on{display:flex;}
+.notif-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--bd);}
+.notif-x{background:transparent;border:none;color:var(--ws);font-size:16px;cursor:pointer;padding:2px 6px;}
+.notif-x:hover{color:var(--w);}
+.notif-body{flex:1;overflow-y:auto;padding:8px;max-height:50vh;}
+.notif-item{padding:10px 12px;border-radius:6px;margin-bottom:6px;background:var(--p2);border-left:3px solid var(--bd);cursor:pointer;transition:all .2s;}
+.notif-item:hover{background:var(--p3);}
+.notif-item.no-leida{background:rgba(245,196,0,.08);border-left-color:var(--am);}
+.notif-item.critica{border-left-color:#dc2626;background:rgba(220,38,38,.08);}
+.notif-item.alerta{border-left-color:#f59e0b;background:rgba(245,158,11,.08);}
+.notif-item.exito{border-left-color:#047857;}
+.notif-item-titulo{font-size:12px;font-weight:700;color:var(--w);margin-bottom:3px;}
+.notif-item-msg{font-size:11px;color:var(--wd);line-height:1.4;}
+.notif-item-meta{font-size:9px;color:var(--ws);margin-top:4px;display:flex;justify-content:space-between;}
+.notif-foot{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--bd);}
+.notif-foot button{flex:1;}
+body.tema-dia .notif-panel{background:#fff;border-color:var(--am);}
+body.tema-dia .notif-item{background:var(--p2);}
+body.tema-dia .btn-notif{color:var(--am);border-color:#444;}
+@media(max-width:600px){.notif-panel{width:300px;right:-40px;}}
 .btn-theme{background:transparent;border:1px solid var(--bd);color:var(--am);padding:4px 10px;border-radius:3px;cursor:pointer;font-size:14px;margin-right:8px;transition:all .2s;}
 .btn-theme:hover{border-color:var(--am);background:rgba(245,196,0,.1);}
 
@@ -617,7 +643,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v64 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v65 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -627,6 +653,24 @@ async function storageUrl(path){
   <header class="hdr">
     <div class="hdr-l"><div class="hdr-g">G</div><span class="hdr-t">GESTIÓN OPERATIVA 1</span></div>
     <div class="hdr-r">
+      <div class="notif-wrap">
+        <button class="btn-notif" id="btn-notif" onclick="notifToggle(event)" title="Notificaciones">
+          🔔<span class="notif-badge" id="notif-badge" style="display:none;">0</span>
+        </button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-head">
+            <div style="font-size:13px;font-weight:800;color:var(--am);">🔔 Notificaciones</div>
+            <button class="notif-x" onclick="notifClose()" title="Cerrar">✕</button>
+          </div>
+          <div class="notif-body" id="notif-body">
+            <div style="text-align:center;color:var(--ws);padding:30px;font-size:11px;">Cargando...</div>
+          </div>
+          <div class="notif-foot">
+            <button class="btn btn-o btn-sm" onclick="notifMarcarTodas()">✅ Marcar todas como leídas</button>
+            <button class="btn btn-y btn-sm" onclick="notifRefresh()">🔄 Actualizar</button>
+          </div>
+        </div>
+      </div>
       <button class="btn-theme" id="btn-theme" onclick="toggleTema()" title="Cambiar modo día/noche">🌙</button>
       <div class="hdr-user" onclick="abrirPerfil()" id="hdr-nombre">👤 —</div>
       <button class="btn-exit" onclick="logout()">Salir</button>
@@ -1660,6 +1704,13 @@ async function guardarNuevaObra(){
     if(nueObraFiles.dig){const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);await storageUpload(p,nueObraFiles.dig);o.cp_dig=p;await dbGuardarObra(o);}
     dbLog(CU.n,'Nueva obra registrada: '+nom+' ('+o.cod+')');
     toast('Obra "'+nom+'" registrada con código '+o.cod,'success','✅');
+    // T20: notificar a Fátima que falta cargar datos técnicos
+    notifCrear('Fátima','obra_nueva','Nueva obra para datos técnicos',
+      'Steffi registró '+nom+' ('+o.cod+'). Cargá los datos técnicos cuando puedas.',
+      {obra_id:o.id,obra_nombre:nom,panel_destino:'fatima',prioridad:'normal'});
+    notifCrear('Josemiguel','obra_nueva','Nueva obra registrada',
+      nom+' ('+o.cod+') registrada por '+CU.n,
+      {obra_id:o.id,obra_nombre:nom,prioridad:'normal'});
     limpiarNuevaObra();renderTodo();
   }catch(e){
     toast('Obra guardada pero error subiendo archivo: '+e.message,'warning');
@@ -3427,6 +3478,13 @@ async function dvConfirmarCarga(){
     o.docs_prop_confirmados_por=CU.n;
     dbLog(CU.n,'Confirmó carga propietario: '+o.nom);
     toast('Carga confirmada y bloqueada','success','🔒');
+    // T20: notificar
+    notifCrear('Josemiguel','carga_confirmada','Carga propietario confirmada',
+      CU.n+' confirmó los documentos del propietario en '+o.nom,
+      {obra_id:o.id,obra_nombre:o.nom,prioridad:'exito'});
+    notifCrear('Arq. Raí','docs_listos','Documentos propietario listos',
+      'Ya podés ver los documentos firmados del propietario en '+o.nom,
+      {obra_id:o.id,obra_nombre:o.nom,panel_destino:'sup',prioridad:'normal'});
     dvSelObra(dvObraId);
   }catch(e){toast('Error: '+e.message,'error');}
 }
@@ -3646,6 +3704,14 @@ async function caConfirmarCarga(){
     c.docs_caro_confirmados_por=CU.n;
     dbLog(CU.n,'Confirmó carga de contratista: '+c.nom);
     toast('Carga confirmada y bloqueada','success','🔒');
+    // T20: notificar
+    var obraNom=(obras.find(function(x){return x.id===c.oid;})||{}).nom||c.nom;
+    notifCrear('Josemiguel','carga_confirmada','Carga contratista confirmada',
+      CU.n+' confirmó los documentos del contratista en '+obraNom,
+      {obra_id:c.oid,obra_nombre:obraNom,prioridad:'exito'});
+    notifCrear('Arq. Raí','obra_lista_supervisar','Obra lista para supervisar',
+      'Carolina confirmó todos los documentos del contratista en '+obraNom+'. Lista para campo.',
+      {obra_id:c.oid,obra_nombre:obraNom,panel_destino:'sup',prioridad:'normal'});
     caSelCt(caCtId);
   }catch(e){toast('Error: '+e.message,'error');}
 }
@@ -4146,7 +4212,20 @@ async function dvGuardarFechaNotaria(){
       o.cerrador_fecha_registro=ahora;
     }
     dbLog(CU.n,'Cerrador registró firma notaría: '+o.nom);
-    toast('Fecha registrada por '+CU.n+'. Carolina tiene 6 días para subir planos de ejecución.','success','📅 Notaría');
+    toast('Fecha registrada por '+CU.n+'. Carolina tiene 8 días para subir documentos.','success','📅 Notaría');
+    // T20: notificar
+    notifCrear('Carolina','plazo_iniciado','Plazo de 8 días iniciado',
+      'Firma en notaría registrada en '+o.nom+'. Tenés 8 días para subir contrato, planos, cálculo y uso de suelo.',
+      {obra_id:o.id,obra_nombre:o.nom,panel_destino:'carolina',prioridad:'alerta'});
+    notifCrear(CU.n,'recordatorio_propietario','Plazo 1 día — docs propietario',
+      'Subí en 1 día los 4 documentos del propietario de '+o.nom,
+      {obra_id:o.id,obra_nombre:o.nom,panel_destino:'david',prioridad:'alerta'});
+    notifCrear('Josemiguel','notaria_firmada','Notaría firmada',
+      CU.n+' registró firma en notaría: '+o.nom,
+      {obra_id:o.id,obra_nombre:o.nom,prioridad:'normal'});
+    notifCrear('Arq. Raí','obra_lista_supervisar','Obra avanzando',
+      'Notaría firmada en '+o.nom+'. Pronto vas a poder supervisar.',
+      {obra_id:o.id,obra_nombre:o.nom,panel_destino:'sup',prioridad:'normal'});
     dvSelObra(dvObraId);
     renderDavid();
     renderCarolina();
@@ -5013,6 +5092,199 @@ async function eliminarClausula(clId){
     await renderClausulas();
   }catch(e){if(typeof toast==='function')toast('Error: '+e.message,'error');}
 }
+
+// ═══════════════════════════════════════════════════════════════
+// TANDA 20 — NOTIFICACIONES (campana con dropdown sin cambio de pagina)
+// ═══════════════════════════════════════════════════════════════
+var _notifList=[];
+var _notifPollTimer=null;
+
+function notifToggle(ev){
+  if(ev){ev.stopPropagation();}
+  var p=document.getElementById('notif-panel');
+  if(!p)return;
+  if(p.classList.contains('on')){
+    notifClose();
+  } else {
+    p.classList.add('on');
+    notifRefresh();
+  }
+}
+
+function notifClose(){
+  var p=document.getElementById('notif-panel');
+  if(p)p.classList.remove('on');
+}
+
+// Cerrar si se hace click afuera del panel
+document.addEventListener('click',function(e){
+  var p=document.getElementById('notif-panel');
+  var btn=document.getElementById('btn-notif');
+  if(!p||!p.classList.contains('on'))return;
+  if(p.contains(e.target)||(btn&&btn.contains(e.target)))return;
+  notifClose();
+});
+
+async function notifRefresh(){
+  if(!CU)return;
+  var body=document.getElementById('notif-body');
+  if(!body)return;
+  try{
+    // Notificaciones para CU.n + para 'todos'
+    var res=await sb.from('rec_notificaciones')
+      .select('*')
+      .or('destinatario.eq.'+CU.n+',destinatario.eq.todos,destinatario.eq.'+CU.r)
+      .order('created_at',{ascending:false})
+      .limit(30);
+    if(res.error)throw new Error(res.error.message);
+    _notifList=res.data||[];
+    _notifRenderBadge();
+    _notifRenderList();
+  }catch(e){
+    body.innerHTML='<div style="color:var(--Rc);padding:14px;font-size:11px;">Error: '+e.message+'</div>';
+  }
+}
+
+function _notifRenderBadge(){
+  var badge=document.getElementById('notif-badge');
+  if(!badge)return;
+  var noLeidas=_notifList.filter(function(n){return !n.leida;}).length;
+  if(noLeidas>0){
+    badge.style.display='block';
+    badge.textContent=noLeidas>9?'9+':String(noLeidas);
+  } else {
+    badge.style.display='none';
+  }
+}
+
+function _notifRenderList(){
+  var body=document.getElementById('notif-body');
+  if(!body)return;
+  if(!_notifList.length){
+    body.innerHTML='<div style="text-align:center;color:var(--ws);padding:40px 14px;font-size:11px;">'+
+      '<div style="font-size:32px;margin-bottom:8px;opacity:.4;">📭</div>'+
+      '<div>Sin notificaciones</div>'+
+      '<div style="font-size:10px;margin-top:6px;color:var(--ws);">Aparecerán acá cuando algo importante suceda</div>'+
+      '</div>';
+    return;
+  }
+  var h='';
+  for(var i=0;i<_notifList.length;i++){
+    var n=_notifList[i];
+    var clsArr=['notif-item'];
+    if(!n.leida)clsArr.push('no-leida');
+    if(n.prioridad==='critica')clsArr.push('critica');
+    else if(n.prioridad==='alerta')clsArr.push('alerta');
+    else if(n.prioridad==='exito')clsArr.push('exito');
+    var tiempo=_notifTiempoRelativo(n.created_at);
+    var obraTxt=n.obra_nombre?'· '+n.obra_nombre:'';
+    h+='<div class="'+clsArr.join(' ')+'" onclick="notifClickItem('+n.id+')">'+
+      '<div class="notif-item-titulo">'+(n.titulo||'(sin titulo)')+'</div>'+
+      '<div class="notif-item-msg">'+(n.mensaje||'')+'</div>'+
+      '<div class="notif-item-meta"><span>'+tiempo+'</span><span>'+obraTxt+'</span></div>'+
+      '</div>';
+  }
+  body.innerHTML=h;
+}
+
+function _notifTiempoRelativo(iso){
+  if(!iso)return '';
+  var diff=(Date.now()-new Date(iso).getTime())/1000;
+  if(diff<60)return 'hace segundos';
+  if(diff<3600)return 'hace '+Math.floor(diff/60)+' min';
+  if(diff<86400)return 'hace '+Math.floor(diff/3600)+' h';
+  if(diff<604800)return 'hace '+Math.floor(diff/86400)+' días';
+  return new Date(iso).toLocaleDateString('es-BO');
+}
+
+async function notifClickItem(id){
+  var n=_notifList.find(function(x){return x.id===id;});
+  if(!n)return;
+  // Marcar como leída
+  if(!n.leida){
+    try{
+      await sb.from('rec_notificaciones').update({leida:true}).eq('id',id);
+      n.leida=true;
+      _notifRenderBadge();
+      _notifRenderList();
+    }catch(e){}
+  }
+  // Si tiene panel_destino, navegar al panel (pero sin cerrar la app)
+  if(n.panel_destino&&typeof goPanel==='function'){
+    notifClose();
+    goPanel(n.panel_destino);
+    if(typeof toast==='function')toast('Yendo a: '+(n.obra_nombre||n.titulo),'info');
+  }
+}
+
+async function notifMarcarTodas(){
+  if(!CU||!_notifList.length)return;
+  try{
+    var ids=_notifList.filter(function(n){return !n.leida;}).map(function(n){return n.id;});
+    if(!ids.length){if(typeof toast==='function')toast('Ya están todas leídas','info');return;}
+    await sb.from('rec_notificaciones').update({leida:true}).in('id',ids);
+    for(var i=0;i<_notifList.length;i++)_notifList[i].leida=true;
+    _notifRenderBadge();
+    _notifRenderList();
+    if(typeof toast==='function')toast('Todas marcadas como leídas','success');
+  }catch(e){
+    if(typeof toast==='function')toast('Error: '+e.message,'error');
+  }
+}
+
+// Crear notificación (helper - lo usan otras funciones del sistema)
+async function notifCrear(destinatario,tipo,titulo,mensaje,opts){
+  opts=opts||{};
+  try{
+    await sb.from('rec_notificaciones').insert({
+      destinatario:destinatario,
+      tipo:tipo,
+      titulo:titulo,
+      mensaje:mensaje||null,
+      obra_id:opts.obra_id||null,
+      obra_nombre:opts.obra_nombre||null,
+      panel_destino:opts.panel_destino||null,
+      prioridad:opts.prioridad||'normal'
+    });
+  }catch(e){console.warn('No se pudo crear notif',e.message);}
+}
+
+// Polling periódico cada 60 segundos
+function notifIniciarPolling(){
+  if(_notifPollTimer)clearInterval(_notifPollTimer);
+  _notifPollTimer=setInterval(function(){
+    if(CU)_notifRefreshBadge();
+  },60000);
+}
+
+async function _notifRefreshBadge(){
+  if(!CU)return;
+  try{
+    var res=await sb.from('rec_notificaciones')
+      .select('id,leida,destinatario,prioridad,obra_nombre,titulo,mensaje,created_at,obra_id,panel_destino,tipo')
+      .or('destinatario.eq.'+CU.n+',destinatario.eq.todos,destinatario.eq.'+CU.r)
+      .order('created_at',{ascending:false})
+      .limit(30);
+    if(res.error)return;
+    _notifList=res.data||[];
+    _notifRenderBadge();
+    var p=document.getElementById('notif-panel');
+    if(p&&p.classList.contains('on'))_notifRenderList();
+  }catch(e){}
+}
+
+// Iniciar polling cuando se hace login
+(function(){
+  // Hook al login
+  var origRestaurar=window.restaurarSesion;
+  if(origRestaurar){
+    window.restaurarSesion=function(){
+      var r=origRestaurar.apply(this,arguments);
+      setTimeout(function(){if(CU){_notifRefreshBadge();notifIniciarPolling();}},1500);
+      return r;
+    };
+  }
+})();
 
 </script>
 
