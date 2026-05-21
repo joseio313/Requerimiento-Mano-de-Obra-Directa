@@ -33,8 +33,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   background:radial-gradient(ellipse at 50% 35%,rgba(245,196,0,.07) 0%,transparent 60%),var(--bg);}
 .pin-box{background:var(--p1);border:1px solid var(--bd);border-top:3px solid var(--am);
   border-radius:8px;padding:40px 32px;width:320px;text-align:center;}
-.logo-g{width:52px;height:52px;background:var(--am);border-radius:5px;display:inline-flex;
-  align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#000;margin-bottom:10px;}
+.logo-g{width:44px;height:44px;background:var(--am);border-radius:5px;display:inline-flex;
+  align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#000;}
+.login-head{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:28px;}
+.login-title{font-size:15px;font-weight:800;letter-spacing:3px;color:var(--am);}
 .pin-box h1{font-size:17px;font-weight:800;letter-spacing:5px;color:var(--am);margin-bottom:4px;}
 .pin-box p{font-size:10px;color:var(--ws);letter-spacing:2px;margin-bottom:28px;}
 .pin-display{display:flex;justify-content:center;gap:10px;margin-bottom:24px;}
@@ -386,6 +388,7 @@ tbody td:first-child{color:var(--w);font-weight:600;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script>
 const SB_URL='https://jsacnpgpnvoslrpurfxc.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpzYWNucGdwbnZvc2xycHVyZnhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMTIwNjUsImV4cCI6MjA4OTc4ODA2NX0.fOF7BQuNG6KdWMbsr7YQJ3kUIeJ9mdgV1fGmDMDGWtE';
@@ -434,6 +437,25 @@ function mapObra(o){return{
   especificaciones_diferida:o.especificaciones_diferida||false,
   cerrador_responsable:o.cerrador_responsable||null,
   cerrador_fecha_registro:o.cerrador_fecha_registro||null,
+  // T22 — Flujo financiamiento bancario
+  tipo_financiamiento:o.tipo_financiamiento||null,
+  porcentaje_financiado:o.porcentaje_financiado||null,
+  estado_financiamiento:o.estado_financiamiento||null,
+  computo_excel_archivo:o.computo_excel_archivo||null,
+  computo_excel_subido_por:o.computo_excel_subido_por||null,
+  computo_excel_fecha:o.computo_excel_fecha||null,
+  ppto_bancario_archivo:o.ppto_bancario_archivo||null,
+  ppto_bancario_subido_por:o.ppto_bancario_subido_por||null,
+  ppto_bancario_fecha:o.ppto_bancario_fecha||null,
+  ppto_firmado_archivo:o.ppto_firmado_archivo||null,
+  ppto_firmado_subido_por:o.ppto_firmado_subido_por||null,
+  ppto_firmado_fecha:o.ppto_firmado_fecha||null,
+  entregado_banco:o.entregado_banco||false,
+  entregado_banco_fecha:o.entregado_banco_fecha||null,
+  entregado_banco_por:o.entregado_banco_por||null,
+  fecha_desembolso_banco:o.fecha_desembolso_banco||null,
+  cliente_garantiza:o.cliente_garantiza||false,
+  cliente_garantiza_nota:o.cliente_garantiza_nota||null,
   // T19 — confirmación docs propietario
   docs_prop_confirmados:o.docs_prop_confirmados||false,
   docs_prop_confirmados_en:o.docs_prop_confirmados_en||null,
@@ -478,7 +500,11 @@ async function dbGuardarObra(o){
     objeto_contrato:o.obj||null,inclusiones:o.inc||null,exclusiones:o.exc||null,
     contrato_propietario_nombre:o.cp_dig||null,
     contrato_propietario_escaneado:o.cp_esc||null,
-    aprobada:o.aprobada||false,modulos:o.mods||[]
+    aprobada:o.aprobada||false,modulos:o.mods||[],
+    // T22 — financiamiento
+    tipo_financiamiento:o.tipo_financiamiento||null,
+    porcentaje_financiado:o.porcentaje_financiado||null,
+    estado_financiamiento:o.estado_financiamiento||null
   },{onConflict:'id'}).select().single();
   if(error)throw new Error(error.message);
   o.id=data.id;return data;
@@ -622,9 +648,10 @@ async function storageUrl(path){
 <!-- ═══ LOGIN ═══ -->
 <div id="screen-login">
   <div class="pin-box">
-    <div class="logo-g">G</div>
-    <h1>GESTIÓN OPERATIVA 1</h1>
-    <p>GAMBARTE ARQUITECTURA S.R.L.</p>
+    <div class="login-head">
+      <div class="logo-g">G</div>
+      <div class="login-title">GESTIÓN OPERATIVA 1</div>
+    </div>
     <div class="pin-display">
       <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
       <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
@@ -643,7 +670,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v67 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v70 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -735,6 +762,29 @@ async function storageUrl(path){
           <div class="fg fg2">
             <div class="f"><label>Nombre Comercial de la Obra (auto)</label><input id="n-nom" placeholder="Se genera al escribir apellidos" readonly style="background:var(--p1);"></div>
             <div class="f"><label>Código de Obra (auto)</label><input id="n-cod" placeholder="Auto: FM-2026-001" readonly style="background:var(--p1);"></div>
+          </div>
+        </div>
+
+        <!-- T22: Tipo de financiamiento -->
+        <div style="border-top:1px solid var(--bd);padding-top:14px;margin-bottom:14px;">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);margin-bottom:10px;font-weight:700;">💰 Tipo de Financiamiento *</div>
+          <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 Esto es CRÍTICO: si el cliente es <b>bancario</b>, no se inician estudios técnicos hasta que el banco desembolse (salvo que el cliente garantice por su cuenta).</div>
+          <div class="fg fg3" style="margin-bottom:10px;">
+            <div class="f">
+              <label>Modalidad *</label>
+              <select id="n-fin-tipo" onchange="_toggleFinanciamientoCampos()">
+                <option value="contado">💵 Contado (mejor escenario)</option>
+                <option value="bancario">🏦 Bancario</option>
+                <option value="mixto">⚖️ Mixto (parte contado, parte bancario)</option>
+              </select>
+            </div>
+            <div class="f" id="n-fin-pct-wrap" style="display:none;">
+              <label>% Financiado por banco</label>
+              <input type="number" id="n-fin-pct" min="10" max="95" value="80" placeholder="80">
+            </div>
+          </div>
+          <div id="n-fin-aviso" style="display:none;background:rgba(245,158,11,.10);border:1px solid #f59e0b;border-radius:6px;padding:10px;font-size:11px;color:var(--wd);line-height:1.5;">
+            ⚠️ <b>Atención:</b> con financiamiento bancario, se genera primero solo la <b>propuesta para el banco</b> (planos 2D + cómputo + presupuesto). Estudios de suelo, cálculo estructural y planos de ejecución completos arrancan SOLO cuando el banco desembolse, o el cliente garantice por su cuenta.
           </div>
         </div>
 
@@ -892,10 +942,10 @@ async function storageUrl(path){
             <button class="btn btn-o btn-sm" onclick="fatAddMod()" style="margin-bottom:14px;">+ Agregar módulo</button>
           </div>
 
-          <!-- Objeto / Inclusiones / Exclusiones — con texto GEAT por defecto -->
-          <div style="background:rgba(245,196,0,.06);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;margin-bottom:10px;">
+          <!-- Objeto / Inclusiones / Exclusiones — con texto del contrato o estándar GEAT -->
+          <div id="fat-clausulas-origen" style="background:rgba(245,196,0,.06);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;margin-bottom:10px;">
             <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:4px;">📋 Cláusulas del Contrato con el Contratista</div>
-            <div style="font-size:10px;color:var(--wd);">Texto pre-cargado con los estándares GEAT. Editá solo si hay condiciones especiales para esta obra.</div>
+            <div style="font-size:10px;color:var(--wd);" id="fat-clausulas-msg">Texto pre-cargado. Editá solo si hay condiciones especiales para esta obra.</div>
           </div>
 
           <!-- T21 — Copiar de otra obra -->
@@ -1242,7 +1292,21 @@ async function storageUrl(path){
           <span style="color:var(--ws);font-size:10px;">⚡ Solo aparecen contratos ya aprobados por Steffi. Al subir el contrato firmado, la obra pasa automáticamente a estado "Completo".</span>
         </div>
       </div>
-      <div class="card">
+
+      <!-- T22: CONSULTA ANTICIPADA — contratos del propietario para preparar cómputo/planos -->
+      <div class="card" style="border-top:3px solid var(--am);">
+        <div class="ct">📑 Contratos del Propietario — Consulta Anticipada</div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Mientras los demás avanzan, podés consultar los contratos del cliente para ir preparando tu trabajo (cómputo, planos). <b>Si el cliente es bancario</b>, tu cómputo es crítico para el presupuesto bancario.</div>
+        <div id="ca-consulta-contratos"></div>
+      </div>
+
+      <!-- T22: FLUJO BANCARIO — solo si la obra elegida es con financiamiento -->
+      <div class="card" id="ca-flujo-bancario-card" style="display:none;border-top:3px solid #f59e0b;margin-top:6px;">
+        <div class="ct" style="color:#f59e0b;">🏦 Flujo Bancario — Cómputo y Presupuesto</div>
+        <div id="ca-flujo-bancario-body"></div>
+      </div>
+
+      <div class="card" style="margin-top:6px;">
         <div class="ct">📋 Cargas del Contratista — Subir Escaneados Firmados</div>
         <div class="al al-z" style="margin-bottom:14px;">📌 Una vez que Josemiguel hizo firmar al contratista, escaneás y subís: <b>contrato firmado</b> y <b>planos de ejecución firmados</b>. Solo aparecen contratos aprobados por Steffi.</div>
         <div class="f" style="margin-bottom:12px;">
@@ -1585,6 +1649,33 @@ function goPanel(id){
 function gO(id){return obras.find(o=>o.id===id)||{};}
 function gC(id){return contratos.find(c=>c.id===id);}
 function gCByObra(oid){return contratos.find(c=>c.oid===oid);}
+
+// T22 — Helper: puede iniciar construcción / estudios técnicos
+// Retorna {ok:bool, motivo:string, etiqueta:string}
+function _obraPuedeIniciarTecnico(o){
+  if(!o)return {ok:false,motivo:'Obra inválida'};
+  var tipo=o.tipo_financiamiento||'contado';
+  if(tipo==='contado')return {ok:true,motivo:'Contado',etiqueta:'💵 CONTADO'};
+  if(o.cliente_garantiza)return {ok:true,motivo:'Cliente garantiza financiamiento',etiqueta:'🛡️ GARANTIZADO POR CLIENTE'};
+  if(o.fecha_desembolso_banco)return {ok:true,motivo:'Banco desembolsó el '+new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'),etiqueta:'🏦 DESEMBOLSADO'};
+  // Bancario o mixto sin desembolso ni garantía
+  var estado='Esperando aprobación bancaria';
+  if(!o.entregado_banco)estado='Aún sin entregar al banco';
+  if(o.estado_financiamiento==='rechazado')estado='Banco rechazó financiamiento';
+  return {ok:false,motivo:estado,etiqueta:'⏸️ BLOQUEADO (financiamiento)'};
+}
+
+function _financiamientoBadge(o){
+  if(!o)return '';
+  var tipo=o.tipo_financiamiento||'contado';
+  if(tipo==='contado')return '<span style="display:inline-block;background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">💵 CONTADO</span>';
+  if(tipo==='bancario'){
+    if(o.fecha_desembolso_banco)return '<span style="display:inline-block;background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 BANCARIO · DESEMBOLSADO</span>';
+    return '<span style="display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 BANCARIO · '+(o.porcentaje_financiado?o.porcentaje_financiado+'%':'')+'</span>';
+  }
+  if(tipo==='mixto')return '<span style="display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 MIXTO · '+(o.porcentaje_financiado?o.porcentaje_financiado+'% banco':'')+'</span>';
+  return '';
+}
 function aOv(n){document.getElementById('ov-'+n).classList.add('on');}
 function cOv(n){document.getElementById('ov-'+n).classList.remove('on');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===e.currentTarget)cOv(o.id.replace('ov-',''));}));
@@ -1669,7 +1760,23 @@ function limpiarNuevaObra(){
   const nCod=document.getElementById('n-cod');if(nCod)nCod.value='';
   const nTd=document.getElementById('txt-dig');if(nTd)nTd.textContent='';
   const nUd=document.getElementById('uz-dig');if(nUd)nUd.classList.remove('ok');
+  // T22: reset financiamiento
+  const fT=document.getElementById('n-fin-tipo');if(fT)fT.value='contado';
+  const fP=document.getElementById('n-fin-pct');if(fP)fP.value='80';
+  _toggleFinanciamientoCampos();
 }
+
+// T22: mostrar/ocultar campos según modalidad
+function _toggleFinanciamientoCampos(){
+  var sel=document.getElementById('n-fin-tipo');
+  var wrapPct=document.getElementById('n-fin-pct-wrap');
+  var aviso=document.getElementById('n-fin-aviso');
+  if(!sel)return;
+  var tipo=sel.value;
+  if(wrapPct)wrapPct.style.display=(tipo==='bancario'||tipo==='mixto')?'block':'none';
+  if(aviso)aviso.style.display=(tipo==='bancario'||tipo==='mixto')?'block':'none';
+}
+
 async function guardarNuevaObra(){
   const p1=(document.getElementById('n-prop1')||{}).value||'';
   const p2=(document.getElementById('n-prop2')||{}).value||'';
@@ -1677,11 +1784,20 @@ async function guardarNuevaObra(){
   const nom=document.getElementById('n-nom').value.trim();
   if(!nom){toast('El nombre se genera solo. Llená los apellidos.','warning');return;}
   if(!nueObraFiles.dig){toast('Subí el archivo del contrato (PDF/DOC). El escaneado firmado lo sube David.','warning');return;}
+  // T22: tipo de financiamiento
+  var finTipo=(document.getElementById('n-fin-tipo')||{}).value||'contado';
+  var finPct=null;
+  if(finTipo==='bancario'||finTipo==='mixto'){
+    finPct=parseFloat((document.getElementById('n-fin-pct')||{}).value)||80;
+    if(finPct<10||finPct>95){toast('El porcentaje debe estar entre 10 y 95','warning');return;}
+  }
   let cod=document.getElementById('n-cod').value.trim();
   if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3).toUpperCase();cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
   // Notas: guardamos los apellidos como referencia
   var notasProp='Propietario 1: '+p1.trim()+(p2.trim()?(' | Propietario 2: '+p2.trim()):'');
-  const o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[]};
+  const o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[],
+    tipo_financiamiento:finTipo,porcentaje_financiado:finPct,
+    estado_financiamiento:(finTipo==='contado'?null:'esperando_propuesta')};
   obras.push(o);
   // T19 FIX: retry hasta 5 veces con código nuevo si choca con UNIQUE constraint
   var intento=0,exito=false,lastErr=null;
@@ -1724,7 +1840,24 @@ async function guardarNuevaObra(){
     return;
   }
   try{
-    if(nueObraFiles.dig){const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);await storageUpload(p,nueObraFiles.dig);o.cp_dig=p;await dbGuardarObra(o);}
+    if(nueObraFiles.dig){
+      const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);
+      await storageUpload(p,nueObraFiles.dig);
+      o.cp_dig=p;
+      // T22 — Extraer OBJETO/INCLUSIONES/EXCLUSIONES del DOCX automáticamente
+      var extraido=await _extraerCausasDelContrato(nueObraFiles.dig);
+      if(extraido&&(extraido.objeto||extraido.inclusiones||extraido.exclusiones)){
+        if(extraido.objeto)o.obj=extraido.objeto;
+        if(extraido.inclusiones)o.inc=extraido.inclusiones;
+        if(extraido.exclusiones)o.exc=extraido.exclusiones;
+        var camposExt=[];
+        if(extraido.objeto)camposExt.push('OBJETO');
+        if(extraido.inclusiones)camposExt.push('INCLUSIONES');
+        if(extraido.exclusiones)camposExt.push('EXCLUSIONES');
+        toast('Extraído del contrato: '+camposExt.join(', '),'success','📄');
+      }
+      await dbGuardarObra(o);
+    }
     dbLog(CU.n,'Nueva obra registrada: '+nom+' ('+o.cod+')');
     toast('Obra "'+nom+'" registrada con código '+o.cod,'success','✅');
     // T20: notificar a Fátima que falta cargar datos técnicos
@@ -1740,6 +1873,69 @@ async function guardarNuevaObra(){
     renderTodo();
   }
 }
+
+// T22 — Extractor de OBJETO/INCLUSIONES/EXCLUSIONES del archivo DOCX del contrato
+async function _extraerCausasDelContrato(file){
+  if(!file)return null;
+  if(typeof mammoth==='undefined'){console.warn('mammoth.js no disponible');return null;}
+  // Solo DOCX por ahora (no PDF, no DOC viejo)
+  var nombre=(file.name||'').toLowerCase();
+  if(!nombre.endsWith('.docx')){console.warn('Archivo no es DOCX, no se extrae');return null;}
+  try{
+    var buffer=await file.arrayBuffer();
+    var res=await mammoth.extractRawText({arrayBuffer:buffer});
+    var texto=res.value||'';
+    if(!texto.trim())return null;
+    // Dividir en líneas (párrafos) y limpiar
+    var lineas=texto.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+    // Detectar índices de cláusulas (admite tilde, sin tilde, espacios variados)
+    var patCla=/^CL[AÁ]USULA\s+(PRIMERA|SEGUNDA|TERCERA|CUARTA|QUINTA|SEXTA|S[EÉ]PTIMA|OCTAVA|NOVENA|D[EÉ]CIMA)/i;
+    var idx={};
+    for(var i=0;i<lineas.length;i++){
+      var m=lineas[i].toUpperCase().match(/^CL[AÁ]USULA\s+(SEGUNDA|TERCERA|CUARTA|QUINTA|SEXTA|S[EÉ]PTIMA)/);
+      if(m){
+        var key=m[1].replace('É','E').replace('Á','A').toLowerCase();
+        if(!(key in idx))idx[key]=i;
+      }
+    }
+    function juntar(desde,hasta){
+      if(desde===undefined||hasta===undefined)return '';
+      var arr=[];
+      for(var k=desde+1;k<hasta;k++){
+        // Saltar líneas que son títulos intermedios "ALCANCE", "I. ÍTEMS INCLUIDOS" etc al inicio
+        arr.push(lineas[k]);
+      }
+      return arr.join('\n').trim();
+    }
+    // OBJETO = entre SEGUNDA y TERCERA
+    var objeto=juntar(idx['segunda'],idx['tercera']);
+    // INCLUSIONES = entre CUARTA y QUINTA
+    var inclusiones=juntar(idx['cuarta'],idx['quinta']);
+    // EXCLUSIONES = entre QUINTA y SEXTA
+    var exclusiones=juntar(idx['quinta'],idx['sexta']);
+    // Fallback Cecilia: CUARTA contiene "ÍTEMS INCLUIDOS Y EXCLUIDOS" con I. ÍTEMS INCLUIDOS y II. ÍTEMS NO INCLUIDOS
+    if(idx['cuarta']!==undefined&&idx['quinta']!==undefined&&inclusiones.toUpperCase().indexOf('ITEMS NO INCLUIDOS')>=0||inclusiones.toUpperCase().indexOf('ÍTEMS NO INCLUIDOS')>=0){
+      // Buscar separador interno
+      var sepIdx=-1;
+      for(var j=idx['cuarta']+1;j<idx['quinta'];j++){
+        if(/I+\.\s*[ÍI]TEMS\s+NO\s+INCLUIDOS/i.test(lineas[j])){sepIdx=j;break;}
+      }
+      if(sepIdx>0){
+        inclusiones=juntar(idx['cuarta'],sepIdx);
+        if(!exclusiones)exclusiones=juntar(sepIdx,idx['quinta']);
+      }
+    }
+    // Limpieza: si alguna sección está vacía o muy corta, descartar
+    if(objeto.length<30)objeto='';
+    if(inclusiones.length<30)inclusiones='';
+    if(exclusiones.length<30)exclusiones='';
+    return {objeto:objeto,inclusiones:inclusiones,exclusiones:exclusiones};
+  }catch(e){
+    console.warn('Error extrayendo del contrato:',e.message);
+    return null;
+  }
+}
+
 function renderSteffii(){
   if(CU&&CU.r!=='steffi'&&CU.r!=='admin')return;
   // T21 — Render lista de obras propias (mis obras registradas)
@@ -1843,11 +2039,21 @@ async function steffReemplazarContrato(oid,inp){
     await storageUpload(p,file);
     var pathAnterior=o.cp_dig;
     o.cp_dig=p;
-    await sb.from('rec_obras').update({contrato_propietario_nombre:p}).eq('id',o.id);
+    // T22 — Re-extraer del nuevo archivo
+    var updateFields={contrato_propietario_nombre:p};
+    var extraido=await _extraerCausasDelContrato(file);
+    if(extraido&&(extraido.objeto||extraido.inclusiones||extraido.exclusiones)){
+      if(extraido.objeto){o.obj=extraido.objeto;updateFields.objeto_contrato=extraido.objeto;}
+      if(extraido.inclusiones){o.inc=extraido.inclusiones;updateFields.inclusiones=extraido.inclusiones;}
+      if(extraido.exclusiones){o.exc=extraido.exclusiones;updateFields.exclusiones=extraido.exclusiones;}
+      toast('Datos re-extraídos del nuevo contrato','success','📄');
+    }
+    await sb.from('rec_obras').update(updateFields).eq('id',o.id);
     dbLog(CU.n,'Reemplazó contrato digital de obra: '+o.nom+(pathAnterior?' (anterior: '+pathAnterior+')':''));
     toast('Archivo reemplazado correctamente','success','✅');
     inp.value='';
     _renderSteffiMisObras();
+    renderTodo();
   }catch(e){toast('Error: '+e.message,'error');inp.value='';}
 }
 
@@ -2294,6 +2500,20 @@ function fatSelObra(oid){
   if(elInc) elInc.value=o.inc||FAT_INC;
   if(elExc) elExc.value=o.exc||FAT_EXC;
   if(elNot) elNot.value=o.not||'';
+  // T22 — Aviso visual sobre origen de los textos
+  var msgEl=document.getElementById('fat-clausulas-msg');
+  var boxEl=document.getElementById('fat-clausulas-origen');
+  if(msgEl&&boxEl){
+    if(o.obj||o.inc||o.exc){
+      msgEl.innerHTML='✅ <b>Textos extraídos del contrato del cliente</b> (Steffi). Revisá y ajustá si es necesario antes de guardar.';
+      boxEl.style.background='rgba(4,120,86,.10)';
+      boxEl.style.borderColor='var(--G)';
+    } else {
+      msgEl.innerHTML='Texto pre-cargado con estándares GEAT. Editá si hay condiciones especiales.';
+      boxEl.style.background='rgba(245,196,0,.06)';
+      boxEl.style.borderColor='rgba(245,196,0,.2)';
+    }
+  }
   // T21 — Repoblar dropdown excluyendo la obra actual
   _fatPoblarCopiarDesde();
   // Status del croquis si ya tiene
@@ -2799,6 +3019,14 @@ function supSelObra(oid){
   html+='<div style="font-size:18px;font-weight:900;color:var(--am);">'+(o.nom||'?')+'</div>';
   html+='<div style="font-size:11px;color:var(--ws);margin-top:2px;">'+(o.cod||'')+'</div>';
   if(o.sup>0)html+='<div style="font-size:11px;color:var(--wd);margin-top:6px;">📐 '+o.sup+' m² · 🛠️ '+(o.cuad||0)+' obreros · 🗓️ '+(o.di||0)+' días</div>';
+  // T22 — Badge de financiamiento
+  var badgeFin=_financiamientoBadge(o);
+  if(badgeFin)html+='<div style="margin-top:6px;">'+badgeFin+'</div>';
+  // T22 — Aviso de bloqueo técnico si aplica
+  var bloq=_obraPuedeIniciarTecnico(o);
+  if(!bloq.ok){
+    html+='<div style="background:rgba(245,158,11,.10);border:1px solid #f59e0b;border-radius:6px;padding:8px;margin-top:8px;font-size:10px;color:var(--wd);">⏸️ <b>'+bloq.etiqueta+'</b> · '+bloq.motivo+'<br><span style="color:var(--ws);">No iniciar estudios de suelo / cálculo estructural / planos completos hasta liberar.</span></div>';
+  }
   // Cerrador + firma notaría
   if(o.cerrador_responsable){
     var ff=o.fecha_firma_notaria?new Date(o.fecha_firma_notaria).toLocaleDateString('es-BO'):'—';
@@ -3726,6 +3954,8 @@ async function dvUpload(tipo,inp){
 let caCtId=null;
 
 function renderCarolina(){
+  // T22: render consulta anticipada de contratos del propietario
+  _renderCarolinaConsultaContratos();
   var sel=document.getElementById('ca-sel-ct');
   if(!sel)return;
   var aprobados=contratos.filter(function(c){
@@ -3765,6 +3995,401 @@ function renderCarolina(){
         '</div>';
     }).join('');
   }
+}
+
+// T22 — Render lista de contratos del propietario para consulta anticipada
+function _renderCarolinaConsultaContratos(){
+  var el=document.getElementById('ca-consulta-contratos');
+  if(!el)return;
+  // Obras que tienen archivo de contrato cargado (cualquiera)
+  var conContrato=obras.filter(function(o){return o.cp_dig;});
+  if(!conContrato.length){
+    el.innerHTML='<div style="color:var(--ws);font-size:12px;padding:8px 0;">Todavía no hay contratos cargados por Steffi.</div>';
+    return;
+  }
+  // Ordenadas por id descendente (más recientes primero)
+  conContrato.sort(function(a,b){return (b.id||0)-(a.id||0);});
+  var h='';
+  for(var i=0;i<conContrato.length;i++){
+    var o=conContrato[i];
+    var badge=_financiamientoBadge(o);
+    var bloqueo=_obraPuedeIniciarTecnico(o);
+    var bloqAviso=bloqueo.ok?'':'<div style="font-size:10px;color:#f59e0b;margin-top:4px;font-weight:600;">⏸️ '+bloqueo.motivo+' — solo cómputo y propuesta para banco</div>';
+    h+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">'+
+        '<div style="flex:1;min-width:200px;">'+
+          '<div style="font-size:13px;font-weight:800;color:var(--am);">'+(o.nom||'?')+'</div>'+
+          '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+(o.cod||'')+'</div>'+
+          '<div style="margin-top:6px;">'+badge+'</div>'+
+          bloqAviso+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          '<button class="btn btn-y btn-sm" onclick="_caVerContratoPropietario('+o.id+')">👁️ Ver contrato</button>'+
+          ((o.tipo_financiamiento==='bancario'||o.tipo_financiamiento==='mixto')?
+            '<button class="btn btn-o btn-sm" onclick="_caFlujoBancarioMostrar('+o.id+')">🏦 Flujo bancario</button>':'')+
+        '</div>'+
+      '</div>'+
+      '</div>';
+  }
+  el.innerHTML=h;
+}
+
+async function _caVerContratoPropietario(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o||!o.cp_dig){toast('Esta obra no tiene contrato cargado','warning');return;}
+  _abrirVisorContrato(o.cp_dig,'Contrato — '+(o.nom||''));
+}
+
+// T23 — Visor de contrato en modal (solo lectura, sin descarga)
+async function _abrirVisorContrato(path,titulo){
+  var ov=document.getElementById('ov-visor-contrato');
+  var tit=document.getElementById('visor-contrato-titulo');
+  var cuerpo=document.getElementById('visor-contrato-cuerpo');
+  if(!ov||!cuerpo)return;
+  if(tit)tit.textContent='📑 '+(titulo||'Contrato');
+  cuerpo.innerHTML='<div style="text-align:center;padding:40px;color:var(--ws);font-size:12px;">Cargando contrato...</div>';
+  ov.style.display='flex';
+  try{
+    // 1. Obtener bytes del archivo (no signed URL pública para evitar descarga directa)
+    var dl=await sb.storage.from('rec-archivos').download(path);
+    if(dl.error)throw new Error(dl.error.message);
+    var blob=dl.data;
+    var nombre=(path.split('/').pop()||'').toLowerCase();
+    // 2. Renderizar según tipo
+    if(nombre.endsWith('.pdf')){
+      // PDF: iframe con blob URL (sin botones de descarga del navegador en muchos casos)
+      var url=URL.createObjectURL(blob);
+      cuerpo.innerHTML='<iframe src="'+url+'#toolbar=0&navpanes=0&scrollbar=1" style="width:100%;height:100%;border:0;background:#fff;"></iframe>';
+    } else if(nombre.endsWith('.docx')){
+      if(typeof mammoth==='undefined'){
+        cuerpo.innerHTML='<div style="text-align:center;padding:40px;color:var(--Rc);">No se puede mostrar (visor DOCX no disponible).</div>';
+        return;
+      }
+      var buf=await blob.arrayBuffer();
+      var res=await mammoth.convertToHtml({arrayBuffer:buf});
+      var htmlContrato=res.value||'';
+      cuerpo.innerHTML='<div style="background:#fff;color:#000;padding:40px 50px;max-width:780px;margin:20px auto;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-family:Georgia,serif;line-height:1.6;font-size:13px;user-select:text;-webkit-user-select:text;">'+htmlContrato+'</div>';
+    } else if(/\.(jpg|jpeg|png|webp)$/.test(nombre)){
+      var urlImg=URL.createObjectURL(blob);
+      cuerpo.innerHTML='<div style="text-align:center;padding:20px;"><img src="'+urlImg+'" style="max-width:100%;border-radius:6px;" oncontextmenu="return false;"></div>';
+    } else {
+      // .doc viejo u otros — no podemos renderizar, mostrar mensaje
+      cuerpo.innerHTML='<div style="text-align:center;padding:40px;">'+
+        '<div style="font-size:40px;margin-bottom:12px;">📄</div>'+
+        '<div style="color:var(--wd);font-size:13px;margin-bottom:8px;font-weight:700;">Tipo de archivo no compatible con visor</div>'+
+        '<div style="color:var(--ws);font-size:11px;">Archivo: '+nombre+'</div>'+
+        '<div style="color:var(--ws);font-size:11px;margin-top:8px;">Pedí a Steffi que lo suba como .docx o .pdf para verlo acá.</div>'+
+        '</div>';
+    }
+  }catch(e){
+    cuerpo.innerHTML='<div style="text-align:center;padding:40px;color:var(--Rc);">Error: '+e.message+'</div>';
+  }
+}
+
+function _cerrarVisorContrato(){
+  var ov=document.getElementById('ov-visor-contrato');
+  var cuerpo=document.getElementById('visor-contrato-cuerpo');
+  if(ov)ov.style.display='none';
+  // Liberar blob URLs para no acumular memoria
+  if(cuerpo){
+    var iframe=cuerpo.querySelector('iframe');
+    if(iframe&&iframe.src&&iframe.src.indexOf('blob:')===0){try{URL.revokeObjectURL(iframe.src);}catch(_e){}}
+    var img=cuerpo.querySelector('img');
+    if(img&&img.src&&img.src.indexOf('blob:')===0){try{URL.revokeObjectURL(img.src);}catch(_e){}}
+    cuerpo.innerHTML='';
+  }
+}
+
+// T22 — Mostrar flujo bancario para una obra específica
+function _caFlujoBancarioMostrar(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  var card=document.getElementById('ca-flujo-bancario-card');
+  var body=document.getElementById('ca-flujo-bancario-body');
+  if(!card||!body)return;
+  card.style.display='block';
+  card.dataset.obraId=String(oid);
+  _caRenderFlujoBancario(o);
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function _caRenderFlujoBancario(o){
+  var body=document.getElementById('ca-flujo-bancario-body');
+  if(!body)return;
+  var hayComputo=!!o.computo_excel_archivo;
+  var hayPpto=!!o.ppto_bancario_archivo;
+  var hayFirmado=!!o.ppto_firmado_archivo;
+  var entregado=!!o.entregado_banco;
+  var desembolsado=!!o.fecha_desembolso_banco;
+  var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
+  var fechaDes=o.fecha_desembolso_banco?new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'):'';
+  
+  var html='<div style="font-size:11px;color:var(--wd);margin-bottom:14px;">'+
+    '<b>'+o.nom+'</b> · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+
+    ' · Banco financia: '+(o.porcentaje_financiado||'?')+'%</div>';
+
+  // PASO 1: Cómputo Excel (Carolina)
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:700;color:'+(hayComputo?'var(--Gc)':'var(--am)')+';">'+(hayComputo?'✅':'1️⃣')+' Cómputo (Excel) — Carolina</div>'+
+      (hayComputo?'<div style="font-size:9px;color:var(--ws);">'+(o.computo_excel_subido_por||'')+'</div>':'')+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Subí el archivo Excel del cómputo de materiales/trabajos.</div>'+
+    '<label class="btn btn-y btn-sm" style="cursor:pointer;">'+
+      (hayComputo?'🔄 Reemplazar Excel':'📁 Subir Excel cómputo')+
+      '<input type="file" accept=".xlsx,.xls,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;" onchange="_caSubirComputo('+o.id+',this)">'+
+    '</label>'+
+    (hayComputo?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.computo_excel_archivo+'\')">👁️ Ver</button>':'')+
+  '</div>';
+
+  // PASO 2: Presupuesto bancario (Admin)
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayComputo?'opacity:.5;':'')+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:700;color:'+(hayPpto?'var(--Gc)':'var(--am)')+';">'+(hayPpto?'✅':'2️⃣')+' Presupuesto bancario — Josemiguel</div>'+
+      (hayPpto?'<div style="font-size:9px;color:var(--ws);">'+(o.ppto_bancario_subido_por||'')+'</div>':'')+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Josemiguel elabora el presupuesto bancario sobre el mismo Excel (nueva hoja) y lo sube acá.</div>'+
+    (CU&&CU.r==='admin'?
+      '<label class="btn btn-y btn-sm" style="cursor:pointer;'+(!hayComputo?'pointer-events:none;':'')+'">'+
+        (hayPpto?'🔄 Reemplazar':'📁 Subir presupuesto')+
+        '<input type="file" accept=".xlsx,.xls,.pdf" style="display:none;" onchange="_caSubirPptoBancario('+o.id+',this)">'+
+      '</label>':
+      '<div style="font-size:10px;color:var(--ws);">'+(hayPpto?'Ya subido por Josemiguel':'Esperando que Josemiguel lo suba')+'</div>')+
+    (hayPpto?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.ppto_bancario_archivo+'\')">👁️ Ver</button>':'')+
+  '</div>';
+
+  // PASO 3: Carolina imprime y firma
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayPpto?'opacity:.5;':'')+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:700;color:'+(hayFirmado?'var(--Gc)':'var(--am)')+';">'+(hayFirmado?'✅':'3️⃣')+' Presupuesto firmado — Carolina escanea</div>'+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Carolina imprime el presupuesto bancario, firma (planos + ppto), escanea y sube.</div>'+
+    '<label class="btn btn-y btn-sm" style="cursor:pointer;'+(!hayPpto?'pointer-events:none;':'')+'">'+
+      (hayFirmado?'🔄 Reemplazar':'📷/📁 Subir escaneado firmado')+
+      '<input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="_caSubirPptoFirmado('+o.id+',this)">'+
+    '</label>'+
+    (hayFirmado?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.ppto_firmado_archivo+'\')">👁️ Ver</button>':'')+
+  '</div>';
+
+  // PASO 4: Entregado al banco (cerrador)
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayFirmado?'opacity:.5;':'')+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:700;color:'+(entregado?'var(--Gc)':'var(--am)')+';">'+(entregado?'✅':'4️⃣')+' Entregado al banco — Cerrador</div>'+
+      (entregado?'<div style="font-size:9px;color:var(--ws);">'+(o.entregado_banco_por||'')+' · '+fechaEntr+'</div>':'')+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">El cerrador (David/Gustavo) marca cuando entregó la propuesta al banco.</div>'+
+    ((CU&&(CU.r==='admin'||CU.r==='david'))?
+      (entregado?
+        '<button class="btn btn-o btn-sm" onclick="_caDesmarcarEntregadoBanco('+o.id+')">↩️ Desmarcar</button>':
+        '<button class="btn btn-y btn-sm" '+(!hayFirmado?'disabled':'')+' onclick="_caMarcarEntregadoBanco('+o.id+')">📤 Marcar como entregado al banco</button>'):
+      '<div style="font-size:10px;color:var(--ws);">'+(entregado?'Entregado por '+(o.entregado_banco_por||'')+' el '+fechaEntr:'Esperando entrega al banco')+'</div>')+
+  '</div>';
+
+  // PASO 5: Desembolso del banco (admin)
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!entregado?'opacity:.5;':'')+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:700;color:'+(desembolsado?'var(--Gc)':'var(--am)')+';">'+(desembolsado?'✅':'5️⃣')+' Desembolso bancario — Admin</div>'+
+      (desembolsado?'<div style="font-size:9px;color:var(--ws);">'+fechaDes+'</div>':'')+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Cuando el banco desembolsa el dinero, marcá la fecha. Desde acá arrancan los estudios técnicos completos.</div>'+
+    ((CU&&CU.r==='admin')?
+      (desembolsado?
+        '<div style="font-size:11px;color:var(--Gc);font-weight:700;">🎉 Desembolsado el '+fechaDes+' — Obra liberada para iniciar técnico</div>':
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'+
+          '<input type="date" id="ca-fec-des-'+o.id+'" style="font-size:11px;padding:6px;">'+
+          '<button class="btn btn-y btn-sm" '+(!entregado?'disabled':'')+' onclick="_caRegistrarDesembolso('+o.id+')">🏦 Registrar desembolso</button>'+
+        '</div>'):
+      '<div style="font-size:10px;color:var(--ws);">'+(desembolsado?'Desembolsado el '+fechaDes:'Esperando desembolso')+'</div>')+
+  '</div>';
+
+  // ALTERNATIVA: Cliente garantiza
+  if(!desembolsado){
+    html+='<div style="background:rgba(245,196,0,.08);border:1px solid var(--am);border-radius:8px;padding:12px;margin-bottom:10px;">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:6px;">🛡️ Alternativa: Cliente garantiza financiamiento</div>'+
+      '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Si el cliente garantiza por su cuenta el financiamiento bancario, se puede arrancar técnico sin esperar al banco.</div>'+
+      ((CU&&CU.r==='admin')?
+        (o.cliente_garantiza?
+          '<div style="font-size:11px;color:var(--Gc);font-weight:700;">✅ Cliente garantiza · '+(o.cliente_garantiza_nota||'')+' · <button class="btn btn-o btn-sm" onclick="_caQuitarGarantiaCliente('+o.id+')">Quitar</button></div>':
+          '<button class="btn btn-y btn-sm" onclick="_caMarcarGarantiaCliente('+o.id+')">🛡️ Marcar que cliente garantiza</button>'):
+        '<div style="font-size:10px;color:var(--ws);">'+(o.cliente_garantiza?'✅ Cliente garantiza (admin lo marcó)':'Solo admin puede marcar')+'</div>')+
+    '</div>';
+  }
+
+  body.innerHTML=html;
+}
+
+async function _caSubirComputo(oid,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>20*1024*1024){toast('Archivo muy grande (máx 20MB)','error');inp.value='';return;}
+  toast('Subiendo cómputo...','info');
+  try{
+    var p=storagePath('obras',oid,'computo',file.name);
+    await storageUpload(p,file);
+    await sb.from('rec_obras').update({
+      computo_excel_archivo:p,
+      computo_excel_subido_por:CU.n,
+      computo_excel_fecha:new Date().toISOString()
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.computo_excel_archivo=p;o.computo_excel_subido_por=CU.n;o.computo_excel_fecha=new Date().toISOString();}
+    dbLog(CU.n,'Subió cómputo Excel: '+(o?o.nom:oid));
+    toast('Cómputo subido','success','✅');
+    notifCrear('Josemiguel','computo_listo','Cómputo listo para presupuesto bancario',
+      (o?o.nom:'')+' — Carolina subió el Excel. Tu turno: elaborar presupuesto bancario.',
+      {obra_id:oid,obra_nombre:o?o.nom:'',panel_destino:'carolina',prioridad:'alerta'});
+    inp.value='';
+    _caRenderFlujoBancario(o);
+    _renderCarolinaConsultaContratos();
+  }catch(e){toast('Error: '+e.message,'error');inp.value='';}
+}
+
+async function _caSubirPptoBancario(oid,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>20*1024*1024){toast('Archivo muy grande (máx 20MB)','error');inp.value='';return;}
+  toast('Subiendo presupuesto bancario...','info');
+  try{
+    var p=storagePath('obras',oid,'ppto_banco',file.name);
+    await storageUpload(p,file);
+    await sb.from('rec_obras').update({
+      ppto_bancario_archivo:p,
+      ppto_bancario_subido_por:CU.n,
+      ppto_bancario_fecha:new Date().toISOString()
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.ppto_bancario_archivo=p;o.ppto_bancario_subido_por=CU.n;o.ppto_bancario_fecha=new Date().toISOString();}
+    dbLog(CU.n,'Subió presupuesto bancario: '+(o?o.nom:oid));
+    toast('Presupuesto subido','success','✅');
+    notifCrear('Carolina','ppto_listo','Presupuesto bancario listo',
+      (o?o.nom:'')+' — Josemiguel subió el presupuesto. Tu turno: imprimir, firmar y subir escaneado.',
+      {obra_id:oid,obra_nombre:o?o.nom:'',panel_destino:'carolina',prioridad:'alerta'});
+    inp.value='';
+    _caRenderFlujoBancario(o);
+  }catch(e){toast('Error: '+e.message,'error');inp.value='';}
+}
+
+async function _caSubirPptoFirmado(oid,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>20*1024*1024){toast('Archivo muy grande (máx 20MB)','error');inp.value='';return;}
+  toast('Subiendo firmado...','info');
+  try{
+    var p=storagePath('obras',oid,'ppto_firmado',file.name);
+    await storageUpload(p,file);
+    await sb.from('rec_obras').update({
+      ppto_firmado_archivo:p,
+      ppto_firmado_subido_por:CU.n,
+      ppto_firmado_fecha:new Date().toISOString()
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.ppto_firmado_archivo=p;o.ppto_firmado_subido_por=CU.n;o.ppto_firmado_fecha=new Date().toISOString();}
+    dbLog(CU.n,'Subió presupuesto firmado: '+(o?o.nom:oid));
+    toast('Firmado subido','success','✅');
+    notifCrear('todos','firmado_listo','Presupuesto firmado listo para banco',
+      (o?o.nom:'')+' — Carolina subió el escaneado firmado. Cerrador puede llevarlo al banco.',
+      {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'alerta'});
+    inp.value='';
+    _caRenderFlujoBancario(o);
+  }catch(e){toast('Error: '+e.message,'error');inp.value='';}
+}
+
+async function _caMarcarEntregadoBanco(oid){
+  if(!confirm('¿Confirmar entrega al banco?'))return;
+  try{
+    await sb.from('rec_obras').update({
+      entregado_banco:true,
+      entregado_banco_fecha:new Date().toISOString(),
+      entregado_banco_por:CU.n,
+      estado_financiamiento:'esperando_aprobacion'
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.entregado_banco=true;o.entregado_banco_fecha=new Date().toISOString();o.entregado_banco_por=CU.n;o.estado_financiamiento='esperando_aprobacion';}
+    dbLog(CU.n,'Marcó entregado al banco: '+(o?o.nom:oid));
+    toast('Marcado como entregado','success','📤');
+    notifCrear('Josemiguel','entregado_banco','Propuesta entregada al banco',
+      (o?o.nom:'')+' — Cerrador entregó al banco. Esperando aprobación/desembolso.',
+      {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'normal'});
+    _caRenderFlujoBancario(o);
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _caDesmarcarEntregadoBanco(oid){
+  if(!confirm('¿Desmarcar la entrega al banco? Sólo usar si fue un error.'))return;
+  try{
+    await sb.from('rec_obras').update({
+      entregado_banco:false,
+      entregado_banco_fecha:null,
+      entregado_banco_por:null,
+      estado_financiamiento:'esperando_propuesta'
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.entregado_banco=false;o.entregado_banco_fecha=null;o.entregado_banco_por=null;o.estado_financiamiento='esperando_propuesta';}
+    _caRenderFlujoBancario(o);
+    toast('Desmarcado','info');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _caRegistrarDesembolso(oid){
+  var fecInp=document.getElementById('ca-fec-des-'+oid);
+  var fecha=fecInp?fecInp.value:'';
+  if(!fecha){toast('Ingresá la fecha del desembolso','warning');return;}
+  if(!confirm('¿Confirmar desembolso del banco el '+fecha+'?\n\nDesde acá la obra puede iniciar estudios técnicos completos.'))return;
+  try{
+    var iso=new Date(fecha+'T12:00:00').toISOString();
+    await sb.from('rec_obras').update({
+      fecha_desembolso_banco:iso,
+      estado_financiamiento:'desembolsado'
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.fecha_desembolso_banco=iso;o.estado_financiamiento='desembolsado';}
+    dbLog(CU.n,'Registró desembolso bancario: '+(o?o.nom:oid)+' el '+fecha);
+    toast('Desembolso registrado — obra liberada','success','🏦');
+    notifCrear('todos','desembolso','Banco desembolsó',
+      (o?o.nom:'')+' — Banco desembolsó el '+fecha+'. Iniciar estudios técnicos.',
+      {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'exito'});
+    _caRenderFlujoBancario(o);
+    _renderCarolinaConsultaContratos();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _caMarcarGarantiaCliente(oid){
+  var nota=prompt('Nota / motivo de la garantía del cliente:\n(ej: "Garantía firmada en escritura pública el 14-may-2026")');
+  if(nota===null)return;
+  if(!nota.trim()){toast('Necesitás escribir una nota','warning');return;}
+  try{
+    await sb.from('rec_obras').update({
+      cliente_garantiza:true,
+      cliente_garantiza_nota:nota.trim()
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.cliente_garantiza=true;o.cliente_garantiza_nota=nota.trim();}
+    dbLog(CU.n,'Marcó garantía del cliente: '+(o?o.nom:oid));
+    toast('Garantía registrada','success','🛡️');
+    _caRenderFlujoBancario(o);
+    _renderCarolinaConsultaContratos();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _caQuitarGarantiaCliente(oid){
+  if(!confirm('¿Quitar la garantía del cliente?'))return;
+  try{
+    await sb.from('rec_obras').update({cliente_garantiza:false,cliente_garantiza_nota:null}).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.cliente_garantiza=false;o.cliente_garantiza_nota=null;}
+    _caRenderFlujoBancario(o);
+    _renderCarolinaConsultaContratos();
+    toast('Garantía removida','info');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _caDescargar(path){
+  if(!path){toast('Archivo no disponible','warning');return;}
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(path,3600);
+    if(res.error)throw new Error(res.error.message);
+    window.open(res.data.signedUrl,'_blank');
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 function caSelCt(cid){
@@ -5476,6 +6101,22 @@ async function _notifRefreshBadge(){
     <div id="m-clausulas-body" style="padding:16px;max-height:60vh;overflow:auto;"></div>
     <div style="padding:12px 16px;border-top:1px solid var(--bd);">
       <button class="btn btn-y" onclick="abrirGuardarClausula()">➕ Guardar nueva clausula</button>
+    </div>
+  </div>
+</div>
+
+<!-- T23 — MODAL VISOR CONTRATO (solo lectura, sin salir de la página) -->
+<div class="overlay" id="ov-visor-contrato" style="display:none;">
+  <div class="modal" style="max-width:900px;width:95vw;height:90vh;display:flex;flex-direction:column;">
+    <div class="modal-h" style="user-select:none;">
+      <h3 id="visor-contrato-titulo">📑 Contrato</h3>
+      <button class="modal-x" onclick="_cerrarVisorContrato()">✕</button>
+    </div>
+    <div style="padding:8px 14px;background:rgba(245,158,11,.08);border-bottom:1px solid var(--bd);font-size:11px;color:var(--wd);user-select:none;">
+      👁️ <b>Modo lectura</b> — Este contrato es solo para consulta. No se permite descarga ni impresión.
+    </div>
+    <div id="visor-contrato-cuerpo" style="flex:1;overflow:auto;background:var(--p1);padding:0;position:relative;" oncontextmenu="return false;">
+      <div style="text-align:center;padding:40px;color:var(--ws);font-size:12px;">Cargando contrato...</div>
     </div>
   </div>
 </div>
