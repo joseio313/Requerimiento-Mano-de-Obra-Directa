@@ -401,11 +401,12 @@ async function dbCargar(){
       sb.from('rec_obras').select('*').order('created_at'),
       sb.from('rec_contratos').select('*').order('created_at')
     ]);
-    if(od&&od.length) obras=od.map(mapObra);
-    if(cd&&cd.length) contratos=cd.map(mapContrato);
+    // T23 FIX: setear obras/contratos SIEMPRE (aunque sea array vacío)
+    obras=(od&&od.length)?od.map(mapObra):[];
+    contratos=(cd&&cd.length)?cd.map(mapContrato):[];
     renderTodo();
-    console.log('✅ DB cargada');
-  }catch(e){console.warn('DB error:',e.message);}
+    console.log('✅ DB cargada · obras:',obras.length,'· contratos:',contratos.length);
+  }catch(e){console.warn('DB error:',e.message);toast('Error cargando datos: '+e.message,'error');}
 }
 function mapObra(o){return{
   id:o.id,nom:o.nombre||'',cod:o.codigo||'',sup:parseFloat(o.superficie)||0,
@@ -670,7 +671,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v71 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v72 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1574,7 +1575,8 @@ function tryLogin(){
   document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
   buildNav();
   goPanel(panelInicial());
-  dbCargar();
+  // T23 FIX: cargar y RE-renderizar (dbCargar internamente llama renderTodo)
+  dbCargar().then(function(){console.log('[GEAT] Carga completada - obras:',obras.length);});
   dbLog(u.n,'Sesión iniciada');
 }
 function logout(){
@@ -5722,10 +5724,45 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',function(){
     navigator.serviceWorker.register('service-worker.js').then(function(reg){
       console.log('[PWA] Service Worker registrado');
+      // T23 FIX: Buscar actualización SIEMPRE al cargar
+      reg.update();
+      // Si hay un SW esperando (actualización pendiente), avisar al usuario
+      if(reg.waiting){
+        _pwaPedirActualizacion();
+      }
+      // Cuando aparece una nueva versión, notificar
+      reg.addEventListener('updatefound',function(){
+        var nw=reg.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',function(){
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            _pwaPedirActualizacion();
+          }
+        });
+      });
     }).catch(function(err){
       console.warn('[PWA] No se pudo registrar SW',err);
     });
+    // Cuando el SW nuevo toma control, recargar
+    navigator.serviceWorker.addEventListener('controllerchange',function(){
+      console.log('[PWA] Nuevo SW activo, recargando...');
+      window.location.reload();
+    });
   });
+}
+
+function _pwaPedirActualizacion(){
+  if(typeof toast==='function'){
+    toast('Hay una versión nueva. Recargá para actualizar.','info','🔄');
+  }
+  // Auto-aplicar después de 3 segundos
+  setTimeout(function(){
+    navigator.serviceWorker.getRegistration().then(function(reg){
+      if(reg&&reg.waiting){
+        reg.waiting.postMessage({type:'SKIP_WAITING'});
+      }
+    });
+  },3000);
 }
 
 // Variables para el banner
