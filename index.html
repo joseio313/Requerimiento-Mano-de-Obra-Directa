@@ -670,7 +670,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v70 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v71 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1778,99 +1778,117 @@ function _toggleFinanciamientoCampos(){
 }
 
 async function guardarNuevaObra(){
-  const p1=(document.getElementById('n-prop1')||{}).value||'';
-  const p2=(document.getElementById('n-prop2')||{}).value||'';
-  if(!p1.trim()){toast('Ingresá al menos el apellido del propietario 1','warning');return;}
-  const nom=document.getElementById('n-nom').value.trim();
-  if(!nom){toast('El nombre se genera solo. Llená los apellidos.','warning');return;}
-  if(!nueObraFiles.dig){toast('Subí el archivo del contrato (PDF/DOC). El escaneado firmado lo sube David.','warning');return;}
-  // T22: tipo de financiamiento
-  var finTipo=(document.getElementById('n-fin-tipo')||{}).value||'contado';
-  var finPct=null;
-  if(finTipo==='bancario'||finTipo==='mixto'){
-    finPct=parseFloat((document.getElementById('n-fin-pct')||{}).value)||80;
-    if(finPct<10||finPct>95){toast('El porcentaje debe estar entre 10 y 95','warning');return;}
-  }
-  let cod=document.getElementById('n-cod').value.trim();
-  if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3).toUpperCase();cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
-  // Notas: guardamos los apellidos como referencia
-  var notasProp='Propietario 1: '+p1.trim()+(p2.trim()?(' | Propietario 2: '+p2.trim()):'');
-  const o={id:Date.now(),nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[],
-    tipo_financiamiento:finTipo,porcentaje_financiado:finPct,
-    estado_financiamiento:(finTipo==='contado'?null:'esperando_propuesta')};
-  obras.push(o);
-  // T19 FIX: retry hasta 5 veces con código nuevo si choca con UNIQUE constraint
-  var intento=0,exito=false,lastErr=null;
-  while(intento<5&&!exito){
-    try{
-      await dbGuardarObra(o);
-      exito=true;
-    }catch(e){
-      lastErr=e;
-      // Si es error de código duplicado, buscar un sufijo libre y reintentar
-      if(e.message&&e.message.indexOf('rec_obras_codigo_key')>=0){
-        intento++;
-        // Refrescar lista de códigos existentes desde la BD
-        try{
-          var resCods=await sb.from('rec_obras').select('codigo');
-          var existentes=(resCods.data||[]).map(function(r){return r.codigo;});
-          var parts=o.cod.split('-');
-          if(parts.length===3){
-            var prefijo=parts[0]+'-'+parts[1]+'-';
-            var maxN=0;
-            existentes.forEach(function(c){
-              if(c&&c.indexOf(prefijo)===0){
-                var nn=parseInt(c.substring(prefijo.length))||0;
-                if(nn>maxN)maxN=nn;
-              }
-            });
-            o.cod=prefijo+String(maxN+1).padStart(3,'0');
-            document.getElementById('n-cod').value=o.cod;
-            toast('Código ya existía, usando: '+o.cod,'info');
-          }
-        }catch(_e){}
-      } else {
-        break;
-      }
-    }
-  }
-  if(!exito){
-    obras=obras.filter(x=>x.id!==o.id);
-    toast('Error al guardar: '+(lastErr?lastErr.message:'desconocido'),'error');
-    return;
-  }
+  // T23 — Refactor: try-catch global + toasts visibles + ID temporal aislado
   try{
-    if(nueObraFiles.dig){
-      const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);
-      await storageUpload(p,nueObraFiles.dig);
-      o.cp_dig=p;
-      // T22 — Extraer OBJETO/INCLUSIONES/EXCLUSIONES del DOCX automáticamente
-      var extraido=await _extraerCausasDelContrato(nueObraFiles.dig);
-      if(extraido&&(extraido.objeto||extraido.inclusiones||extraido.exclusiones)){
-        if(extraido.objeto)o.obj=extraido.objeto;
-        if(extraido.inclusiones)o.inc=extraido.inclusiones;
-        if(extraido.exclusiones)o.exc=extraido.exclusiones;
-        var camposExt=[];
-        if(extraido.objeto)camposExt.push('OBJETO');
-        if(extraido.inclusiones)camposExt.push('INCLUSIONES');
-        if(extraido.exclusiones)camposExt.push('EXCLUSIONES');
-        toast('Extraído del contrato: '+camposExt.join(', '),'success','📄');
-      }
-      await dbGuardarObra(o);
+    const p1=(document.getElementById('n-prop1')||{}).value||'';
+    const p2=(document.getElementById('n-prop2')||{}).value||'';
+    if(!p1.trim()){toast('Ingresá al menos el apellido del propietario 1','warning');return;}
+    const nomEl=document.getElementById('n-nom');
+    const nom=nomEl?nomEl.value.trim():'';
+    if(!nom){toast('El nombre se genera solo. Llená los apellidos.','warning');return;}
+    if(!nueObraFiles||!nueObraFiles.dig){toast('Subí el archivo del contrato. El escaneado firmado lo sube David.','warning');return;}
+    // T22: tipo de financiamiento
+    var finTipo=(document.getElementById('n-fin-tipo')||{}).value||'contado';
+    var finPct=null;
+    if(finTipo==='bancario'||finTipo==='mixto'){
+      finPct=parseFloat((document.getElementById('n-fin-pct')||{}).value)||80;
+      if(finPct<10||finPct>95){toast('El porcentaje debe estar entre 10 y 95','warning');return;}
     }
-    dbLog(CU.n,'Nueva obra registrada: '+nom+' ('+o.cod+')');
-    toast('Obra "'+nom+'" registrada con código '+o.cod,'success','✅');
-    // T20: notificar a Fátima que falta cargar datos técnicos
-    notifCrear('Fátima','obra_nueva','Nueva obra para datos técnicos',
-      'Steffi registró '+nom+' ('+o.cod+'). Cargá los datos técnicos cuando puedas.',
-      {obra_id:o.id,obra_nombre:nom,panel_destino:'fatima',prioridad:'normal'});
-    notifCrear('Josemiguel','obra_nueva','Nueva obra registrada',
-      nom+' ('+o.cod+') registrada por '+CU.n,
-      {obra_id:o.id,obra_nombre:nom,prioridad:'normal'});
-    limpiarNuevaObra();renderTodo();
-  }catch(e){
-    toast('Obra guardada pero error subiendo archivo: '+e.message,'warning');
-    renderTodo();
+    const codEl=document.getElementById('n-cod');
+    let cod=codEl?codEl.value.trim():'';
+    if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3).toUpperCase();cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
+    // Notas: guardamos los apellidos como referencia
+    var notasProp='Propietario 1: '+p1.trim()+(p2.trim()?(' | Propietario 2: '+p2.trim()):'');
+    var idTemporal=Date.now();
+    const o={id:idTemporal,nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[],
+      tipo_financiamiento:finTipo,porcentaje_financiado:finPct,
+      estado_financiamiento:(finTipo==='contado'?null:'esperando_propuesta')};
+    obras.push(o);
+    toast('Guardando obra...','info');
+    // T19 FIX: retry hasta 5 veces con código nuevo si choca con UNIQUE constraint
+    var intento=0,exito=false,lastErr=null;
+    while(intento<5&&!exito){
+      try{
+        await dbGuardarObra(o);
+        exito=true;
+      }catch(e){
+        lastErr=e;
+        // Si es error de código duplicado, buscar un sufijo libre y reintentar
+        if(e.message&&e.message.indexOf('rec_obras_codigo_key')>=0){
+          intento++;
+          // Refrescar lista de códigos existentes desde la BD
+          try{
+            var resCods=await sb.from('rec_obras').select('codigo');
+            var existentes=(resCods.data||[]).map(function(r){return r.codigo;});
+            var parts=o.cod.split('-');
+            if(parts.length===3){
+              var prefijo=parts[0]+'-'+parts[1]+'-';
+              var maxN=0;
+              existentes.forEach(function(c){
+                if(c&&c.indexOf(prefijo)===0){
+                  var nn=parseInt(c.substring(prefijo.length))||0;
+                  if(nn>maxN)maxN=nn;
+                }
+              });
+              o.cod=prefijo+String(maxN+1).padStart(3,'0');
+              if(codEl)codEl.value=o.cod;
+              toast('Código ya existía, usando: '+o.cod,'info');
+            }
+          }catch(_e){}
+        } else {
+          break;
+        }
+      }
+    }
+    if(!exito){
+      obras=obras.filter(x=>x.id!==idTemporal);
+      toast('Error al guardar: '+(lastErr?lastErr.message:'desconocido'),'error');
+      console.error('guardarNuevaObra falló:',lastErr);
+      return;
+    }
+    // Subir archivo + extraer
+    try{
+      if(nueObraFiles.dig){
+        toast('Subiendo archivo del contrato...','info');
+        const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);
+        await storageUpload(p,nueObraFiles.dig);
+        o.cp_dig=p;
+        // T22 — Extraer OBJETO/INCLUSIONES/EXCLUSIONES del DOCX automáticamente
+        var extraido=null;
+        try{extraido=await _extraerCausasDelContrato(nueObraFiles.dig);}catch(eExt){console.warn('Extracción falló (no crítico):',eExt);}
+        if(extraido&&(extraido.objeto||extraido.inclusiones||extraido.exclusiones)){
+          if(extraido.objeto)o.obj=extraido.objeto;
+          if(extraido.inclusiones)o.inc=extraido.inclusiones;
+          if(extraido.exclusiones)o.exc=extraido.exclusiones;
+          var camposExt=[];
+          if(extraido.objeto)camposExt.push('OBJETO');
+          if(extraido.inclusiones)camposExt.push('INCLUSIONES');
+          if(extraido.exclusiones)camposExt.push('EXCLUSIONES');
+          toast('Extraído del contrato: '+camposExt.join(', '),'success','📄');
+        }
+        try{await dbGuardarObra(o);}catch(eUp){console.warn('Update post-archivo falló:',eUp);}
+      }
+      dbLog(CU.n,'Nueva obra registrada: '+nom+' ('+o.cod+')');
+      toast('Obra "'+nom+'" registrada con código '+o.cod,'success','✅');
+      // T20: notificar
+      try{
+        notifCrear('Fátima','obra_nueva','Nueva obra para datos técnicos',
+          'Steffi registró '+nom+' ('+o.cod+'). Cargá los datos técnicos cuando puedas.',
+          {obra_id:o.id,obra_nombre:nom,panel_destino:'fatima',prioridad:'normal'});
+        notifCrear('Josemiguel','obra_nueva','Nueva obra registrada',
+          nom+' ('+o.cod+') registrada por '+CU.n,
+          {obra_id:o.id,obra_nombre:nom,prioridad:'normal'});
+      }catch(_eN){}
+      limpiarNuevaObra();renderTodo();
+    }catch(eFile){
+      toast('Obra guardada pero error subiendo archivo: '+eFile.message,'warning');
+      console.error(eFile);
+      renderTodo();
+    }
+  }catch(eGlobal){
+    // Cualquier error inesperado se muestra
+    toast('Error inesperado: '+(eGlobal.message||eGlobal),'error');
+    console.error('guardarNuevaObra error global:',eGlobal);
   }
 }
 
