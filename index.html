@@ -404,8 +404,13 @@ async function dbCargar(){
     // T23 FIX: setear obras/contratos SIEMPRE (aunque sea array vacío)
     obras=(od&&od.length)?od.map(mapObra):[];
     contratos=(cd&&cd.length)?cd.map(mapContrato):[];
+    console.log('[GEAT] dbCargar OK · obras:',obras.length,'· contratos:',contratos.length);
     renderTodo();
-    console.log('✅ DB cargada · obras:',obras.length,'· contratos:',contratos.length);
+    // T23 FIX 2: forzar re-render del panel Steffi específicamente si está visible
+    var panelSt=document.getElementById('panel-steffi');
+    if(panelSt&&panelSt.style.display!=='none'){
+      setTimeout(function(){renderSteffii();},100);
+    }
   }catch(e){console.warn('DB error:',e.message);toast('Error cargando datos: '+e.message,'error');}
 }
 function mapObra(o){return{
@@ -671,7 +676,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v72 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v73 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -797,7 +802,10 @@ async function storageUrl(path){
 
       <!-- PASO 1.5: MIS OBRAS REGISTRADAS (T21) -->
       <div class="card" style="margin-top:6px;border-top:3px solid var(--am);">
-        <div class="ct">📋 Mis Obras Registradas</div>
+        <div class="ct" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span>📋 Mis Obras Registradas</span>
+          <button class="btn btn-o btn-sm" onclick="dbCargar().then(function(){toast('Lista actualizada','success');});">🔄 Recargar lista</button>
+        </div>
         <div class="al al-z" style="margin-bottom:14px;">📌 Acá ves las obras que registraste con su contrato digital. <b>Podés reemplazar el archivo</b> si subiste uno equivocado. <b>Podés eliminar la obra</b> solo si todavía nadie cargó datos técnicos o documentos firmados.</div>
         <div id="steffi-mis-obras"></div>
       </div>
@@ -1957,9 +1965,16 @@ async function _extraerCausasDelContrato(file){
 }
 
 function renderSteffii(){
+  console.log('[GEAT] renderSteffii() · CU.r:',CU?CU.r:'null','· obras:',obras.length);
   if(CU&&CU.r!=='steffi'&&CU.r!=='admin')return;
   // T21 — Render lista de obras propias (mis obras registradas)
-  _renderSteffiMisObras();
+  try{
+    _renderSteffiMisObras();
+  }catch(e){
+    console.error('[GEAT] Error en _renderSteffiMisObras:',e);
+    var elDebug=document.getElementById('steffi-mis-obras');
+    if(elDebug)elDebug.innerHTML='<p style="color:var(--Rc);font-size:11px;">Error renderizando: '+e.message+'</p>';
+  }
   // Lista obras para PASO 4
   const el=document.getElementById('steffi-obras-lista');if(!el)return;
   const cands=obras.filter(o=>{
@@ -1983,10 +1998,12 @@ function renderSteffii(){
 
 // T21 — Render "Mis obras registradas" para Steffi (ver/reemplazar/eliminar)
 function _renderSteffiMisObras(){
-  var el=document.getElementById('steffi-mis-obras');if(!el)return;
+  var el=document.getElementById('steffi-mis-obras');
+  console.log('[GEAT] _renderSteffiMisObras · el:',el?'OK':'NULL','· obras.length:',obras.length);
+  if(!el)return;
   // Para admin: ve todas. Para Steffi: ve todas también (no las filtramos por creador)
   if(!obras.length){
-    el.innerHTML='<p style="color:var(--ws);font-size:12px;padding:8px 0;">Todavía no registraste obras.</p>';
+    el.innerHTML='<p style="color:var(--ws);font-size:12px;padding:8px 0;">Todavía no registraste obras. <a href="javascript:dbCargar()" style="color:var(--am);">🔄 Recargar</a></p>';
     return;
   }
   // Ordenadas por creación descendente
