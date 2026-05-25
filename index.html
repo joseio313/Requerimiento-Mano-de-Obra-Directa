@@ -676,7 +676,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v73 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v74 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1174,6 +1174,17 @@ async function storageUrl(path){
           <span style="color:var(--ws);font-size:10px;">📷 Podés escanear directo desde tu celular tocando los íconos. Si las especificaciones aún no están listas, podés cargarlas después sin problema.</span>
         </div>
       </div>
+
+      <!-- T24: FLUJO BANCARIO PARA CERRADORES -->
+      <div class="card" id="dv-flujo-bancario-card" style="display:none;border-top:3px solid #f59e0b;margin-bottom:6px;">
+        <div class="ct" style="color:#f59e0b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span>🏦 Tus Obras con Financiamiento Bancario</span>
+          <button class="btn btn-o btn-sm" onclick="dbCargar().then(function(){toast('Lista actualizada','success');});">🔄 Recargar</button>
+        </div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Acá ves las obras donde sos cerrador responsable y son <b>bancarias/mixtas</b>. Cuando Carolina termine de firmar plano + presupuesto, los vas a poder <b>ver y descargar</b> para llevar al banco.</div>
+        <div id="dv-flujo-bancario-body"></div>
+      </div>
+
       <div class="card">
         <div class="ct">📐 Cargas del Propietario — Subir Escaneados Firmados</div>
         <div class="al al-z" style="margin-bottom:14px;">📌 Una vez que el propietario firmó, escaneás y subís acá los 4 documentos: <b>contrato firmado</b>, <b>planos firmados</b>, <b>lista de materiales firmada</b> y <b>especificaciones técnicas firmadas</b>.</div>
@@ -3777,6 +3788,8 @@ async function admCargarHistorialExport(){
 let dvObraId=null;
 
 function renderDavid(){
+  // T24: render flujo bancario para cerradores
+  _renderDvFlujoBancario();
   var sel=document.getElementById('dv-sel-obra');
   if(!sel)return;
   sel.innerHTML='<option value="">— Elegir obra —</option>'+
@@ -3799,6 +3812,171 @@ function renderDavid(){
         '</div>';
     }).join('');
   }
+}
+
+// T24 — FLUJO BANCARIO para cerrador (ver/descargar plano+ppto firmado, marcar entregado)
+function _renderDvFlujoBancario(){
+  var card=document.getElementById('dv-flujo-bancario-card');
+  var body=document.getElementById('dv-flujo-bancario-body');
+  if(!card||!body)return;
+  // Filtrar: obras bancarias/mixtas donde el cerrador actual es responsable
+  // Admin ve todas las bancarias
+  var esAdmin=CU&&CU.r==='admin';
+  var obrasBanc=obras.filter(function(o){
+    if(o.tipo_financiamiento!=='bancario'&&o.tipo_financiamiento!=='mixto')return false;
+    if(esAdmin)return true;
+    // Cerrador: solo las suyas
+    return o.cerrador_responsable===CU.n;
+  });
+  if(!obrasBanc.length){
+    card.style.display='none';
+    return;
+  }
+  card.style.display='block';
+  // Ordenar: las que están listas para entregar primero
+  obrasBanc.sort(function(a,b){
+    var aListo=a.ppto_firmado_archivo&&!a.entregado_banco?1:0;
+    var bListo=b.ppto_firmado_archivo&&!b.entregado_banco?1:0;
+    return bListo-aListo;
+  });
+  var h='';
+  for(var i=0;i<obrasBanc.length;i++){
+    var o=obrasBanc[i];
+    var hayPpto=!!o.ppto_bancario_archivo;
+    var hayFirmado=!!o.ppto_firmado_archivo;
+    var hayPlanos=!!o.planos_propietario_pdf;
+    var entregado=!!o.entregado_banco;
+    var desembolsado=!!o.fecha_desembolso_banco;
+    var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
+    var fechaDes=o.fecha_desembolso_banco?new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'):'';
+    // Estado
+    var estado='';
+    if(desembolsado)estado='<span style="background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🎉 DESEMBOLSADO '+fechaDes+'</span>';
+    else if(entregado)estado='<span style="background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">📤 ENTREGADO AL BANCO '+fechaEntr+'</span>';
+    else if(hayFirmado)estado='<span style="background:rgba(245,196,0,.15);color:var(--am);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">✅ LISTO PARA LLEVAR AL BANCO</span>';
+    else if(hayPpto)estado='<span style="font-size:9px;color:var(--ws);">⏳ Esperando firma de Carolina</span>';
+    else estado='<span style="font-size:9px;color:var(--ws);">⏳ Esperando que Josemiguel suba presupuesto</span>';
+
+    h+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
+        '<div style="flex:1;min-width:200px;">'+
+          '<div style="font-size:13px;font-weight:800;color:var(--am);">'+o.nom+'</div>'+
+          '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+o.cod+' · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+' '+(o.porcentaje_financiado||80)+'%</div>'+
+        '</div>'+
+        '<div>'+estado+'</div>'+
+      '</div>'+
+      // Documentos disponibles
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'+
+        (hayPlanos?
+          '<button class="btn btn-o btn-sm" onclick="_dvAbrirPlanosBanco('+o.id+')">👁️ Ver planos firmados</button>':
+          '<span style="font-size:10px;color:var(--ws);padding:4px 8px;">⏳ Planos pendientes</span>')+
+        (hayFirmado?
+          '<button class="btn btn-o btn-sm" onclick="_dvAbrirPptoFirmado('+o.id+')">👁️ Ver presupuesto firmado</button>':
+          '<span style="font-size:10px;color:var(--ws);padding:4px 8px;">⏳ Ppto firmado pendiente</span>')+
+        (hayFirmado?
+          '<button class="btn btn-y btn-sm" onclick="_dvDescargarPaqueteBanco('+o.id+')">⬇️ Descargar para banco</button>':'')+
+      '</div>'+
+      // Botón entregar
+      (!entregado?
+        '<button class="btn btn-y" '+(!hayFirmado?'disabled style="opacity:.5;"':'')+' onclick="_dvMarcarEntregadoBanco('+o.id+')">📤 Marcar como entregado al banco</button>':
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--Gc);">'+
+          '✅ Entregaste al banco el '+fechaEntr+
+          (esAdmin&&!desembolsado?' <button class="btn btn-o btn-sm" onclick="_dvDesmarcarEntregadoBanco('+o.id+')">↩️ Desmarcar</button>':'')+
+        '</div>')+
+      '</div>';
+  }
+  body.innerHTML=h;
+}
+
+async function _dvAbrirPlanosBanco(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o||!o.planos_propietario_pdf){toast('No hay planos firmados','warning');return;}
+  if(typeof _abrirVisorContrato==='function')_abrirVisorContrato(o.planos_propietario_pdf,'Planos firmados — '+o.nom);
+  else _dvDescargarArchivo(o.planos_propietario_pdf,'planos_'+o.cod);
+}
+
+async function _dvAbrirPptoFirmado(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o||!o.ppto_firmado_archivo){toast('No hay presupuesto firmado','warning');return;}
+  if(typeof _abrirVisorContrato==='function')_abrirVisorContrato(o.ppto_firmado_archivo,'Presupuesto firmado — '+o.nom);
+  else _dvDescargarArchivo(o.ppto_firmado_archivo,'ppto_'+o.cod);
+}
+
+async function _dvDescargarArchivo(path,nomDestino){
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(path,3600,{download:nomDestino||path.split('/').pop()});
+    if(res.error)throw new Error(res.error.message);
+    var a=document.createElement('a');
+    a.href=res.data.signedUrl;
+    a.download=nomDestino||'';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){toast('Error descargando: '+e.message,'error');}
+}
+
+async function _dvDescargarPaqueteBanco(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  toast('Descargando documentos para banco...','info');
+  var algo=false;
+  if(o.planos_propietario_pdf){
+    await _dvDescargarArchivo(o.planos_propietario_pdf,o.cod+'_planos_firmados.'+(o.planos_propietario_pdf.split('.').pop()||'pdf'));
+    algo=true;
+    await new Promise(function(r){setTimeout(r,500);});
+  }
+  if(o.ppto_firmado_archivo){
+    await _dvDescargarArchivo(o.ppto_firmado_archivo,o.cod+'_presupuesto_firmado.'+(o.ppto_firmado_archivo.split('.').pop()||'pdf'));
+    algo=true;
+  }
+  if(algo)toast('Descarga completada','success','📦');
+  else toast('No hay documentos disponibles aún','warning');
+}
+
+async function _dvMarcarEntregadoBanco(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  if(!o.ppto_firmado_archivo){toast('Falta el presupuesto firmado por Carolina','warning');return;}
+  // Verificar que el cerrador actual sea el responsable
+  if(CU.r!=='admin'&&o.cerrador_responsable&&o.cerrador_responsable!==CU.n){
+    toast('Esta obra está asignada a '+o.cerrador_responsable+', solo él/ella puede marcar.','warning');
+    return;
+  }
+  if(!confirm('¿Confirmar que entregaste la propuesta al banco?\n\nObra: '+o.nom+'\nFecha entrega: hoy'))return;
+  try{
+    await sb.from('rec_obras').update({
+      entregado_banco:true,
+      entregado_banco_fecha:new Date().toISOString(),
+      entregado_banco_por:CU.n,
+      estado_financiamiento:'esperando_aprobacion'
+    }).eq('id',oid);
+    o.entregado_banco=true;
+    o.entregado_banco_fecha=new Date().toISOString();
+    o.entregado_banco_por=CU.n;
+    o.estado_financiamiento='esperando_aprobacion';
+    dbLog(CU.n,'Cerrador entregó al banco: '+o.nom);
+    toast('Entrega registrada','success','📤');
+    if(typeof notifCrear==='function'){
+      notifCrear('Josemiguel','entregado_banco','Propuesta entregada al banco',
+        o.nom+' — '+CU.n+' entregó al banco. Esperando aprobación/desembolso.',
+        {obra_id:oid,obra_nombre:o.nom,prioridad:'normal'});
+    }
+    _renderDvFlujoBancario();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _dvDesmarcarEntregadoBanco(oid){
+  if(!confirm('¿Desmarcar la entrega al banco? Solo usar si fue un error.'))return;
+  try{
+    await sb.from('rec_obras').update({
+      entregado_banco:false,
+      entregado_banco_fecha:null,
+      entregado_banco_por:null,
+      estado_financiamiento:'esperando_propuesta'
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.entregado_banco=false;o.entregado_banco_fecha=null;o.entregado_banco_por=null;o.estado_financiamiento='esperando_propuesta';}
+    _renderDvFlujoBancario();
+    toast('Desmarcado','info');
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 function _dvPendientes(o){
