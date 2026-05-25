@@ -676,7 +676,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v74 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v75 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -3825,7 +3825,10 @@ function _renderDvFlujoBancario(){
   var obrasBanc=obras.filter(function(o){
     if(o.tipo_financiamiento!=='bancario'&&o.tipo_financiamiento!=='mixto')return false;
     if(esAdmin)return true;
-    // Cerrador: solo las suyas
+    // T24 FIX: si todavía no hay cerrador asignado (típico antes del desembolso), 
+    // mostrar a ambos cerradores. El primero que actúe queda asignado.
+    if(!o.cerrador_responsable)return CU.r==='david';
+    // Si ya hay cerrador asignado, solo le aparece a él
     return o.cerrador_responsable===CU.n;
   });
   if(!obrasBanc.length){
@@ -3861,7 +3864,9 @@ function _renderDvFlujoBancario(){
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
         '<div style="flex:1;min-width:200px;">'+
           '<div style="font-size:13px;font-weight:800;color:var(--am);">'+o.nom+'</div>'+
-          '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+o.cod+' · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+' '+(o.porcentaje_financiado||80)+'%</div>'+
+          '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+o.cod+' · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+' '+(o.porcentaje_financiado||80)+'%'+
+          (o.cerrador_responsable?' · cerrador: '+o.cerrador_responsable:' · <span style="color:var(--am);font-weight:700;">⚠️ sin cerrador asignado</span>')+
+          '</div>'+
         '</div>'+
         '<div>'+estado+'</div>'+
       '</div>'+
@@ -3935,25 +3940,39 @@ async function _dvMarcarEntregadoBanco(oid){
   var o=obras.find(function(x){return x.id===oid;});
   if(!o){toast('Obra no encontrada','error');return;}
   if(!o.ppto_firmado_archivo){toast('Falta el presupuesto firmado por Carolina','warning');return;}
-  // Verificar que el cerrador actual sea el responsable
+  // T25: Si ya hay cerrador asignado y no es CU, bloquear (admin sí puede)
   if(CU.r!=='admin'&&o.cerrador_responsable&&o.cerrador_responsable!==CU.n){
     toast('Esta obra está asignada a '+o.cerrador_responsable+', solo él/ella puede marcar.','warning');
     return;
   }
-  if(!confirm('¿Confirmar que entregaste la propuesta al banco?\n\nObra: '+o.nom+'\nFecha entrega: hoy'))return;
+  // T25: Si NO hay cerrador asignado, este cerrador queda como responsable
+  var seAsigna=!o.cerrador_responsable&&CU.r==='david';
+  var msgConfirm='¿Confirmar que entregaste la propuesta al banco?\n\nObra: '+o.nom+'\nFecha entrega: hoy';
+  if(seAsigna)msgConfirm+='\n\n⚠️ Al confirmar, vos ('+CU.n+') quedás como cerrador responsable de esta obra.';
+  if(!confirm(msgConfirm))return;
   try{
-    await sb.from('rec_obras').update({
+    var update={
       entregado_banco:true,
       entregado_banco_fecha:new Date().toISOString(),
       entregado_banco_por:CU.n,
       estado_financiamiento:'esperando_aprobacion'
-    }).eq('id',oid);
+    };
+    // Si no había cerrador, asignar ahora
+    if(seAsigna){
+      update.cerrador_responsable=CU.n;
+      update.cerrador_fecha_registro=new Date().toISOString();
+    }
+    await sb.from('rec_obras').update(update).eq('id',oid);
     o.entregado_banco=true;
     o.entregado_banco_fecha=new Date().toISOString();
     o.entregado_banco_por=CU.n;
     o.estado_financiamiento='esperando_aprobacion';
-    dbLog(CU.n,'Cerrador entregó al banco: '+o.nom);
-    toast('Entrega registrada','success','📤');
+    if(seAsigna){
+      o.cerrador_responsable=CU.n;
+      o.cerrador_fecha_registro=new Date().toISOString();
+    }
+    dbLog(CU.n,'Cerrador entregó al banco: '+o.nom+(seAsigna?' (auto-asignado)':''));
+    toast('Entrega registrada'+(seAsigna?'. Quedás como cerrador responsable.':''),'success','📤');
     if(typeof notifCrear==='function'){
       notifCrear('Josemiguel','entregado_banco','Propuesta entregada al banco',
         o.nom+' — '+CU.n+' entregó al banco. Esperando aprobación/desembolso.',
