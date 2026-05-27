@@ -456,6 +456,10 @@ function mapObra(o){return{
   ppto_firmado_archivo:o.ppto_firmado_archivo||null,
   ppto_firmado_subido_por:o.ppto_firmado_subido_por||null,
   ppto_firmado_fecha:o.ppto_firmado_fecha||null,
+  // T26 — plano firmado por separado
+  plano_firmado_archivo:o.plano_firmado_archivo||null,
+  plano_firmado_subido_por:o.plano_firmado_subido_por||null,
+  plano_firmado_fecha:o.plano_firmado_fecha||null,
   entregado_banco:o.entregado_banco||false,
   entregado_banco_fecha:o.entregado_banco_fecha||null,
   entregado_banco_por:o.entregado_banco_por||null,
@@ -676,7 +680,7 @@ async function storageUrl(path){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v75 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v76 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1440,6 +1444,16 @@ async function storageUrl(path){
           <b style="color:var(--am);">Vista de mando:</b> KPIs en vivo, alertas de pendientes, tabla completa de obras, desglose financiero (USD/Bs y cuotas 30/40/30), gestión de contratos, auditoría de todas las acciones, backup completo y reportes ejecutivos descargables.<br>
           <span style="color:var(--ws);font-size:10px;">⚡ Acceso a todo: podés operar sobre cualquier panel cuando lo necesites desde el menú superior.</span>
         </div>
+      </div>
+
+      <!-- T26 — FLUJO BANCARIO ADMIN: subir ppto, registrar desembolso, garantía cliente -->
+      <div class="card" id="adm-flujo-bancario-card" style="display:none;border-top:3px solid #f59e0b;margin-bottom:14px;">
+        <div class="ct" style="color:#f59e0b;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span>🏦 Obras Bancarias — Acción del Admin</span>
+          <button class="btn btn-o btn-sm" onclick="dbCargar().then(function(){toast('Actualizado','success');});">🔄 Recargar</button>
+        </div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Acá ves todas las obras bancarias/mixtas que necesitan acción tuya: subir presupuesto bancario, registrar desembolso, o marcar garantía del cliente.</div>
+        <div id="adm-flujo-bancario-body"></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p1));border:1px solid var(--am);border-radius:8px;padding:14px;text-align:center;">
@@ -3356,6 +3370,8 @@ function abrirPerfil(){
 // PANEL ADMIN FULL
 // ═══════════════════════════════════════════════════
 function renderAdmFull(){
+  // T26 — Render flujo bancario admin
+  _renderAdmFlujoBancario();
   var k=function(id){return document.getElementById(id);};
   // T10: render del selector de edición admin
   if(typeof admEditRenderSel==='function')admEditRenderSel();
@@ -3847,7 +3863,7 @@ function _renderDvFlujoBancario(){
     var o=obrasBanc[i];
     var hayPpto=!!o.ppto_bancario_archivo;
     var hayFirmado=!!o.ppto_firmado_archivo;
-    var hayPlanos=!!o.planos_propietario_pdf;
+    var hayPlanos=!!o.plano_firmado_archivo;
     var entregado=!!o.entregado_banco;
     var desembolsado=!!o.fecha_desembolso_banco;
     var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
@@ -3895,9 +3911,9 @@ function _renderDvFlujoBancario(){
 
 async function _dvAbrirPlanosBanco(oid){
   var o=obras.find(function(x){return x.id===oid;});
-  if(!o||!o.planos_propietario_pdf){toast('No hay planos firmados','warning');return;}
-  if(typeof _abrirVisorContrato==='function')_abrirVisorContrato(o.planos_propietario_pdf,'Planos firmados — '+o.nom);
-  else _dvDescargarArchivo(o.planos_propietario_pdf,'planos_'+o.cod);
+  if(!o||!o.plano_firmado_archivo){toast('No hay plano firmado todavía','warning');return;}
+  if(typeof _abrirVisorContrato==='function')_abrirVisorContrato(o.plano_firmado_archivo,'Plano firmado — '+o.nom);
+  else _dvDescargarArchivo(o.plano_firmado_archivo,'plano_'+o.cod);
 }
 
 async function _dvAbrirPptoFirmado(oid){
@@ -3923,8 +3939,8 @@ async function _dvDescargarPaqueteBanco(oid){
   if(!o){toast('Obra no encontrada','error');return;}
   toast('Descargando documentos para banco...','info');
   var algo=false;
-  if(o.planos_propietario_pdf){
-    await _dvDescargarArchivo(o.planos_propietario_pdf,o.cod+'_planos_firmados.'+(o.planos_propietario_pdf.split('.').pop()||'pdf'));
+  if(o.plano_firmado_archivo){
+    await _dvDescargarArchivo(o.plano_firmado_archivo,o.cod+'_plano_firmado.'+(o.plano_firmado_archivo.split('.').pop()||'pdf'));
     algo=true;
     await new Promise(function(r){setTimeout(r,500);});
   }
@@ -3995,6 +4011,215 @@ async function _dvDesmarcarEntregadoBanco(oid){
     if(o){o.entregado_banco=false;o.entregado_banco_fecha=null;o.entregado_banco_por=null;o.estado_financiamiento='esperando_propuesta';}
     _renderDvFlujoBancario();
     toast('Desmarcado','info');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// T26 — FLUJO BANCARIO ADMIN: render + acciones del CEO
+function _renderAdmFlujoBancario(){
+  var card=document.getElementById('adm-flujo-bancario-card');
+  var body=document.getElementById('adm-flujo-bancario-body');
+  if(!card||!body)return;
+  var obrasBanc=obras.filter(function(o){
+    return o.tipo_financiamiento==='bancario'||o.tipo_financiamiento==='mixto';
+  });
+  if(!obrasBanc.length){
+    card.style.display='none';
+    return;
+  }
+  card.style.display='block';
+  // Orden: las que esperan acción admin primero
+  obrasBanc.sort(function(a,b){
+    var aPrior=_admPrioridadBanco(a);
+    var bPrior=_admPrioridadBanco(b);
+    return bPrior-aPrior;
+  });
+  var h='';
+  for(var i=0;i<obrasBanc.length;i++){
+    var o=obrasBanc[i];
+    h+=_admRenderObraBanco(o);
+  }
+  body.innerHTML=h;
+}
+
+function _admPrioridadBanco(o){
+  // Lo que requiere acción admin: 3 esperando ppto, 2 entregado al banco sin desembolso, 1 resto
+  if(o.computo_excel_archivo&&!o.ppto_bancario_archivo)return 10;  // espera subir ppto
+  if(o.entregado_banco&&!o.fecha_desembolso_banco)return 8;        // espera desembolso
+  if(o.fecha_desembolso_banco)return 1;                            // ya desembolsado
+  return 5;
+}
+
+function _admRenderObraBanco(o){
+  var hayComputo=!!o.computo_excel_archivo;
+  var hayPpto=!!o.ppto_bancario_archivo;
+  var hayPlanoFirm=!!o.plano_firmado_archivo;
+  var hayPptoFirm=!!o.ppto_firmado_archivo;
+  var entregado=!!o.entregado_banco;
+  var desembolsado=!!o.fecha_desembolso_banco;
+  var garantiza=!!o.cliente_garantiza;
+  var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
+  var fechaDes=o.fecha_desembolso_banco?new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'):'';
+
+  // Estado principal
+  var estado='';
+  if(desembolsado)estado='<span style="background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🎉 DESEMBOLSADO '+fechaDes+'</span>';
+  else if(garantiza)estado='<span style="background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🛡️ GARANTÍA CLIENTE</span>';
+  else if(entregado)estado='<span style="background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">📤 EN BANCO desde '+fechaEntr+' · ⏳ Esperando desembolso</span>';
+  else if(hayComputo&&!hayPpto)estado='<span style="background:rgba(245,196,0,.15);color:var(--am);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:800;">⚠️ ACCIÓN TUYA: SUBIR PRESUPUESTO</span>';
+  else if(!hayComputo)estado='<span style="font-size:9px;color:var(--ws);">⏳ Esperando cómputo de Carolina</span>';
+  else estado='<span style="font-size:9px;color:var(--ws);">⏳ Esperando firma de Carolina</span>';
+
+  var html='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:12px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px;">'+
+      '<div style="flex:1;min-width:200px;">'+
+        '<div style="font-size:14px;font-weight:800;color:var(--am);">'+o.nom+'</div>'+
+        '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+o.cod+' · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+' '+(o.porcentaje_financiado||80)+'% · cerrador: '+(o.cerrador_responsable||'no asignado')+'</div>'+
+      '</div>'+
+      '<div>'+estado+'</div>'+
+    '</div>';
+
+  // STEP 1: Subir presupuesto bancario (acción admin)
+  html+='<div style="background:var(--p1);border-radius:6px;padding:10px;margin-bottom:8px;'+(!hayComputo?'opacity:.5;':'')+'">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">'+
+      '<div style="font-size:11px;font-weight:700;color:'+(hayPpto?'var(--Gc)':'var(--am)')+';">'+(hayPpto?'✅':'1️⃣')+' Presupuesto bancario (vos lo subís)</div>'+
+      (hayPpto?'<div style="font-size:9px;color:var(--ws);">'+(o.ppto_bancario_subido_por||'')+'</div>':'')+
+    '</div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+      '<label class="btn btn-y btn-sm" style="cursor:pointer;'+(!hayComputo?'pointer-events:none;':'')+'">'+
+        (hayPpto?'🔄 Reemplazar':'📁 Subir presupuesto')+
+        '<input type="file" accept=".xlsx,.xls,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display:none;" onchange="_admSubirPptoBancario('+o.id+',this)">'+
+      '</label>'+
+      (hayComputo?'<button class="btn btn-o btn-sm" onclick="_admDescargar(\''+o.computo_excel_archivo+'\')">⬇️ Ver cómputo Carolina</button>':'')+
+      (hayPpto?'<button class="btn btn-o btn-sm" onclick="_admDescargar(\''+o.ppto_bancario_archivo+'\')">👁️ Ver ppto</button>':'')+
+    '</div>'+
+  '</div>';
+
+  // STEP 2: Estado de planos y ppto firmado (carolina)
+  html+='<div style="background:var(--p1);border-radius:6px;padding:10px;margin-bottom:8px;">'+
+    '<div style="font-size:11px;font-weight:700;color:var(--wd);margin-bottom:6px;">2️⃣ Firmas (Carolina)</div>'+
+    '<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:10px;">'+
+      '<span>'+(hayPlanoFirm?'✅':'⏳')+' Plano firmado</span>'+
+      '<span>'+(hayPptoFirm?'✅':'⏳')+' Presupuesto firmado</span>'+
+    '</div>'+
+  '</div>';
+
+  // STEP 3: Estado de entrega banco (cerrador)
+  if(entregado){
+    html+='<div style="background:var(--p1);border-radius:6px;padding:10px;margin-bottom:8px;">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--Gc);">✅ 3️⃣ Entregado al banco por '+(o.entregado_banco_por||'')+' el '+fechaEntr+'</div>'+
+    '</div>';
+  }
+
+  // STEP 4: Registrar desembolso (admin)
+  if(!desembolsado&&!garantiza){
+    html+='<div style="background:var(--p1);border-radius:6px;padding:10px;margin-bottom:8px;'+(!entregado?'opacity:.5;':'')+'">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:6px;">4️⃣ Registrar desembolso (cuando el banco pague)</div>'+
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'+
+        '<input type="date" id="adm-fec-des-'+o.id+'" style="font-size:11px;padding:6px;">'+
+        '<button class="btn btn-y btn-sm" '+(!entregado?'disabled':'')+' onclick="_admRegistrarDesembolso('+o.id+')">🏦 Registrar desembolso</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  // ALTERNATIVA: cliente garantiza
+  if(!desembolsado){
+    html+='<div style="background:rgba(245,196,0,.05);border:1px dashed var(--am);border-radius:6px;padding:10px;">'+
+      '<div style="font-size:10px;font-weight:700;color:var(--am);margin-bottom:6px;">🛡️ Alternativa: cliente garantiza financiamiento</div>'+
+      (garantiza?
+        '<div style="font-size:10px;color:var(--Gc);">✅ '+(o.cliente_garantiza_nota||'')+' <button class="btn btn-o btn-sm" onclick="_admQuitarGarantia('+o.id+')">Quitar</button></div>':
+        '<button class="btn btn-o btn-sm" onclick="_admMarcarGarantia('+o.id+')">🛡️ Marcar garantía del cliente</button>')+
+    '</div>';
+  }
+
+  html+='</div>';
+  return html;
+}
+
+async function _admSubirPptoBancario(oid,inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  if(file.size>20*1024*1024){toast('Archivo muy grande (máx 20MB)','error');inp.value='';return;}
+  toast('Subiendo presupuesto bancario...','info');
+  try{
+    var p=storagePath('obras',oid,'ppto_banco',file.name);
+    await storageUpload(p,file);
+    await sb.from('rec_obras').update({
+      ppto_bancario_archivo:p,
+      ppto_bancario_subido_por:CU.n,
+      ppto_bancario_fecha:new Date().toISOString()
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.ppto_bancario_archivo=p;o.ppto_bancario_subido_por=CU.n;o.ppto_bancario_fecha=new Date().toISOString();}
+    dbLog(CU.n,'Admin subió presupuesto bancario: '+(o?o.nom:oid));
+    toast('Presupuesto subido','success','✅');
+    if(typeof notifCrear==='function'){
+      notifCrear('Carolina','ppto_listo','Presupuesto bancario listo',
+        (o?o.nom:'')+' — Josemiguel subió el presupuesto. Tu turno: imprimir, firmar plano + ppto y subir escaneados.',
+        {obra_id:oid,obra_nombre:o?o.nom:'',panel_destino:'carolina',prioridad:'alerta'});
+    }
+    inp.value='';
+    _renderAdmFlujoBancario();
+  }catch(e){toast('Error: '+e.message,'error');inp.value='';}
+}
+
+async function _admRegistrarDesembolso(oid){
+  var fecInp=document.getElementById('adm-fec-des-'+oid);
+  var fecha=fecInp?fecInp.value:'';
+  if(!fecha){toast('Ingresá la fecha del desembolso','warning');return;}
+  if(!confirm('¿Confirmar desembolso del banco el '+fecha+'?\n\nDesde acá la obra puede iniciar estudios técnicos completos.'))return;
+  try{
+    var iso=new Date(fecha+'T12:00:00').toISOString();
+    await sb.from('rec_obras').update({
+      fecha_desembolso_banco:iso,
+      estado_financiamiento:'desembolsado'
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.fecha_desembolso_banco=iso;o.estado_financiamiento='desembolsado';}
+    dbLog(CU.n,'Registró desembolso bancario: '+(o?o.nom:oid)+' el '+fecha);
+    toast('Desembolso registrado — obra liberada','success','🏦');
+    if(typeof notifCrear==='function'){
+      notifCrear('todos','desembolso','Banco desembolsó',
+        (o?o.nom:'')+' — Banco desembolsó el '+fecha+'. Iniciar estudios técnicos.',
+        {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'exito'});
+    }
+    _renderAdmFlujoBancario();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _admMarcarGarantia(oid){
+  var nota=prompt('Nota / motivo de la garantía del cliente:\n(ej: "Garantía firmada en escritura pública el 14-may-2026")');
+  if(nota===null)return;
+  if(!nota.trim()){toast('Necesitás escribir una nota','warning');return;}
+  try{
+    await sb.from('rec_obras').update({
+      cliente_garantiza:true,
+      cliente_garantiza_nota:nota.trim()
+    }).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.cliente_garantiza=true;o.cliente_garantiza_nota=nota.trim();}
+    dbLog(CU.n,'Marcó garantía del cliente: '+(o?o.nom:oid));
+    toast('Garantía registrada','success','🛡️');
+    _renderAdmFlujoBancario();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _admQuitarGarantia(oid){
+  if(!confirm('¿Quitar la garantía del cliente?'))return;
+  try{
+    await sb.from('rec_obras').update({cliente_garantiza:false,cliente_garantiza_nota:null}).eq('id',oid);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o.cliente_garantiza=false;o.cliente_garantiza_nota=null;}
+    _renderAdmFlujoBancario();
+    toast('Garantía removida','info');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _admDescargar(path){
+  if(!path){toast('Archivo no disponible','warning');return;}
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(path,3600);
+    if(res.error)throw new Error(res.error.message);
+    window.open(res.data.signedUrl,'_blank');
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
@@ -4352,11 +4577,8 @@ function _caRenderFlujoBancario(o){
   if(!body)return;
   var hayComputo=!!o.computo_excel_archivo;
   var hayPpto=!!o.ppto_bancario_archivo;
-  var hayFirmado=!!o.ppto_firmado_archivo;
-  var entregado=!!o.entregado_banco;
-  var desembolsado=!!o.fecha_desembolso_banco;
-  var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
-  var fechaDes=o.fecha_desembolso_banco?new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'):'';
+  var hayPlanoFirm=!!o.plano_firmado_archivo;
+  var hayPptoFirm=!!o.ppto_firmado_archivo;
   
   var html='<div style="font-size:11px;color:var(--wd);margin-bottom:14px;">'+
     '<b>'+o.nom+'</b> · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+
@@ -4376,77 +4598,42 @@ function _caRenderFlujoBancario(o){
     (hayComputo?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.computo_excel_archivo+'\')">👁️ Ver</button>':'')+
   '</div>';
 
-  // PASO 2: Presupuesto bancario (Admin)
-  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayComputo?'opacity:.5;':'')+'">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
-      '<div style="font-size:12px;font-weight:700;color:'+(hayPpto?'var(--Gc)':'var(--am)')+';">'+(hayPpto?'✅':'2️⃣')+' Presupuesto bancario — Josemiguel</div>'+
-      (hayPpto?'<div style="font-size:9px;color:var(--ws);">'+(o.ppto_bancario_subido_por||'')+'</div>':'')+
-    '</div>'+
-    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Josemiguel elabora el presupuesto bancario sobre el mismo Excel (nueva hoja) y lo sube acá.</div>'+
-    (CU&&CU.r==='admin'?
-      '<label class="btn btn-y btn-sm" style="cursor:pointer;'+(!hayComputo?'pointer-events:none;':'')+'">'+
-        (hayPpto?'🔄 Reemplazar':'📁 Subir presupuesto')+
-        '<input type="file" accept=".xlsx,.xls,.pdf" style="display:none;" onchange="_caSubirPptoBancario('+o.id+',this)">'+
-      '</label>':
-      '<div style="font-size:10px;color:var(--ws);">'+(hayPpto?'Ya subido por Josemiguel':'Esperando que Josemiguel lo suba')+'</div>')+
-    (hayPpto?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.ppto_bancario_archivo+'\')">👁️ Ver</button>':'')+
-  '</div>';
+  // Aviso: PPTO BANCARIO ahora se sube desde panel admin
+  if(hayComputo&&!hayPpto){
+    html+='<div class="al al-z" style="margin-bottom:10px;font-size:11px;">⏳ Josemiguel debe subir el presupuesto bancario desde su panel Control Total.</div>';
+  }
 
-  // PASO 3: Carolina imprime y firma
+  // PASO 2: PLANO FIRMADO (Carolina) — acepta múltiples fotos o PDF
   html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayPpto?'opacity:.5;':'')+'">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
-      '<div style="font-size:12px;font-weight:700;color:'+(hayFirmado?'var(--Gc)':'var(--am)')+';">'+(hayFirmado?'✅':'3️⃣')+' Presupuesto firmado — Carolina escanea</div>'+
+      '<div style="font-size:12px;font-weight:700;color:'+(hayPlanoFirm?'var(--Gc)':'var(--am)')+';">'+(hayPlanoFirm?'✅':'2️⃣')+' 📐 Plano firmado — Carolina escanea</div>'+
+      (hayPlanoFirm&&o.plano_firmado_subido_por?'<div style="font-size:9px;color:var(--ws);">'+o.plano_firmado_subido_por+'</div>':'')+
     '</div>'+
-    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Carolina imprime el presupuesto bancario, firma (planos + ppto), escanea y sube.</div>'+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Imprime el plano, firma, escanea y subí. Podés subir <b>varias fotos</b> (se juntan en un PDF) o un solo PDF.</div>'+
     '<label class="btn btn-y btn-sm" style="cursor:pointer;'+(!hayPpto?'pointer-events:none;':'')+'">'+
-      (hayFirmado?'🔄 Reemplazar':'📷/📁 Subir escaneado firmado')+
-      '<input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="_caSubirPptoFirmado('+o.id+',this)">'+
+      (hayPlanoFirm?'🔄 Reemplazar plano firmado':'📷/📁 Subir plano firmado (1+ archivos)')+
+      '<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="_caSubirFirmado('+o.id+',\'plano\',this)">'+
     '</label>'+
-    (hayFirmado?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.ppto_firmado_archivo+'\')">👁️ Ver</button>':'')+
+    (hayPlanoFirm?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.plano_firmado_archivo+'\')">👁️ Ver</button>':'')+
   '</div>';
 
-  // PASO 4: Entregado al banco (cerrador)
-  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayFirmado?'opacity:.5;':'')+'">'+
+  // PASO 3: PRESUPUESTO FIRMADO (Carolina) — acepta múltiples fotos o PDF
+  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!hayPpto?'opacity:.5;':'')+'">'+
     '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
-      '<div style="font-size:12px;font-weight:700;color:'+(entregado?'var(--Gc)':'var(--am)')+';">'+(entregado?'✅':'4️⃣')+' Entregado al banco — Cerrador</div>'+
-      (entregado?'<div style="font-size:9px;color:var(--ws);">'+(o.entregado_banco_por||'')+' · '+fechaEntr+'</div>':'')+
+      '<div style="font-size:12px;font-weight:700;color:'+(hayPptoFirm?'var(--Gc)':'var(--am)')+';">'+(hayPptoFirm?'✅':'3️⃣')+' 💰 Presupuesto firmado — Carolina escanea</div>'+
+      (hayPptoFirm&&o.ppto_firmado_subido_por?'<div style="font-size:9px;color:var(--ws);">'+o.ppto_firmado_subido_por+'</div>':'')+
     '</div>'+
-    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">El cerrador (David/Gustavo) marca cuando entregó la propuesta al banco.</div>'+
-    ((CU&&(CU.r==='admin'||CU.r==='david'))?
-      (entregado?
-        '<button class="btn btn-o btn-sm" onclick="_caDesmarcarEntregadoBanco('+o.id+')">↩️ Desmarcar</button>':
-        '<button class="btn btn-y btn-sm" '+(!hayFirmado?'disabled':'')+' onclick="_caMarcarEntregadoBanco('+o.id+')">📤 Marcar como entregado al banco</button>'):
-      '<div style="font-size:10px;color:var(--ws);">'+(entregado?'Entregado por '+(o.entregado_banco_por||'')+' el '+fechaEntr:'Esperando entrega al banco')+'</div>')+
+    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Imprime el presupuesto bancario, firma, escanea y subí. Podés subir <b>varias fotos</b> (se juntan en un PDF) o un solo PDF.</div>'+
+    '<label class="btn btn-y btn-sm" style="cursor:pointer;'+(!hayPpto?'pointer-events:none;':'')+'">'+
+      (hayPptoFirm?'🔄 Reemplazar ppto firmado':'📷/📁 Subir ppto firmado (1+ archivos)')+
+      '<input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="_caSubirFirmado('+o.id+',\'ppto\',this)">'+
+    '</label>'+
+    (hayPptoFirm?' <button class="btn btn-o btn-sm" onclick="_caDescargar(\''+o.ppto_firmado_archivo+'\')">👁️ Ver</button>':'')+
   '</div>';
 
-  // PASO 5: Desembolso del banco (admin)
-  html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;'+(!entregado?'opacity:.5;':'')+'">'+
-    '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">'+
-      '<div style="font-size:12px;font-weight:700;color:'+(desembolsado?'var(--Gc)':'var(--am)')+';">'+(desembolsado?'✅':'5️⃣')+' Desembolso bancario — Admin</div>'+
-      (desembolsado?'<div style="font-size:9px;color:var(--ws);">'+fechaDes+'</div>':'')+
-    '</div>'+
-    '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Cuando el banco desembolsa el dinero, marcá la fecha. Desde acá arrancan los estudios técnicos completos.</div>'+
-    ((CU&&CU.r==='admin')?
-      (desembolsado?
-        '<div style="font-size:11px;color:var(--Gc);font-weight:700;">🎉 Desembolsado el '+fechaDes+' — Obra liberada para iniciar técnico</div>':
-        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">'+
-          '<input type="date" id="ca-fec-des-'+o.id+'" style="font-size:11px;padding:6px;">'+
-          '<button class="btn btn-y btn-sm" '+(!entregado?'disabled':'')+' onclick="_caRegistrarDesembolso('+o.id+')">🏦 Registrar desembolso</button>'+
-        '</div>'):
-      '<div style="font-size:10px;color:var(--ws);">'+(desembolsado?'Desembolsado el '+fechaDes:'Esperando desembolso')+'</div>')+
-  '</div>';
-
-  // ALTERNATIVA: Cliente garantiza
-  if(!desembolsado){
-    html+='<div style="background:rgba(245,196,0,.08);border:1px solid var(--am);border-radius:8px;padding:12px;margin-bottom:10px;">'+
-      '<div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:6px;">🛡️ Alternativa: Cliente garantiza financiamiento</div>'+
-      '<div style="font-size:10px;color:var(--ws);margin-bottom:8px;">Si el cliente garantiza por su cuenta el financiamiento bancario, se puede arrancar técnico sin esperar al banco.</div>'+
-      ((CU&&CU.r==='admin')?
-        (o.cliente_garantiza?
-          '<div style="font-size:11px;color:var(--Gc);font-weight:700;">✅ Cliente garantiza · '+(o.cliente_garantiza_nota||'')+' · <button class="btn btn-o btn-sm" onclick="_caQuitarGarantiaCliente('+o.id+')">Quitar</button></div>':
-          '<button class="btn btn-y btn-sm" onclick="_caMarcarGarantiaCliente('+o.id+')">🛡️ Marcar que cliente garantiza</button>'):
-        '<div style="font-size:10px;color:var(--ws);">'+(o.cliente_garantiza?'✅ Cliente garantiza (admin lo marcó)':'Solo admin puede marcar')+'</div>')+
-    '</div>';
+  // Aviso final cuando ya firmó todo
+  if(hayPlanoFirm&&hayPptoFirm){
+    html+='<div class="al al-g" style="margin-top:8px;font-size:11px;">✅ Plano y presupuesto firmados subidos. El cerrador (David/Gustavo) los verá en su panel para llevarlos al banco.</div>';
   }
 
   body.innerHTML=html;
@@ -4478,143 +4665,99 @@ async function _caSubirComputo(oid,inp){
   }catch(e){toast('Error: '+e.message,'error');inp.value='';}
 }
 
-async function _caSubirPptoBancario(oid,inp){
-  if(!inp.files||!inp.files[0])return;
-  var file=inp.files[0];
-  if(file.size>20*1024*1024){toast('Archivo muy grande (máx 20MB)','error');inp.value='';return;}
-  toast('Subiendo presupuesto bancario...','info');
+// T26 — Subir plano o ppto firmado (acepta 1 PDF o múltiples fotos)
+// Si son varias fotos, las junta en un PDF antes de subir
+async function _caSubirFirmado(oid,tipo,inp){
+  if(!inp.files||!inp.files.length)return;
+  // tipo: 'plano' o 'ppto'
+  var files=Array.from(inp.files);
+  // Validar tamaño total
+  var totalSize=files.reduce(function(s,f){return s+f.size;},0);
+  if(totalSize>20*1024*1024){toast('Archivos muy grandes (total > 20MB)','error');inp.value='';return;}
+  toast('Procesando '+files.length+' archivo(s)...','info');
   try{
-    var p=storagePath('obras',oid,'ppto_banco',file.name);
-    await storageUpload(p,file);
-    await sb.from('rec_obras').update({
-      ppto_bancario_archivo:p,
-      ppto_bancario_subido_por:CU.n,
-      ppto_bancario_fecha:new Date().toISOString()
-    }).eq('id',oid);
+    var finalFile=null;
+    var finalName='';
+    var primero=files[0];
+    var esImagen=function(f){return f.type&&f.type.indexOf('image/')===0;};
+    if(files.length===1&&!esImagen(primero)){
+      // 1 archivo no-imagen (PDF probablemente): subir tal cual
+      finalFile=primero;
+      finalName=primero.name;
+    } else {
+      // Múltiples archivos o 1 imagen: convertir todo a PDF con jsPDF
+      if(typeof window.jspdf==='undefined'&&typeof jsPDF==='undefined'){
+        toast('Visor PDF no disponible, subiendo primero archivo','warning');
+        finalFile=primero;
+        finalName=primero.name;
+      } else {
+        var JsPDF=(window.jspdf&&window.jspdf.jsPDF)||window.jsPDF;
+        var pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+        var pageW=210,pageH=297;
+        for(var i=0;i<files.length;i++){
+          var f=files[i];
+          if(!esImagen(f)){
+            toast('Si subís varios archivos, todos deben ser imágenes (foto/escaneo)','error');
+            inp.value='';
+            return;
+          }
+          var dataUrl=await new Promise(function(res,rej){
+            var r=new FileReader();
+            r.onload=function(){res(r.result);};
+            r.onerror=rej;
+            r.readAsDataURL(f);
+          });
+          // Esperar la carga de imagen para tener dimensiones
+          var img=await new Promise(function(res,rej){
+            var im=new Image();
+            im.onload=function(){res(im);};
+            im.onerror=rej;
+            im.src=dataUrl;
+          });
+          var ratio=img.width/img.height;
+          var w=pageW-20;
+          var h=w/ratio;
+          if(h>pageH-20){h=pageH-20;w=h*ratio;}
+          var x=(pageW-w)/2;
+          var y=(pageH-h)/2;
+          if(i>0)pdf.addPage();
+          var fmt=(f.type==='image/png')?'PNG':'JPEG';
+          pdf.addImage(dataUrl,fmt,x,y,w,h);
+        }
+        var blob=pdf.output('blob');
+        finalName=tipo+'_firmado_'+oid+'_'+Date.now()+'.pdf';
+        finalFile=new File([blob],finalName,{type:'application/pdf'});
+      }
+    }
+    toast('Subiendo...','info');
+    var p=storagePath('obras',oid,tipo+'_firmado',finalName);
+    await storageUpload(p,finalFile);
+    var updField=tipo==='plano'?'plano_firmado_archivo':'ppto_firmado_archivo';
+    var byField=tipo==='plano'?'plano_firmado_subido_por':'ppto_firmado_subido_por';
+    var dtField=tipo==='plano'?'plano_firmado_fecha':'ppto_firmado_fecha';
+    var update={};
+    update[updField]=p;
+    update[byField]=CU.n;
+    update[dtField]=new Date().toISOString();
+    await sb.from('rec_obras').update(update).eq('id',oid);
     var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.ppto_bancario_archivo=p;o.ppto_bancario_subido_por=CU.n;o.ppto_bancario_fecha=new Date().toISOString();}
-    dbLog(CU.n,'Subió presupuesto bancario: '+(o?o.nom:oid));
-    toast('Presupuesto subido','success','✅');
-    notifCrear('Carolina','ppto_listo','Presupuesto bancario listo',
-      (o?o.nom:'')+' — Josemiguel subió el presupuesto. Tu turno: imprimir, firmar y subir escaneado.',
-      {obra_id:oid,obra_nombre:o?o.nom:'',panel_destino:'carolina',prioridad:'alerta'});
+    if(o){o[updField]=p;o[byField]=CU.n;o[dtField]=update[dtField];}
+    var label=tipo==='plano'?'Plano firmado':'Presupuesto firmado';
+    dbLog(CU.n,label+' subido: '+(o?o.nom:oid)+' ('+files.length+' archivo/s)');
+    toast(label+' subido','success','✅');
+    // Notificar solo cuando AMBOS están subidos (plano + ppto)
+    if(o&&o.plano_firmado_archivo&&o.ppto_firmado_archivo){
+      notifCrear('todos','firmado_listo','Plano y presupuesto firmados listos',
+        o.nom+' — Carolina firmó todo. Cerrador puede llevarlo al banco.',
+        {obra_id:oid,obra_nombre:o.nom,prioridad:'alerta'});
+    } else {
+      notifCrear('Carolina','firmado_parcial',label+' subido',
+        (o?o.nom:'')+' — '+label+' subido. Recordá subir el otro documento.',
+        {obra_id:oid,obra_nombre:o?o.nom:'',panel_destino:'carolina',prioridad:'normal'});
+    }
     inp.value='';
     _caRenderFlujoBancario(o);
   }catch(e){toast('Error: '+e.message,'error');inp.value='';}
-}
-
-async function _caSubirPptoFirmado(oid,inp){
-  if(!inp.files||!inp.files[0])return;
-  var file=inp.files[0];
-  if(file.size>20*1024*1024){toast('Archivo muy grande (máx 20MB)','error');inp.value='';return;}
-  toast('Subiendo firmado...','info');
-  try{
-    var p=storagePath('obras',oid,'ppto_firmado',file.name);
-    await storageUpload(p,file);
-    await sb.from('rec_obras').update({
-      ppto_firmado_archivo:p,
-      ppto_firmado_subido_por:CU.n,
-      ppto_firmado_fecha:new Date().toISOString()
-    }).eq('id',oid);
-    var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.ppto_firmado_archivo=p;o.ppto_firmado_subido_por=CU.n;o.ppto_firmado_fecha=new Date().toISOString();}
-    dbLog(CU.n,'Subió presupuesto firmado: '+(o?o.nom:oid));
-    toast('Firmado subido','success','✅');
-    notifCrear('todos','firmado_listo','Presupuesto firmado listo para banco',
-      (o?o.nom:'')+' — Carolina subió el escaneado firmado. Cerrador puede llevarlo al banco.',
-      {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'alerta'});
-    inp.value='';
-    _caRenderFlujoBancario(o);
-  }catch(e){toast('Error: '+e.message,'error');inp.value='';}
-}
-
-async function _caMarcarEntregadoBanco(oid){
-  if(!confirm('¿Confirmar entrega al banco?'))return;
-  try{
-    await sb.from('rec_obras').update({
-      entregado_banco:true,
-      entregado_banco_fecha:new Date().toISOString(),
-      entregado_banco_por:CU.n,
-      estado_financiamiento:'esperando_aprobacion'
-    }).eq('id',oid);
-    var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.entregado_banco=true;o.entregado_banco_fecha=new Date().toISOString();o.entregado_banco_por=CU.n;o.estado_financiamiento='esperando_aprobacion';}
-    dbLog(CU.n,'Marcó entregado al banco: '+(o?o.nom:oid));
-    toast('Marcado como entregado','success','📤');
-    notifCrear('Josemiguel','entregado_banco','Propuesta entregada al banco',
-      (o?o.nom:'')+' — Cerrador entregó al banco. Esperando aprobación/desembolso.',
-      {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'normal'});
-    _caRenderFlujoBancario(o);
-  }catch(e){toast('Error: '+e.message,'error');}
-}
-
-async function _caDesmarcarEntregadoBanco(oid){
-  if(!confirm('¿Desmarcar la entrega al banco? Sólo usar si fue un error.'))return;
-  try{
-    await sb.from('rec_obras').update({
-      entregado_banco:false,
-      entregado_banco_fecha:null,
-      entregado_banco_por:null,
-      estado_financiamiento:'esperando_propuesta'
-    }).eq('id',oid);
-    var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.entregado_banco=false;o.entregado_banco_fecha=null;o.entregado_banco_por=null;o.estado_financiamiento='esperando_propuesta';}
-    _caRenderFlujoBancario(o);
-    toast('Desmarcado','info');
-  }catch(e){toast('Error: '+e.message,'error');}
-}
-
-async function _caRegistrarDesembolso(oid){
-  var fecInp=document.getElementById('ca-fec-des-'+oid);
-  var fecha=fecInp?fecInp.value:'';
-  if(!fecha){toast('Ingresá la fecha del desembolso','warning');return;}
-  if(!confirm('¿Confirmar desembolso del banco el '+fecha+'?\n\nDesde acá la obra puede iniciar estudios técnicos completos.'))return;
-  try{
-    var iso=new Date(fecha+'T12:00:00').toISOString();
-    await sb.from('rec_obras').update({
-      fecha_desembolso_banco:iso,
-      estado_financiamiento:'desembolsado'
-    }).eq('id',oid);
-    var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.fecha_desembolso_banco=iso;o.estado_financiamiento='desembolsado';}
-    dbLog(CU.n,'Registró desembolso bancario: '+(o?o.nom:oid)+' el '+fecha);
-    toast('Desembolso registrado — obra liberada','success','🏦');
-    notifCrear('todos','desembolso','Banco desembolsó',
-      (o?o.nom:'')+' — Banco desembolsó el '+fecha+'. Iniciar estudios técnicos.',
-      {obra_id:oid,obra_nombre:o?o.nom:'',prioridad:'exito'});
-    _caRenderFlujoBancario(o);
-    _renderCarolinaConsultaContratos();
-  }catch(e){toast('Error: '+e.message,'error');}
-}
-
-async function _caMarcarGarantiaCliente(oid){
-  var nota=prompt('Nota / motivo de la garantía del cliente:\n(ej: "Garantía firmada en escritura pública el 14-may-2026")');
-  if(nota===null)return;
-  if(!nota.trim()){toast('Necesitás escribir una nota','warning');return;}
-  try{
-    await sb.from('rec_obras').update({
-      cliente_garantiza:true,
-      cliente_garantiza_nota:nota.trim()
-    }).eq('id',oid);
-    var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.cliente_garantiza=true;o.cliente_garantiza_nota=nota.trim();}
-    dbLog(CU.n,'Marcó garantía del cliente: '+(o?o.nom:oid));
-    toast('Garantía registrada','success','🛡️');
-    _caRenderFlujoBancario(o);
-    _renderCarolinaConsultaContratos();
-  }catch(e){toast('Error: '+e.message,'error');}
-}
-
-async function _caQuitarGarantiaCliente(oid){
-  if(!confirm('¿Quitar la garantía del cliente?'))return;
-  try{
-    await sb.from('rec_obras').update({cliente_garantiza:false,cliente_garantiza_nota:null}).eq('id',oid);
-    var o=obras.find(function(x){return x.id===oid;});
-    if(o){o.cliente_garantiza=false;o.cliente_garantiza_nota=null;}
-    _caRenderFlujoBancario(o);
-    _renderCarolinaConsultaContratos();
-    toast('Garantía removida','info');
-  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 async function _caDescargar(path){
@@ -6209,9 +6352,22 @@ async function notifRefresh(){
       .order('created_at',{ascending:false})
       .limit(30);
     if(res.error)throw new Error(res.error.message);
+    var prevList=_notifList||[];
     _notifList=res.data||[];
     _notifRenderBadge();
     _notifRenderList();
+    // T26 — Auto-refresh: si llegaron notifs nuevas relacionadas con flujo bancario, re-renderizar paneles
+    var prevIds={};
+    for(var i=0;i<prevList.length;i++)prevIds[prevList[i].id]=true;
+    var nuevasBanc=_notifList.filter(function(n){
+      return !prevIds[n.id]&&(['firmado_listo','ppto_listo','computo_listo','entregado_banco','desembolso','firmado_parcial'].indexOf(n.tipo)>=0);
+    });
+    if(nuevasBanc.length){
+      // Re-renderizar el panel correspondiente al rol actual
+      if(CU.r==='david'&&typeof _renderDvFlujoBancario==='function')_renderDvFlujoBancario();
+      if(CU.r==='admin'&&typeof _renderAdmFlujoBancario==='function')_renderAdmFlujoBancario();
+      if(CU.r==='carolina'&&typeof _renderCarolinaConsultaContratos==='function')_renderCarolinaConsultaContratos();
+    }
   }catch(e){
     body.innerHTML='<div style="color:var(--Rc);padding:14px;font-size:11px;">Error: '+e.message+'</div>';
   }
