@@ -759,7 +759,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v80 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v81 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1534,6 +1534,52 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         <div class="al al-z" style="margin-bottom:14px;">📌 Acá ves todas las obras bancarias/mixtas que necesitan acción tuya: subir presupuesto bancario, registrar desembolso, o marcar garantía del cliente.</div>
         <div id="adm-flujo-bancario-body"></div>
       </div>
+
+      <!-- T30 — GESTIÓN DE USUARIOS (solo admin) -->
+      <div class="card" id="adm-users-card" style="border-top:3px solid var(--P);margin-bottom:14px;">
+        <div class="ct" style="color:var(--Pc);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span>👥 Gestión de Usuarios <span id="adm-users-count" style="font-size:11px;color:var(--ws);font-weight:600;">(0)</span></span>
+          <button class="btn btn-o btn-sm" onclick="cargarUsuariosOP1().then(function(){_admUsersRender();toast('Actualizado','success');});">🔄 Recargar</button>
+        </div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Acá controlás quién puede entrar a Operativa 1. Cambios se aplican inmediatamente. <b>Solo admin tiene acceso a esta sección.</b></div>
+        
+        <!-- Formulario alta -->
+        <div style="background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:10px;">➕ NUEVO USUARIO</div>
+          <div class="fg fg3" style="margin-bottom:10px;">
+            <div class="f">
+              <label>Nombre completo *</label>
+              <input id="admu-nombre" placeholder="Ej. Juan Pérez">
+            </div>
+            <div class="f">
+              <label>PIN (4 dígitos) *</label>
+              <input id="admu-pin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="0000">
+            </div>
+            <div class="f">
+              <label>Rol *</label>
+              <select id="admu-rol">
+                <option value="">— Elegir rol —</option>
+                <option value="admin">⚙️ Administrador</option>
+                <option value="steffi">⚖️ Legal/Administrativa (Steffi)</option>
+                <option value="fatima">📋 Técnica (Fátima)</option>
+                <option value="supervisor">🏗️ Supervisor de campo</option>
+                <option value="david">📐 Cerrador (David/Gustavo)</option>
+                <option value="carolina">📋 Gabinete técnico (Carolina)</option>
+                <option value="lector">👀 Solo lectura</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-y btn-sm" onclick="_admUsersCrear()">💾 Guardar usuario</button>
+            <button class="btn btn-o btn-sm" onclick="_admUsersLimpiarForm()">🔄 Limpiar</button>
+          </div>
+          <div style="font-size:9px;color:var(--ws);margin-top:6px;">El PIN debe ser único y de 4 dígitos. El rol define a qué paneles tiene acceso.</div>
+        </div>
+        
+        <!-- Lista de usuarios -->
+        <div id="adm-users-list"></div>
+      </div>
+
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
         <div style="background:linear-gradient(135deg,rgba(245,196,0,.15),var(--p1));border:1px solid var(--am);border-radius:8px;padding:14px;text-align:center;">
           <div style="font-size:26px;font-weight:900;color:var(--am);" id="kpi-obras">—</div>
@@ -1646,17 +1692,36 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
 // ═══════════════════════════════════════════════════
 // ESTADO GLOBAL
 // ═══════════════════════════════════════════════════
-const USERS={
-  '1024':{n:'Josemiguel',r:'admin',icon:'⚙️'},
-  '2232':{n:'Steffi Villarpando',r:'steffi',icon:'⚖️'},
-  '3343':{n:'Fátima',r:'fatima',icon:'📋'},
-  '6677':{n:'Arq. Raí',r:'supervisor',icon:'🏗️'},
-  '5565':{n:'David Gambarte',r:'david',icon:'📐'},
-  '7788':{n:'Carolina',r:'carolina',icon:'📋'},
-  '4454':{n:'Gustavo Vaca',r:'david',icon:'📐'},
-  '9911':{n:'Noemi',r:'lector',icon:'👀'},
-  '8866':{n:'Samuel',r:'lector',icon:'👀'}
-};
+// T30 — USERS ahora se cargan desde tabla colaboradores_op1
+// (cache en localStorage para soportar offline / inicio rápido)
+let USERS={};
+
+async function cargarUsuariosOP1(){
+  // 1. Cargar cache primero (instant, sirve aunque no haya conexión)
+  try{
+    var cache=localStorage.getItem('geat_op1_users');
+    if(cache){
+      var parsed=JSON.parse(cache);
+      if(parsed&&typeof parsed==='object')USERS=parsed;
+    }
+  }catch(_e){}
+  // 2. Refrescar desde BD si hay conexión
+  try{
+    var res=await sb.from('colaboradores_op1').select('*').eq('activo',true);
+    if(res.error)throw new Error(res.error.message);
+    var nuevos={};
+    (res.data||[]).forEach(function(u){
+      nuevos[u.pin]={n:u.nombre,r:u.rol,icon:u.icon||'👤',id:u.id};
+    });
+    if(Object.keys(nuevos).length>0){
+      USERS=nuevos;
+      try{localStorage.setItem('geat_op1_users',JSON.stringify(USERS));}catch(_e){}
+      console.log('[GEAT] Usuarios cargados desde BD:',Object.keys(USERS).length);
+    }
+  }catch(e){
+    console.warn('[GEAT] No se pudo cargar usuarios desde BD, usando cache:',e.message);
+  }
+}
 
 let CU=null,pinBuf='',obras=[],contratos=[];
 let nueObraFiles={dig:null,esc:null};
@@ -1863,8 +1928,11 @@ function genNombreObra(){
 document.addEventListener('DOMContentLoaded',()=>{
   const nomEl=document.getElementById('n-nom');
   if(nomEl)nomEl.addEventListener('input',genCodigo);
-  // T12: intentar restaurar sesión si existe
-  setTimeout(function(){restaurarSesion();},100);
+  // T30 — Cargar usuarios desde BD (con fallback offline al cache)
+  cargarUsuariosOP1().finally(function(){
+    // T12: intentar restaurar sesión si existe (después de cargar usuarios)
+    setTimeout(function(){restaurarSesion();},100);
+  });
 });
 function limpiarNuevaObra(){
   nueObraFiles={dig:null,esc:null};
@@ -3437,6 +3505,8 @@ function abrirPerfil(){
 function renderAdmFull(){
   // T26 — Render flujo bancario admin
   _renderAdmFlujoBancario();
+  // T30 — Render gestión de usuarios (solo admin)
+  if(CU&&CU.r==='admin')_admUsersRender();
   var k=function(id){return document.getElementById(id);};
   // T10: render del selector de edición admin
   if(typeof admEditRenderSel==='function')admEditRenderSel();
@@ -4328,6 +4398,176 @@ async function _admDescargar(path){
     var res=await sb.storage.from('rec-archivos').createSignedUrl(path,3600);
     if(res.error)throw new Error(res.error.message);
     window.open(res.data.signedUrl,'_blank');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// T30 — GESTIÓN DE USUARIOS (solo admin)
+// ═══════════════════════════════════════════════════════════════
+const _OP1_ROLES={
+  'admin':{label:'Administrador',color:'var(--am)'},
+  'steffi':{label:'Legal/Admin (Steffi)',color:'var(--Zc)'},
+  'fatima':{label:'Técnica (Fátima)',color:'var(--Gc)'},
+  'supervisor':{label:'Supervisor campo',color:'var(--Pc)'},
+  'david':{label:'Cerrador',color:'var(--Pc)'},
+  'carolina':{label:'Gabinete (Carolina)',color:'var(--Gc)'},
+  'lector':{label:'Solo lectura',color:'var(--ws)'}
+};
+
+let _admUsersData=[]; // cache de usuarios cargados (incluye inactivos)
+
+async function _admUsersRender(){
+  if(!CU||CU.r!=='admin')return;
+  var list=document.getElementById('adm-users-list');
+  var count=document.getElementById('adm-users-count');
+  if(!list)return;
+  list.innerHTML='<div style="color:var(--ws);font-size:11px;padding:8px;">Cargando...</div>';
+  try{
+    var res=await sb.from('colaboradores_op1').select('*').order('activo',{ascending:false}).order('nombre');
+    if(res.error)throw new Error(res.error.message);
+    _admUsersData=res.data||[];
+    if(count)count.textContent='('+_admUsersData.length+')';
+    if(!_admUsersData.length){
+      list.innerHTML='<div style="color:var(--ws);font-size:11px;padding:8px;">Sin usuarios.</div>';
+      return;
+    }
+    var h='<div style="overflow-x:auto;"><table style="width:100%;font-size:11px;border-collapse:collapse;">'+
+      '<thead><tr style="border-bottom:1px solid var(--bd);text-align:left;color:var(--ws);font-size:9px;text-transform:uppercase;letter-spacing:1px;">'+
+        '<th style="padding:8px 6px;">Nombre</th>'+
+        '<th style="padding:8px 6px;">Rol</th>'+
+        '<th style="padding:8px 6px;">PIN</th>'+
+        '<th style="padding:8px 6px;">Estado</th>'+
+        '<th style="padding:8px 6px;text-align:right;">Acciones</th>'+
+      '</tr></thead><tbody>';
+    for(var i=0;i<_admUsersData.length;i++){
+      var u=_admUsersData[i];
+      var rolInfo=_OP1_ROLES[u.rol]||{label:u.rol,color:'var(--ws)'};
+      var estado=u.activo?
+        '<span style="color:var(--Gc);font-weight:700;">● Activo</span>':
+        '<span style="color:var(--ws);">○ Inactivo</span>';
+      h+='<tr style="border-bottom:1px solid var(--bd);'+(u.activo?'':'opacity:.55;')+'">'+
+        '<td style="padding:8px 6px;font-weight:700;">'+(u.icon||'👤')+' '+u.nombre+'</td>'+
+        '<td style="padding:8px 6px;color:'+rolInfo.color+';">'+rolInfo.label+'</td>'+
+        '<td style="padding:8px 6px;font-family:monospace;letter-spacing:2px;">'+(u.activo?u.pin:'****')+'</td>'+
+        '<td style="padding:8px 6px;">'+estado+'</td>'+
+        '<td style="padding:8px 6px;text-align:right;white-space:nowrap;">'+
+          '<button class="btn btn-o btn-sm" onclick="_admUsersEditar('+u.id+')">✏️ Editar</button> '+
+          (u.activo?
+            '<button class="btn btn-r btn-sm" onclick="_admUsersDesactivar('+u.id+')">🚫 Desactivar</button>':
+            '<button class="btn btn-y btn-sm" onclick="_admUsersReactivar('+u.id+')">↩️ Reactivar</button>')+
+        '</td>'+
+      '</tr>';
+    }
+    h+='</tbody></table></div>';
+    list.innerHTML=h;
+  }catch(e){
+    list.innerHTML='<div style="color:var(--Rc);font-size:11px;padding:8px;">Error: '+e.message+'</div>';
+  }
+}
+
+function _admUsersLimpiarForm(){
+  var n=document.getElementById('admu-nombre');if(n)n.value='';
+  var p=document.getElementById('admu-pin');if(p)p.value='';
+  var r=document.getElementById('admu-rol');if(r)r.value='';
+}
+
+async function _admUsersCrear(){
+  if(!CU||CU.r!=='admin'){toast('Solo admin puede crear usuarios','warning');return;}
+  var nombre=(document.getElementById('admu-nombre')||{}).value||'';
+  var pin=(document.getElementById('admu-pin')||{}).value||'';
+  var rol=(document.getElementById('admu-rol')||{}).value||'';
+  nombre=nombre.trim();
+  pin=pin.trim();
+  if(!nombre){toast('Ingresá un nombre','warning');return;}
+  if(!/^[0-9]{4}$/.test(pin)){toast('PIN debe ser 4 dígitos numéricos','warning');return;}
+  if(!_OP1_ROLES[rol]){toast('Elegí un rol válido','warning');return;}
+  // Ícono según rol
+  var iconMap={admin:'⚙️',steffi:'⚖️',fatima:'📋',supervisor:'🏗️',david:'📐',carolina:'📋',lector:'👀'};
+  var icon=iconMap[rol]||'👤';
+  try{
+    var res=await sb.from('colaboradores_op1').insert({nombre:nombre,rol:rol,pin:pin,icon:icon,activo:true}).select().single();
+    if(res.error){
+      if(res.error.message&&res.error.message.indexOf('colaboradores_op1_pin_key')>=0){
+        toast('El PIN '+pin+' ya está en uso. Elegí otro.','error');
+      } else {
+        toast('Error: '+res.error.message,'error');
+      }
+      return;
+    }
+    toast('Usuario "'+nombre+'" creado','success','✅');
+    _admUsersLimpiarForm();
+    await cargarUsuariosOP1();
+    _admUsersRender();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _admUsersEditar(id){
+  if(!CU||CU.r!=='admin')return;
+  var u=_admUsersData.find(function(x){return x.id===id;});
+  if(!u){toast('Usuario no encontrado','error');return;}
+  var nuevoNombre=prompt('Nombre completo:',u.nombre);
+  if(nuevoNombre===null)return;
+  nuevoNombre=nuevoNombre.trim();
+  if(!nuevoNombre){toast('Nombre no puede estar vacío','warning');return;}
+  var nuevoPin=prompt('PIN (4 dígitos):',u.pin);
+  if(nuevoPin===null)return;
+  nuevoPin=nuevoPin.trim();
+  if(!/^[0-9]{4}$/.test(nuevoPin)){toast('PIN debe ser 4 dígitos numéricos','warning');return;}
+  var rolesValidos=Object.keys(_OP1_ROLES).join('/');
+  var nuevoRol=prompt('Rol ('+rolesValidos+'):',u.rol);
+  if(nuevoRol===null)return;
+  nuevoRol=nuevoRol.trim();
+  if(!_OP1_ROLES[nuevoRol]){toast('Rol inválido. Usá uno de: '+rolesValidos,'warning');return;}
+  var iconMap={admin:'⚙️',steffi:'⚖️',fatima:'📋',supervisor:'🏗️',david:'📐',carolina:'📋',lector:'👀'};
+  try{
+    var res=await sb.from('colaboradores_op1').update({
+      nombre:nuevoNombre,
+      pin:nuevoPin,
+      rol:nuevoRol,
+      icon:iconMap[nuevoRol]||u.icon||'👤'
+    }).eq('id',id).select().single();
+    if(res.error){
+      if(res.error.message&&res.error.message.indexOf('colaboradores_op1_pin_key')>=0){
+        toast('El PIN '+nuevoPin+' ya está en uso por otro usuario','error');
+      } else {
+        toast('Error: '+res.error.message,'error');
+      }
+      return;
+    }
+    toast('Usuario actualizado','success','✅');
+    await cargarUsuariosOP1();
+    _admUsersRender();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _admUsersDesactivar(id){
+  if(!CU||CU.r!=='admin')return;
+  var u=_admUsersData.find(function(x){return x.id===id;});
+  if(!u)return;
+  if(u.id===CU.id||u.pin===Object.keys(USERS).find(function(p){return USERS[p].id===CU.id;})){
+    toast('No podés desactivarte a vos mismo','warning');return;
+  }
+  if(!confirm('¿Desactivar a "'+u.nombre+'"? Ya no podrá entrar a Operativa 1.\n\nLos datos históricos se mantienen. Podés reactivarlo cuando quieras.'))return;
+  try{
+    var res=await sb.from('colaboradores_op1').update({activo:false}).eq('id',id);
+    if(res.error)throw new Error(res.error.message);
+    toast('Usuario desactivado','info');
+    await cargarUsuariosOP1();
+    _admUsersRender();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _admUsersReactivar(id){
+  if(!CU||CU.r!=='admin')return;
+  var u=_admUsersData.find(function(x){return x.id===id;});
+  if(!u)return;
+  if(!confirm('¿Reactivar a "'+u.nombre+'"? Volverá a poder entrar con su PIN.'))return;
+  try{
+    var res=await sb.from('colaboradores_op1').update({activo:true}).eq('id',id);
+    if(res.error)throw new Error(res.error.message);
+    toast('Usuario reactivado','success','✅');
+    await cargarUsuariosOP1();
+    _admUsersRender();
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
