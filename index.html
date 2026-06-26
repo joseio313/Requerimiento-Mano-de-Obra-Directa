@@ -759,7 +759,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v81 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v82 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1959,17 +1959,19 @@ function _toggleFinanciamientoCampos(){
   if(aviso)aviso.style.display=(tipo==='bancario'||tipo==='mixto')?'block':'none';
 }
 
+// T31 — Estado del flujo de registro (para reintentos)
+let _flujoObraEstado=null;
+
 async function guardarNuevaObra(){
-  // T23 — Refactor: try-catch global + toasts visibles + ID temporal aislado
   try{
-    const p1=(document.getElementById('n-prop1')||{}).value||'';
-    const p2=(document.getElementById('n-prop2')||{}).value||'';
-    if(!p1.trim()){toast('Ingresá al menos el apellido del propietario 1','warning');return;}
+    // ── PASO 0: validar datos del formulario ──
+    const p1=((document.getElementById('n-prop1')||{}).value||'').trim();
+    const p2=((document.getElementById('n-prop2')||{}).value||'').trim();
+    if(!p1){toast('Ingresá al menos el apellido del propietario 1','warning');return;}
     const nomEl=document.getElementById('n-nom');
     const nom=nomEl?nomEl.value.trim():'';
     if(!nom){toast('El nombre se genera solo. Llená los apellidos.','warning');return;}
     if(!nueObraFiles||!nueObraFiles.dig){toast('Subí el archivo del contrato. El escaneado firmado lo sube David.','warning');return;}
-    // T22: tipo de financiamiento
     var finTipo=(document.getElementById('n-fin-tipo')||{}).value||'contado';
     var finPct=null;
     if(finTipo==='bancario'||finTipo==='mixto'){
@@ -1979,26 +1981,138 @@ async function guardarNuevaObra(){
     const codEl=document.getElementById('n-cod');
     let cod=codEl?codEl.value.trim():'';
     if(!cod){const ini=nom.split(' ').map(p=>p[0]||'').join('').slice(0,3).toUpperCase();cod=ini+'-'+new Date().getFullYear()+'-'+String(obras.length+1).padStart(3,'0');}
-    // Notas: guardamos los apellidos como referencia
-    var notasProp='Propietario 1: '+p1.trim()+(p2.trim()?(' | Propietario 2: '+p2.trim()):'');
+    var notasProp='Propietario 1: '+p1+(p2?(' | Propietario 2: '+p2):'');
+    
+    // Guardar estado para reintento
+    _flujoObraEstado={p1:p1,p2:p2,nom:nom,cod:cod,notasProp:notasProp,finTipo:finTipo,finPct:finPct,archivo:nueObraFiles.dig};
+
+    // ── PASO 1: detectar duplicados ──
+    var dup=_detectarDuplicado(p1,p2);
+    if(dup){
+      _mostrarAdvDuplicado(dup);
+      return; // Se continúa cuando el usuario decide
+    }
+    // No hay duplicado: avanzar directo
+    _ejecutarFlujoObra();
+  }catch(eGlobal){
+    toast('Error inesperado: '+(eGlobal.message||eGlobal),'error');
+    console.error('guardarNuevaObra error global:',eGlobal);
+  }
+}
+
+// T31 — Detectar obra similar creada recientemente
+function _detectarDuplicado(p1,p2){
+  if(!p1)return null;
+  var normalizar=function(s){return (s||'').toLowerCase().replace(/[áàä]/g,'a').replace(/[éèë]/g,'e').replace(/[íìï]/g,'i').replace(/[óòö]/g,'o').replace(/[úùü]/g,'u').replace(/ñ/g,'n').replace(/[^a-z0-9]/g,'').trim();};
+  var p1n=normalizar(p1);
+  var p2n=normalizar(p2);
+  var ahora=Date.now();
+  // Buscar obra cuyas notas/nombre contengan algún apellido y haya sido creada en últimas 24h
+  for(var i=0;i<obras.length;i++){
+    var o=obras[i];
+    var notaN=normalizar(o.not||'');
+    var nomN=normalizar(o.nom||'');
+    var match=(p1n&&p1n.length>=3&&(notaN.indexOf(p1n)>=0||nomN.indexOf(p1n)>=0))||
+              (p2n&&p2n.length>=3&&(notaN.indexOf(p2n)>=0||nomN.indexOf(p2n)>=0));
+    if(!match)continue;
+    // Edad de la obra
+    var creada=o.created_at?new Date(o.created_at).getTime():(typeof o.id==='number'&&o.id>1e12?o.id:0);
+    if(creada&&(ahora-creada)<24*60*60*1000){
+      return o;
+    }
+  }
+  return null;
+}
+
+function _mostrarAdvDuplicado(o){
+  var ov=document.getElementById('ov-duplicado');
+  var msg=document.getElementById('dup-mensaje');
+  if(!ov||!msg)return;
+  var creada=o.created_at?new Date(o.created_at):null;
+  var hace=creada?Math.round((Date.now()-creada.getTime())/60000):0;
+  var tHace=hace<60?(hace+' min'):(Math.round(hace/60)+' h');
+  msg.innerHTML='Ya existe una obra <b>'+o.nom+'</b> creada hace <b>'+tHace+'</b>'+
+    ' (código <b>'+o.cod+'</b>).<br><br>'+
+    '<span style="color:var(--ws);">'+(o.not||'')+'</span><br><br>'+
+    '¿Es la misma obra que querés registrar? Si es así, no la dupliques. '+
+    'Andá a "<b>Mis Obras Registradas</b>" y reemplazá el archivo si está mal.';
+  ov.dataset.obraExistente=o.id;
+  ov.style.display='flex';
+}
+
+function _dupCancelar(){
+  document.getElementById('ov-duplicado').style.display='none';
+  _flujoObraEstado=null;
+}
+
+function _dupVerExistente(){
+  document.getElementById('ov-duplicado').style.display='none';
+  // Scroll a Mis Obras
+  setTimeout(function(){
+    var el=document.getElementById('steffi-mis-obras');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
+  _flujoObraEstado=null;
+}
+
+function _dupContinuar(){
+  document.getElementById('ov-duplicado').style.display='none';
+  _ejecutarFlujoObra();
+}
+
+// T31 — Ejecutar el flujo seguro: UPLOAD primero, después crear obra
+async function _ejecutarFlujoObra(){
+  if(!_flujoObraEstado){toast('Estado perdido, reintentá desde el botón','error');return;}
+  var e=_flujoObraEstado;
+  // Abrir modal de progreso
+  _progObraAbrir(e.nom);
+  _progObraRenderPasos([
+    {id:'val',label:'Datos validados',estado:'ok'},
+    {id:'up',label:'Subiendo contrato al sistema',estado:'progress'},
+    {id:'db',label:'Registrando obra en base de datos',estado:'wait'},
+    {id:'link',label:'Vinculando archivo a la obra',estado:'wait'},
+    {id:'done',label:'Confirmación final',estado:'wait'}
+  ]);
+  // Deshabilitar botón
+  _btnRegistrarToggle(false);
+  
+  try{
+    // ── PASO 2: SUBIR EL ARCHIVO PRIMERO (antes de crear obra) ──
+    var tempId='temp_'+Date.now();
+    var path=storagePath('obras',tempId,'cp_dig',e.archivo.name);
+    try{
+      await storageUpload(path,e.archivo);
+    }catch(eUp){
+      _progObraMarcarPaso('up','error');
+      _progObraError('No se pudo subir el contrato: '+(eUp.message||eUp)+
+        '\n\nProbá: (1) verificar tu conexión Wi-Fi, (2) reintentar el botón abajo.');
+      _btnRegistrarToggle(true);
+      return;
+    }
+    _progObraMarcarPaso('up','ok');
+    _progObraMarcarPaso('db','progress');
+    
+    // ── PASO 3: CREAR OBRA EN BD con el path ya conocido ──
     var idTemporal=Date.now();
-    const o={id:idTemporal,nom,cod,sup:0,pre:75,map:'',cuad:0,monto:0,est:'nuevo',fi:'',di:0,not:notasProp,obj:'',inc:'',exc:'',cp_dig:null,cp_esc:null,aprobada:false,mods:[],
-      tipo_financiamiento:finTipo,porcentaje_financiado:finPct,
-      estado_financiamiento:(finTipo==='contado'?null:'esperando_propuesta')};
+    var o={
+      id:idTemporal,nom:e.nom,cod:e.cod,sup:0,pre:75,map:'',cuad:0,monto:0,
+      est:'nuevo',fi:'',di:0,not:e.notasProp,obj:'',inc:'',exc:'',
+      cp_dig:path,cp_esc:null,aprobada:false,mods:[],
+      tipo_financiamiento:e.finTipo,porcentaje_financiado:e.finPct,
+      estado_financiamiento:(e.finTipo==='contado'?null:'esperando_propuesta')
+    };
     obras.push(o);
-    toast('Guardando obra...','info');
-    // T19 FIX: retry hasta 5 veces con código nuevo si choca con UNIQUE constraint
-    var intento=0,exito=false,lastErr=null;
-    while(intento<5&&!exito){
+    
+    // Retry código duplicado
+    var intento=0,exitoDb=false,lastErr=null;
+    while(intento<5&&!exitoDb){
       try{
         await dbGuardarObra(o);
-        exito=true;
-      }catch(e){
-        lastErr=e;
-        // Si es error de código duplicado, buscar un sufijo libre y reintentar
-        if(e.message&&e.message.indexOf('rec_obras_codigo_key')>=0){
+        exitoDb=true;
+      }catch(eDb){
+        lastErr=eDb;
+        if(eDb.message&&eDb.message.indexOf('rec_obras_codigo_key')>=0){
           intento++;
-          // Refrescar lista de códigos existentes desde la BD
           try{
             var resCods=await sb.from('rec_obras').select('codigo');
             var existentes=(resCods.data||[]).map(function(r){return r.codigo;});
@@ -2006,72 +2120,169 @@ async function guardarNuevaObra(){
             if(parts.length===3){
               var prefijo=parts[0]+'-'+parts[1]+'-';
               var maxN=0;
-              existentes.forEach(function(c){
-                if(c&&c.indexOf(prefijo)===0){
-                  var nn=parseInt(c.substring(prefijo.length))||0;
-                  if(nn>maxN)maxN=nn;
-                }
-              });
+              existentes.forEach(function(c){if(c&&c.indexOf(prefijo)===0){var nn=parseInt(c.substring(prefijo.length))||0;if(nn>maxN)maxN=nn;}});
               o.cod=prefijo+String(maxN+1).padStart(3,'0');
-              if(codEl)codEl.value=o.cod;
-              toast('Código ya existía, usando: '+o.cod,'info');
+              const codEl=document.getElementById('n-cod');if(codEl)codEl.value=o.cod;
             }
           }catch(_e){}
-        } else {
-          break;
-        }
+        } else {break;}
       }
     }
-    if(!exito){
-      obras=obras.filter(x=>x.id!==idTemporal);
-      toast('Error al guardar: '+(lastErr?lastErr.message:'desconocido'),'error');
-      console.error('guardarNuevaObra falló:',lastErr);
+    if(!exitoDb){
+      // Limpiar obra del array local + archivo huérfano de storage
+      obras=obras.filter(function(x){return x.id!==idTemporal;});
+      try{await sb.storage.from(BUCKET).remove([path]);}catch(_e){}
+      _progObraMarcarPaso('db','error');
+      _progObraError('No se pudo crear la obra: '+(lastErr?lastErr.message:'error desconocido'));
+      _btnRegistrarToggle(true);
       return;
     }
-    // Subir archivo + extraer
+    _progObraMarcarPaso('db','ok');
+    _progObraMarcarPaso('link','progress');
+    
+    // ── PASO 4: Extracción opcional DOCX (no crítica) ──
     try{
-      if(nueObraFiles.dig){
-        toast('Subiendo archivo del contrato...','info');
-        const p=storagePath('obras',o.id,'cp_dig',nueObraFiles.dig.name);
-        await storageUpload(p,nueObraFiles.dig);
-        o.cp_dig=p;
-        // T22 — Extraer OBJETO/INCLUSIONES/EXCLUSIONES del DOCX automáticamente
-        var extraido=null;
-        try{extraido=await _extraerCausasDelContrato(nueObraFiles.dig);}catch(eExt){console.warn('Extracción falló (no crítico):',eExt);}
-        if(extraido&&(extraido.objeto||extraido.inclusiones||extraido.exclusiones)){
-          if(extraido.objeto)o.obj=extraido.objeto;
-          if(extraido.inclusiones)o.inc=extraido.inclusiones;
-          if(extraido.exclusiones)o.exc=extraido.exclusiones;
-          var camposExt=[];
-          if(extraido.objeto)camposExt.push('OBJETO');
-          if(extraido.inclusiones)camposExt.push('INCLUSIONES');
-          if(extraido.exclusiones)camposExt.push('EXCLUSIONES');
-          toast('Extraído del contrato: '+camposExt.join(', '),'success','📄');
-        }
-        try{await dbGuardarObra(o);}catch(eUp){console.warn('Update post-archivo falló:',eUp);}
+      var extraido=await _extraerCausasDelContrato(e.archivo);
+      if(extraido&&(extraido.objeto||extraido.inclusiones||extraido.exclusiones)){
+        if(extraido.objeto)o.obj=extraido.objeto;
+        if(extraido.inclusiones)o.inc=extraido.inclusiones;
+        if(extraido.exclusiones)o.exc=extraido.exclusiones;
+        try{await dbGuardarObra(o);}catch(_e){}
       }
-      dbLog(CU.n,'Nueva obra registrada: '+nom+' ('+o.cod+')');
-      toast('Obra "'+nom+'" registrada con código '+o.cod,'success','✅');
-      // T20: notificar
-      try{
-        notifCrear('Fátima','obra_nueva','Nueva obra para datos técnicos',
-          'Steffi registró '+nom+' ('+o.cod+'). Cargá los datos técnicos cuando puedas.',
-          {obra_id:o.id,obra_nombre:nom,panel_destino:'fatima',prioridad:'normal'});
-        notifCrear('Josemiguel','obra_nueva','Nueva obra registrada',
-          nom+' ('+o.cod+') registrada por '+CU.n,
-          {obra_id:o.id,obra_nombre:nom,prioridad:'normal'});
-      }catch(_eN){}
-      limpiarNuevaObra();renderTodo();
-    }catch(eFile){
-      toast('Obra guardada pero error subiendo archivo: '+eFile.message,'warning');
-      console.error(eFile);
-      renderTodo();
-    }
+    }catch(_eExt){console.warn('Extracción DOCX no crítica falló:',_eExt);}
+    _progObraMarcarPaso('link','ok');
+    _progObraMarcarPaso('done','progress');
+    
+    // ── PASO 5: Notificaciones + logs ──
+    try{
+      dbLog(CU.n,'Nueva obra registrada: '+o.nom+' ('+o.cod+')');
+      notifCrear('Fátima','obra_nueva','Nueva obra para datos técnicos',
+        'Steffi registró '+o.nom+' ('+o.cod+'). Cargá los datos técnicos cuando puedas.',
+        {obra_id:o.id,obra_nombre:o.nom,panel_destino:'fatima',prioridad:'normal'});
+      notifCrear('Josemiguel','obra_nueva','Nueva obra registrada',
+        o.nom+' ('+o.cod+') registrada por '+CU.n,
+        {obra_id:o.id,obra_nombre:o.nom,prioridad:'normal'});
+    }catch(_eN){}
+    _progObraMarcarPaso('done','ok');
+    
+    // ── PASO 6: Confirmación final ──
+    _progObraExito(o);
+    _flujoObraEstado=null;
+    renderTodo();
+    _btnRegistrarToggle(true);
   }catch(eGlobal){
-    // Cualquier error inesperado se muestra
-    toast('Error inesperado: '+(eGlobal.message||eGlobal),'error');
-    console.error('guardarNuevaObra error global:',eGlobal);
+    _progObraError('Error inesperado: '+(eGlobal.message||eGlobal));
+    console.error('_ejecutarFlujoObra error:',eGlobal);
+    _btnRegistrarToggle(true);
   }
+}
+
+// T31 — Helpers de UI del modal de progreso
+function _btnRegistrarToggle(activo){
+  var btns=document.querySelectorAll('button[onclick="guardarNuevaObra()"]');
+  btns.forEach(function(b){
+    b.disabled=!activo;
+    b.style.opacity=activo?'':'.5';
+    b.style.cursor=activo?'':'not-allowed';
+  });
+}
+
+function _progObraAbrir(nombre){
+  var ov=document.getElementById('ov-progreso-obra');
+  var tit=document.getElementById('prog-obra-titulo');
+  var err=document.getElementById('prog-obra-error');
+  var exi=document.getElementById('prog-obra-exito');
+  var cer=document.getElementById('prog-obra-cerrar-btn');
+  if(tit)tit.textContent='📝 Registrando "'+nombre+'"...';
+  if(err)err.style.display='none';
+  if(exi)exi.style.display='none';
+  if(cer)cer.style.display='none'; // no se puede cerrar mientras procesa
+  if(ov)ov.style.display='flex';
+}
+
+function _progObraRenderPasos(pasos){
+  var cont=document.getElementById('prog-obra-pasos');
+  if(!cont)return;
+  var icon={ok:'✅',progress:'⏳',wait:'⬜',error:'❌'};
+  var color={ok:'var(--Gc)',progress:'var(--am)',wait:'var(--ws)',error:'var(--Rc)'};
+  var h='';
+  pasos.forEach(function(p){
+    h+='<div data-paso="'+p.id+'" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;color:'+color[p.estado]+';">'+
+      '<span style="font-size:18px;">'+icon[p.estado]+'</span>'+
+      '<span class="paso-label">'+p.label+'</span>'+
+    '</div>';
+  });
+  cont.innerHTML=h;
+}
+
+function _progObraMarcarPaso(id,estado){
+  var cont=document.getElementById('prog-obra-pasos');
+  if(!cont)return;
+  var fila=cont.querySelector('[data-paso="'+id+'"]');
+  if(!fila)return;
+  var icon={ok:'✅',progress:'⏳',wait:'⬜',error:'❌'};
+  var color={ok:'var(--Gc)',progress:'var(--am)',wait:'var(--ws)',error:'var(--Rc)'};
+  fila.style.color=color[estado];
+  var span=fila.querySelector('span');
+  if(span)span.textContent=icon[estado];
+}
+
+function _progObraError(mensaje){
+  var err=document.getElementById('prog-obra-error');
+  var msg=document.getElementById('prog-obra-error-msg');
+  var cer=document.getElementById('prog-obra-cerrar-btn');
+  if(msg)msg.textContent=mensaje;
+  if(err)err.style.display='block';
+  if(cer)cer.style.display='block';
+}
+
+function _progObraExito(o){
+  var exi=document.getElementById('prog-obra-exito');
+  var msg=document.getElementById('prog-obra-exito-msg');
+  var cer=document.getElementById('prog-obra-cerrar-btn');
+  if(msg){
+    msg.innerHTML='<div style="font-size:13px;font-weight:800;color:var(--am);margin-bottom:4px;">'+o.cod+'</div>'+
+      '<div>'+o.nom+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);margin-top:6px;">Contrato cargado. Fátima fue notificada para cargar datos técnicos.</div>';
+  }
+  if(exi)exi.style.display='block';
+  if(cer)cer.style.display='block';
+}
+
+function _progObraReintentar(){
+  var err=document.getElementById('prog-obra-error');
+  if(err)err.style.display='none';
+  _ejecutarFlujoObra();
+}
+
+function _progObraCancelar(){
+  _flujoObraEstado=null;
+  _progObraCerrar();
+}
+
+function _progObraCerrar(){
+  var ov=document.getElementById('ov-progreso-obra');
+  if(ov)ov.style.display='none';
+  _btnRegistrarToggle(true);
+}
+
+function _progObraNuevaOtra(){
+  _progObraCerrar();
+  limpiarNuevaObra();
+  // Foco en el campo de apellido
+  setTimeout(function(){
+    var p1=document.getElementById('n-prop1');
+    if(p1){p1.focus();p1.scrollIntoView({behavior:'smooth',block:'center'});}
+  },200);
+}
+
+function _progObraVerObras(){
+  _progObraCerrar();
+  limpiarNuevaObra();
+  setTimeout(function(){
+    var el=document.getElementById('steffi-mis-obras');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },200);
 }
 
 // T22 — Extractor de OBJETO/INCLUSIONES/EXCLUSIONES del archivo DOCX del contrato
@@ -6961,6 +7172,57 @@ async function _notifRefreshBadge(){
     </div>
     <div id="visor-contrato-cuerpo" style="flex:1;overflow:auto;background:var(--p1);padding:0;position:relative;" oncontextmenu="return false;">
       <div style="text-align:center;padding:40px;color:var(--ws);font-size:12px;">Cargando contrato...</div>
+    </div>
+  </div>
+</div>
+
+<!-- T31 — MODAL DE PROGRESO REGISTRO DE OBRA (no se puede cerrar hasta terminar) -->
+<div class="overlay" id="ov-progreso-obra" style="display:none;">
+  <div class="modal" style="max-width:500px;width:95vw;">
+    <div class="modal-h" style="user-select:none;">
+      <h3 id="prog-obra-titulo">📝 Registrando obra...</h3>
+      <button class="modal-x" id="prog-obra-cerrar-btn" onclick="_progObraCerrar()" style="display:none;">✕</button>
+    </div>
+    <div style="padding:20px;">
+      <div id="prog-obra-pasos">
+        <!-- Renderiza pasos dinámicamente -->
+      </div>
+      <div id="prog-obra-error" style="display:none;background:rgba(178,30,40,.12);border:1px solid var(--R);border-radius:8px;padding:12px;margin-top:14px;">
+        <div style="font-size:11px;font-weight:700;color:var(--Rc);margin-bottom:6px;">❌ Error</div>
+        <div id="prog-obra-error-msg" style="font-size:11px;color:var(--wd);"></div>
+        <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-y btn-sm" onclick="_progObraReintentar()">🔄 Reintentar</button>
+          <button class="btn btn-o btn-sm" onclick="_progObraCancelar()">❌ Cancelar</button>
+        </div>
+        <div style="margin-top:10px;font-size:10px;color:var(--ws);">
+          ⚠️ La obra <b>NO</b> se creó si falló subir el contrato. No queda nada a medias.
+        </div>
+      </div>
+      <div id="prog-obra-exito" style="display:none;background:rgba(4,120,86,.12);border:1px solid var(--G);border-radius:8px;padding:14px;margin-top:14px;">
+        <div style="font-size:13px;font-weight:800;color:var(--Gc);margin-bottom:6px;">✅ ¡OBRA REGISTRADA!</div>
+        <div id="prog-obra-exito-msg" style="font-size:11px;color:var(--wd);line-height:1.5;"></div>
+        <div style="margin-top:14px;display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn btn-y btn-sm" onclick="_progObraNuevaOtra()">➕ Registrar otra</button>
+          <button class="btn btn-o btn-sm" onclick="_progObraVerObras()">📋 Ver mis obras</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- T31 — MODAL ADVERTENCIA DUPLICADO -->
+<div class="overlay" id="ov-duplicado" style="display:none;">
+  <div class="modal" style="max-width:480px;width:95vw;">
+    <div class="modal-h">
+      <h3 style="color:#f59e0b;">⚠️ Posible duplicado</h3>
+    </div>
+    <div style="padding:18px;">
+      <div id="dup-mensaje" style="font-size:12px;color:var(--wd);line-height:1.6;margin-bottom:14px;"></div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button class="btn btn-o" onclick="_dupVerExistente()">👁️ Ver la obra existente primero</button>
+        <button class="btn btn-y" onclick="_dupContinuar()">➕ Crear igual (es un cliente distinto)</button>
+        <button class="btn btn-o btn-sm" onclick="_dupCancelar()">❌ Cancelar</button>
+      </div>
     </div>
   </div>
 </div>
