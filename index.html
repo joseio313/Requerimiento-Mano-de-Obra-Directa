@@ -540,7 +540,32 @@ async function dbGuardarContrato(c){
   c.id=data.id;return data;
 }
 async function dbLog(u,a){try{await sb.from('rec_auditoria').insert({usuario:u,accion:a});}catch(e){}}
-function storagePath(folder,id,campo,fn){return folder+'/'+id+'/'+campo+'_'+Date.now()+'_'+fn;}
+// T32 — Sanitizar nombre de archivo: Supabase Storage rechaza tildes, comas, etc.
+function _sanitizarNombreArchivo(fn){
+  if(!fn)return 'archivo';
+  // Separar extensión
+  var ext='';
+  var idx=fn.lastIndexOf('.');
+  if(idx>0){ext=fn.substring(idx);fn=fn.substring(0,idx);}
+  // Sacar tildes
+  fn=fn.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  ext=ext.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  // ñ → n
+  fn=fn.replace(/ñ/g,'n').replace(/Ñ/g,'N');
+  // Espacios → _
+  fn=fn.replace(/\s+/g,'_');
+  // Solo dejar caracteres válidos
+  fn=fn.replace(/[^a-zA-Z0-9._-]/g,'');
+  ext=ext.replace(/[^a-zA-Z0-9.]/g,'');
+  // Evitar nombres vacíos o solo extensión
+  if(!fn||fn.length<1)fn='archivo';
+  // Limitar largo
+  if(fn.length>80)fn=fn.substring(0,80);
+  return fn+ext;
+}
+function storagePath(folder,id,campo,fn){
+  return folder+'/'+id+'/'+campo+'_'+Date.now()+'_'+_sanitizarNombreArchivo(fn);
+}
 async function storageUpload(path,file){
   const {error}=await sb.storage.from(BUCKET).upload(path,file,{upsert:true});
   if(error)throw new Error(error.message);
@@ -759,7 +784,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v82 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v83 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
