@@ -784,7 +784,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v83 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v84 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1862,7 +1862,12 @@ function _obraPuedeIniciarTecnico(o){
   if(tipo==='contado')return {ok:true,motivo:'Contado',etiqueta:'💵 CONTADO'};
   if(o.cliente_garantiza)return {ok:true,motivo:'Cliente garantiza financiamiento',etiqueta:'🛡️ GARANTIZADO POR CLIENTE'};
   if(o.fecha_desembolso_banco)return {ok:true,motivo:'Banco desembolsó el '+new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'),etiqueta:'🏦 DESEMBOLSADO'};
-  // Bancario o mixto sin desembolso ni garantía
+  // T33 — Caso MIXTO con flujo bancario pendiente de inicio:
+  // si es mixto y el flujo bancario NO se activó todavía, la obra PUEDE arrancar con recursos propios
+  if(tipo==='mixto'&&o.estado_financiamiento==='pendiente_inicio'){
+    return {ok:true,motivo:'Mixto · arrancando con recursos propios',etiqueta:'💵🏦 MIXTO · RECURSOS PROPIOS'};
+  }
+  // Bancario o mixto con flujo bancario ya activo: bloqueado hasta desembolso
   var estado='Esperando aprobación bancaria';
   if(!o.entregado_banco)estado='Aún sin entregar al banco';
   if(o.estado_financiamiento==='rechazado')estado='Banco rechazó financiamiento';
@@ -1877,7 +1882,14 @@ function _financiamientoBadge(o){
     if(o.fecha_desembolso_banco)return '<span style="display:inline-block;background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 BANCARIO · DESEMBOLSADO</span>';
     return '<span style="display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 BANCARIO · '+(o.porcentaje_financiado?o.porcentaje_financiado+'%':'')+'</span>';
   }
-  if(tipo==='mixto')return '<span style="display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 MIXTO · '+(o.porcentaje_financiado?o.porcentaje_financiado+'% banco':'')+'</span>';
+  if(tipo==='mixto'){
+    // T33 — Estado pendiente_inicio: la obra arranca con recursos propios
+    if(o.estado_financiamiento==='pendiente_inicio'){
+      return '<span style="display:inline-block;background:rgba(59,130,246,.15);color:#3b82f6;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">💵🏦 MIXTO · '+(o.porcentaje_financiado?o.porcentaje_financiado+'% se financiará':'pendiente activar')+'</span>';
+    }
+    if(o.fecha_desembolso_banco)return '<span style="display:inline-block;background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 MIXTO · DESEMBOLSADO</span>';
+    return '<span style="display:inline-block;background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🏦 MIXTO · '+(o.porcentaje_financiado?o.porcentaje_financiado+'% banco':'')+'</span>';
+  }
   return '';
 }
 function aOv(n){document.getElementById('ov-'+n).classList.add('on');}
@@ -2124,7 +2136,7 @@ async function _ejecutarFlujoObra(){
       est:'nuevo',fi:'',di:0,not:e.notasProp,obj:'',inc:'',exc:'',
       cp_dig:path,cp_esc:null,aprobada:false,mods:[],
       tipo_financiamiento:e.finTipo,porcentaje_financiado:e.finPct,
-      estado_financiamiento:(e.finTipo==='contado'?null:'esperando_propuesta')
+      estado_financiamiento:(e.finTipo==='contado'?null:(e.finTipo==='mixto'?'pendiente_inicio':'esperando_propuesta'))
     };
     obras.push(o);
     
@@ -4457,6 +4469,7 @@ function _renderAdmFlujoBancario(){
 
 function _admPrioridadBanco(o){
   // Lo que requiere acción admin: 3 esperando ppto, 2 entregado al banco sin desembolso, 1 resto
+  if(o.estado_financiamiento==='pendiente_inicio')return 2;        // T33: en standby, baja prioridad
   if(o.computo_excel_archivo&&!o.ppto_bancario_archivo)return 10;  // espera subir ppto
   if(o.entregado_banco&&!o.fecha_desembolso_banco)return 8;        // espera desembolso
   if(o.fecha_desembolso_banco)return 1;                            // ya desembolsado
@@ -4471,6 +4484,7 @@ function _admRenderObraBanco(o){
   var entregado=!!o.entregado_banco;
   var desembolsado=!!o.fecha_desembolso_banco;
   var garantiza=!!o.cliente_garantiza;
+  var pendienteInicio=o.estado_financiamiento==='pendiente_inicio'; // T33
   var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
   var fechaDes=o.fecha_desembolso_banco?new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'):'';
 
@@ -4478,6 +4492,7 @@ function _admRenderObraBanco(o){
   var estado='';
   if(desembolsado)estado='<span style="background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🎉 DESEMBOLSADO '+fechaDes+'</span>';
   else if(garantiza)estado='<span style="background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🛡️ GARANTÍA CLIENTE</span>';
+  else if(pendienteInicio)estado='<span style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">💵 EN STANDBY · Mixto, construye con recursos propios</span>';
   else if(entregado)estado='<span style="background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">📤 EN BANCO desde '+fechaEntr+' · ⏳ Esperando desembolso</span>';
   else if(hayComputo&&!hayPpto)estado='<span style="background:rgba(245,196,0,.15);color:var(--am);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:800;">⚠️ ACCIÓN TUYA: SUBIR PRESUPUESTO</span>';
   else if(!hayComputo)estado='<span style="font-size:9px;color:var(--ws);">⏳ Esperando cómputo de Carolina</span>';
@@ -4491,6 +4506,20 @@ function _admRenderObraBanco(o){
       '</div>'+
       '<div>'+estado+'</div>'+
     '</div>';
+
+  // T33 — STANDBY: obra mixta con flujo bancario aún no activado
+  if(pendienteInicio){
+    html+='<div style="background:rgba(59,130,246,.08);border:1px dashed #3b82f6;border-radius:8px;padding:14px;margin-bottom:8px;">'+
+      '<div style="font-size:12px;font-weight:700;color:#3b82f6;margin-bottom:6px;">💵🏦 Esta obra arranca con recursos propios</div>'+
+      '<div style="font-size:11px;color:var(--wd);line-height:1.5;margin-bottom:10px;">'+
+        'El cliente paga el <b>'+(100-(parseFloat(o.porcentaje_financiado)||30))+'%</b> con recursos propios y <b>'+(o.porcentaje_financiado||30)+'%</b> se financiará con el banco durante la ejecución.<br>'+
+        'Cuando llegue el momento de gestionar el financiamiento del saldo, activá el flujo bancario abajo.'+
+      '</div>'+
+      '<button class="btn btn-y btn-sm" onclick="_admActivarFlujoBancario('+o.id+')">🏦 Activar flujo bancario ahora</button>'+
+    '</div>';
+    html+='</div>';
+    return html;
+  }
 
   // STEP 1: Subir presupuesto bancario (acción admin)
   html+='<div style="background:var(--p1);border-radius:6px;padding:10px;margin-bottom:8px;'+(!hayComputo?'opacity:.5;':'')+'">'+
@@ -4635,6 +4664,30 @@ async function _admDescargar(path){
     if(res.error)throw new Error(res.error.message);
     window.open(res.data.signedUrl,'_blank');
   }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// T33 — Activar el flujo bancario en una obra mixta que estaba en standby
+async function _admActivarFlujoBancario(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  if(o.estado_financiamiento!=='pendiente_inicio'){
+    toast('El flujo bancario ya está activo en esta obra','info');return;
+  }
+  if(!confirm('¿Activar el flujo bancario para "'+o.nom+'"?\n\nA partir de ahora:\n• Carolina podrá subir el cómputo Excel del saldo financiado\n• Vos vas a tener que subir el presupuesto bancario\n• Cerrador entregará al banco cuando todo esté firmado\n\nLa obra puede seguir construyéndose con recursos propios mientras tanto.'))return;
+  try{
+    var res=await sb.from('rec_obras').update({estado_financiamiento:'esperando_propuesta'}).eq('id',oid);
+    if(res.error)throw new Error(res.error.message);
+    o.estado_financiamiento='esperando_propuesta';
+    dbLog(CU.n,'Activó flujo bancario en '+o.nom);
+    // Notificar al admin (vos)
+    try{
+      notifCrear('Josemiguel','flujo_bancario_activado','Flujo bancario activado',
+        o.nom+' ('+o.cod+') — ahora Carolina puede subir el cómputo y vos el presupuesto.',
+        {obra_id:o.id,obra_nombre:o.nom,prioridad:'alta'});
+    }catch(_e){}
+    toast('Flujo bancario activado para '+o.nom,'success','🏦');
+    renderTodo();
+  }catch(e){toast('Error: '+e.message,'error');console.error(e);}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -5163,10 +5216,26 @@ function _caRenderFlujoBancario(o){
   var hayPpto=!!o.ppto_bancario_archivo;
   var hayPlanoFirm=!!o.plano_firmado_archivo;
   var hayPptoFirm=!!o.ppto_firmado_archivo;
+  var pendienteInicio=o.estado_financiamiento==='pendiente_inicio'; // T33
   
   var html='<div style="font-size:11px;color:var(--wd);margin-bottom:14px;">'+
     '<b>'+o.nom+'</b> · '+(o.tipo_financiamiento==='bancario'?'Bancario':'Mixto')+
     ' · Banco financia: '+(o.porcentaje_financiado||'?')+'%</div>';
+
+  // T33 — STANDBY: obra mixta con flujo bancario pendiente
+  if(pendienteInicio){
+    html+='<div style="background:rgba(59,130,246,.08);border:1px dashed #3b82f6;border-radius:8px;padding:14px;text-align:center;">'+
+      '<div style="font-size:24px;margin-bottom:6px;">💵🏦</div>'+
+      '<div style="font-size:13px;font-weight:700;color:#3b82f6;margin-bottom:6px;">Flujo bancario en standby</div>'+
+      '<div style="font-size:11px;color:var(--wd);line-height:1.5;">'+
+        'Esta obra mixta arranca con recursos propios del cliente.<br>'+
+        'Cuando Josemiguel active el flujo bancario, te aparecerán acá los pasos:'+
+        '<br>1️⃣ Subir cómputo Excel · 2️⃣ Plano firmado · 3️⃣ Ppto firmado'+
+      '</div>'+
+    '</div>';
+    body.innerHTML=html;
+    return;
+  }
 
   // PASO 1: Cómputo Excel (Carolina)
   html+='<div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;">'+
