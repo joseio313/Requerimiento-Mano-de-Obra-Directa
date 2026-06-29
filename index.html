@@ -784,7 +784,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v86 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v87 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1850,10 +1850,12 @@ async function _verificarAccesoCRM(){
   }catch(e){console.warn('[GEAT] Verificación CRM falló:',e);}
 }
 
-// T35 — Abre el CRM en otra pestaña
+// T35 — Abre el CRM con sesión automática (autopin en URL)
 function _irAlCRM(){
-  if(!confirm('¿Cambiar al sistema CRM?\n\nSe va a abrir en otra pestaña. Vas a tener que ingresar tu mismo PIN para entrar.'))return;
-  window.open('https://joseio313.github.io/Geat-visitas/','_blank');
+  if(!CU||!CU._pin)return;
+  // Construir URL con autopin — el CRM lo lee, loguea y limpia la URL
+  var url='https://joseio313.github.io/Geat-visitas/?autopin='+CU._pin;
+  window.open(url,'_blank');
 }
 function panelInicial(){return{admin:'adm-full',steffi:'steffi',fatima:'fatima',supervisor:'sup',david:'david',carolina:'carolina',lector:'sup'}[CU.r]||'adm-full';}
 
