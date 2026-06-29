@@ -784,7 +784,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v85 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v86 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -813,6 +813,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         </div>
       </div>
       <button class="btn-theme" id="btn-theme" onclick="toggleTema()" title="Cambiar modo día/noche">🌙</button>
+      <button id="btn-ir-crm" onclick="_irAlCRM()" title="Cambiar al sistema CRM" style="display:none;background:rgba(64,108,202,.18);color:#7da7ff;border:1px solid rgba(125,167,255,.4);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;margin-right:6px;">🎯 Ir al CRM</button>
       <div class="hdr-user" onclick="abrirPerfil()" id="hdr-nombre">👤 —</div>
       <button class="btn-exit" onclick="logout()">Salir</button>
     </div>
@@ -1790,8 +1791,10 @@ function tryLogin(){
     return;
   }
   CU={...u};
+  var pinLogin=Object.keys(USERS).find(function(k){return USERS[k].n===u.n;});
+  CU._pin=pinLogin; // T35: guardar PIN para verificar acceso CRM
   // T12: persistir sesión (sobrevive al recargar)
-  try{sessionStorage.setItem('geat_session_pin',Object.keys(USERS).find(function(k){return USERS[k].n===u.n;}));}catch(e){}
+  try{sessionStorage.setItem('geat_session_pin',pinLogin);}catch(e){}
   document.getElementById('screen-login').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
@@ -1800,10 +1803,14 @@ function tryLogin(){
   // T23 FIX: cargar y RE-renderizar (dbCargar internamente llama renderTodo)
   dbCargar().then(function(){console.log('[GEAT] Carga completada - obras:',obras.length);});
   dbLog(u.n,'Sesión iniciada');
+  // T35: verificar si la persona también tiene acceso al CRM
+  _verificarAccesoCRM();
 }
 function logout(){
   CU=null;pinBuf='';
   try{sessionStorage.removeItem('geat_session_pin');}catch(e){}
+  // T35: ocultar botón CRM
+  var b=document.getElementById('btn-ir-crm');if(b)b.style.display='none';
   document.getElementById('screen-login').style.display='flex';
   document.getElementById('app').style.display='none';
   updDots();
@@ -1815,14 +1822,38 @@ function restaurarSesion(){
     if(!pin||!USERS[pin])return false;
     var u=USERS[pin];
     CU={...u};
+    CU._pin=pin; // T35
     document.getElementById('screen-login').style.display='none';
     document.getElementById('app').style.display='block';
     document.getElementById('hdr-nombre').textContent=u.icon+' '+u.n;
     buildNav();
     goPanel(panelInicial());
     dbCargar();
+    _verificarAccesoCRM(); // T35
     return true;
   }catch(e){return false;}
+}
+
+// T35 — Verifica si el usuario actual también está en `colaboradores` (CRM) activo
+async function _verificarAccesoCRM(){
+  var btn=document.getElementById('btn-ir-crm');
+  if(!btn||!CU||!CU._pin)return;
+  try{
+    var res=await sb.from('colaboradores').select('id,nombre,activo').eq('pin',CU._pin).eq('activo',true).maybeSingle();
+    if(res.error){console.warn('[GEAT] No se pudo verificar CRM:',res.error.message);return;}
+    if(res.data){
+      btn.style.display='inline-block';
+      btn.title='Cambiar al sistema CRM (mismo PIN)';
+    } else {
+      btn.style.display='none';
+    }
+  }catch(e){console.warn('[GEAT] Verificación CRM falló:',e);}
+}
+
+// T35 — Abre el CRM en otra pestaña
+function _irAlCRM(){
+  if(!confirm('¿Cambiar al sistema CRM?\n\nSe va a abrir en otra pestaña. Vas a tener que ingresar tu mismo PIN para entrar.'))return;
+  window.open('https://joseio313.github.io/Geat-visitas/','_blank');
 }
 function panelInicial(){return{admin:'adm-full',steffi:'steffi',fatima:'fatima',supervisor:'sup',david:'david',carolina:'carolina',lector:'sup'}[CU.r]||'adm-full';}
 
