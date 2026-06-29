@@ -784,7 +784,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v84 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v85 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1560,18 +1560,18 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         <div id="adm-flujo-bancario-body"></div>
       </div>
 
-      <!-- T30 — GESTIÓN DE USUARIOS (solo admin) -->
+      <!-- T34 — GESTIÓN UNIFICADA DE PERSONAL (solo admin) -->
       <div class="card" id="adm-users-card" style="border-top:3px solid var(--P);margin-bottom:14px;">
         <div class="ct" style="color:var(--Pc);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-          <span>👥 Gestión de Usuarios <span id="adm-users-count" style="font-size:11px;color:var(--ws);font-weight:600;">(0)</span></span>
+          <span>👥 Gestión unificada de personal <span id="adm-users-count" style="font-size:11px;color:var(--ws);font-weight:600;">(0)</span></span>
           <button class="btn btn-o btn-sm" onclick="cargarUsuariosOP1().then(function(){_admUsersRender();toast('Actualizado','success');});">🔄 Recargar</button>
         </div>
-        <div class="al al-z" style="margin-bottom:14px;">📌 Acá controlás quién puede entrar a Operativa 1. Cambios se aplican inmediatamente. <b>Solo admin tiene acceso a esta sección.</b></div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Una sola pantalla controla <b>CRM</b> y <b>Operativa 1</b>. El PIN es único entre los dos sistemas. Cuando lance Operativa 2, se agregará una columna más.</div>
         
-        <!-- Formulario alta -->
+        <!-- Formulario alta UNIFICADO -->
         <div style="background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:10px;">➕ NUEVO USUARIO</div>
-          <div class="fg fg3" style="margin-bottom:10px;">
+          <div style="font-size:11px;font-weight:700;color:var(--am);margin-bottom:10px;">➕ NUEVA PERSONA</div>
+          <div class="fg fg2" style="margin-bottom:10px;">
             <div class="f">
               <label>Nombre completo *</label>
               <input id="admu-nombre" placeholder="Ej. Juan Pérez">
@@ -1580,28 +1580,48 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
               <label>PIN (4 dígitos) *</label>
               <input id="admu-pin" maxlength="4" inputmode="numeric" pattern="[0-9]{4}" placeholder="0000">
             </div>
-            <div class="f">
-              <label>Rol *</label>
-              <select id="admu-rol">
-                <option value="">— Elegir rol —</option>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:10px;">
+            <!-- Acceso CRM -->
+            <div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:10px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--wd);margin-bottom:6px;cursor:pointer;">
+                <input type="checkbox" id="admu-crm-on" style="margin:0;" onchange="_admToggleCRM()">
+                🎯 Acceso CRM (Geat-visitas)
+              </label>
+              <select id="admu-rol-crm" disabled style="width:100%;font-size:11px;">
+                <option value="">— Elegir rol CRM —</option>
                 <option value="admin">⚙️ Administrador</option>
-                <option value="steffi">⚖️ Legal/Administrativa (Steffi)</option>
-                <option value="fatima">📋 Técnica (Fátima)</option>
-                <option value="supervisor">🏗️ Supervisor de campo</option>
-                <option value="david">📐 Cerrador (David/Gustavo)</option>
-                <option value="carolina">📋 Gabinete técnico (Carolina)</option>
+                <option value="commercial_lead">📐 Cerrador</option>
+                <option value="field_capturer">🎯 Captador</option>
+                <option value="tecnico">📋 Técnico</option>
+              </select>
+            </div>
+            <!-- Acceso OP1 -->
+            <div style="background:var(--p2);border:1px solid var(--bd);border-radius:8px;padding:10px;">
+              <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--wd);margin-bottom:6px;cursor:pointer;">
+                <input type="checkbox" id="admu-op1-on" style="margin:0;" onchange="_admToggleOP1()">
+                🏗️ Acceso Operativa 1
+              </label>
+              <select id="admu-rol-op1" disabled style="width:100%;font-size:11px;">
+                <option value="">— Elegir rol OP1 —</option>
+                <option value="admin">⚙️ Administrador</option>
+                <option value="steffi">⚖️ Legal/Admin</option>
+                <option value="fatima">📋 Técnica</option>
+                <option value="supervisor">🏗️ Supervisor</option>
+                <option value="david">📐 Cerrador</option>
+                <option value="carolina">📋 Gabinete</option>
                 <option value="lector">👀 Solo lectura</option>
               </select>
             </div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-y btn-sm" onclick="_admUsersCrear()">💾 Guardar usuario</button>
+            <button class="btn btn-y btn-sm" onclick="_admUsersCrear()">💾 Guardar persona</button>
             <button class="btn btn-o btn-sm" onclick="_admUsersLimpiarForm()">🔄 Limpiar</button>
           </div>
-          <div style="font-size:9px;color:var(--ws);margin-top:6px;">El PIN debe ser único y de 4 dígitos. El rol define a qué paneles tiene acceso.</div>
+          <div style="font-size:9px;color:var(--ws);margin-top:6px;">Marcá al menos un sistema. El PIN no puede repetirse entre personas.</div>
         </div>
         
-        <!-- Lista de usuarios -->
+        <!-- Lista de personas -->
         <div id="adm-users-list"></div>
       </div>
 
@@ -4249,11 +4269,13 @@ function _renderDvFlujoBancario(){
     var hayPlanos=!!o.plano_firmado_archivo;
     var entregado=!!o.entregado_banco;
     var desembolsado=!!o.fecha_desembolso_banco;
+    var pendienteInicio=o.estado_financiamiento==='pendiente_inicio'; // T33
     var fechaEntr=o.entregado_banco_fecha?new Date(o.entregado_banco_fecha).toLocaleDateString('es-BO'):'';
     var fechaDes=o.fecha_desembolso_banco?new Date(o.fecha_desembolso_banco).toLocaleDateString('es-BO'):'';
     // Estado
     var estado='';
     if(desembolsado)estado='<span style="background:rgba(4,120,86,.15);color:var(--Gc);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">🎉 DESEMBOLSADO '+fechaDes+'</span>';
+    else if(pendienteInicio)estado='<span style="background:rgba(59,130,246,.15);color:#3b82f6;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">💵🏦 EN STANDBY · construye con recursos propios</span>';
     else if(entregado)estado='<span style="background:rgba(245,158,11,.15);color:#f59e0b;font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">📤 ENTREGADO AL BANCO '+fechaEntr+'</span>';
     else if(hayFirmado)estado='<span style="background:rgba(245,196,0,.15);color:var(--am);font-size:9px;padding:2px 8px;border-radius:10px;font-weight:700;">✅ LISTO PARA LLEVAR AL BANCO</span>';
     else if(hayPpto)estado='<span style="font-size:9px;color:var(--ws);">⏳ Esperando firma de Carolina</span>';
@@ -4280,9 +4302,11 @@ function _renderDvFlujoBancario(){
         ((hayPlanos||hayFirmado)?
           '<button class="btn btn-y btn-sm" onclick="_dvDescargarPaqueteBanco('+o.id+')">⬇️ Descargar TODO en 1 PDF</button>':'')+
       '</div>'+
-      // Botón entregar
+      // Botón entregar (deshabilitado si standby o si no hay firmado)
       (!entregado?
-        '<button class="btn btn-y" '+(!hayFirmado?'disabled style="opacity:.5;"':'')+' onclick="_dvMarcarEntregadoBanco('+o.id+')">📤 Marcar como entregado al banco</button>':
+        (pendienteInicio?
+          '<div style="font-size:11px;color:var(--ws);font-style:italic;padding:8px 0;">⏸️ Flujo bancario en standby — Josemiguel debe activarlo cuando llegue el momento del saldo.</div>':
+          '<button class="btn btn-y" '+(!hayFirmado?'disabled style="opacity:.5;"':'')+' onclick="_dvMarcarEntregadoBanco('+o.id+')">📤 Marcar como entregado al banco</button>'):
         '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--Gc);">'+
           '✅ Entregaste al banco el '+fechaEntr+
           (esAdmin&&!desembolsado?' <button class="btn btn-o btn-sm" onclick="_dvDesmarcarEntregadoBanco('+o.id+')">↩️ Desmarcar</button>':'')+
@@ -4691,19 +4715,36 @@ async function _admActivarFlujoBancario(oid){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// T30 — GESTIÓN DE USUARIOS (solo admin)
+// T34 — GESTIÓN UNIFICADA DE PERSONAL (CRM + Operativa 1)
 // ═══════════════════════════════════════════════════════════════
 const _OP1_ROLES={
+  'admin':{label:'Administrador',color:'var(--am)',icon:'⚙️'},
+  'steffi':{label:'Legal/Admin',color:'var(--Zc)',icon:'⚖️'},
+  'fatima':{label:'Técnica',color:'var(--Gc)',icon:'📋'},
+  'supervisor':{label:'Supervisor',color:'var(--Pc)',icon:'🏗️'},
+  'david':{label:'Cerrador',color:'var(--Pc)',icon:'📐'},
+  'carolina':{label:'Gabinete',color:'var(--Gc)',icon:'📋'},
+  'lector':{label:'Solo lectura',color:'var(--ws)',icon:'👀'}
+};
+const _CRM_ROLES={
   'admin':{label:'Administrador',color:'var(--am)'},
-  'steffi':{label:'Legal/Admin (Steffi)',color:'var(--Zc)'},
-  'fatima':{label:'Técnica (Fátima)',color:'var(--Gc)'},
-  'supervisor':{label:'Supervisor campo',color:'var(--Pc)'},
-  'david':{label:'Cerrador',color:'var(--Pc)'},
-  'carolina':{label:'Gabinete (Carolina)',color:'var(--Gc)'},
-  'lector':{label:'Solo lectura',color:'var(--ws)'}
+  'commercial_lead':{label:'Cerrador',color:'var(--Pc)'},
+  'field_capturer':{label:'Captador',color:'var(--Zc)'},
+  'tecnico':{label:'Técnico',color:'var(--Gc)'}
 };
 
-let _admUsersData=[]; // cache de usuarios cargados (incluye inactivos)
+let _admUsersData=[]; // cache de personas unificadas: {pin, nombre, crm:{...}|null, op1:{...}|null}
+
+function _admToggleCRM(){
+  var on=document.getElementById('admu-crm-on');
+  var sel=document.getElementById('admu-rol-crm');
+  if(sel)sel.disabled=!(on&&on.checked);
+}
+function _admToggleOP1(){
+  var on=document.getElementById('admu-op1-on');
+  var sel=document.getElementById('admu-rol-op1');
+  if(sel)sel.disabled=!(on&&on.checked);
+}
 
 async function _admUsersRender(){
   if(!CU||CU.r!=='admin')return;
@@ -4712,38 +4753,61 @@ async function _admUsersRender(){
   if(!list)return;
   list.innerHTML='<div style="color:var(--ws);font-size:11px;padding:8px;">Cargando...</div>';
   try{
-    var res=await sb.from('colaboradores_op1').select('*').order('activo',{ascending:false}).order('nombre');
-    if(res.error)throw new Error(res.error.message);
-    _admUsersData=res.data||[];
+    // Cargar ambas tablas en paralelo
+    var resCRM=sb.from('colaboradores').select('id,nombre,rol,pin,activo');
+    var resOP1=sb.from('colaboradores_op1').select('id,nombre,rol,pin,icon,activo');
+    var rs=await Promise.all([resCRM,resOP1]);
+    if(rs[0].error)throw new Error('CRM: '+rs[0].error.message);
+    if(rs[1].error)throw new Error('OP1: '+rs[1].error.message);
+    var crm=rs[0].data||[];
+    var op1=rs[1].data||[];
+    // Unir por PIN
+    var pinMap={};
+    crm.forEach(function(u){
+      pinMap[u.pin]={pin:u.pin,nombre:u.nombre,crm:{id:u.id,rol:u.rol,activo:u.activo},op1:null};
+    });
+    op1.forEach(function(u){
+      if(pinMap[u.pin]){
+        pinMap[u.pin].op1={id:u.id,rol:u.rol,activo:u.activo,icon:u.icon};
+        // Si CRM tiene nombre distinto, priorizar nombre de OP1 (más reciente normalmente)
+        if(pinMap[u.pin].nombre!==u.nombre)pinMap[u.pin].nombre=u.nombre;
+      } else {
+        pinMap[u.pin]={pin:u.pin,nombre:u.nombre,crm:null,op1:{id:u.id,rol:u.rol,activo:u.activo,icon:u.icon}};
+      }
+    });
+    _admUsersData=Object.values(pinMap).sort(function(a,b){
+      // Activos primero (en cualquier sistema), después por nombre
+      var aAct=(a.crm&&a.crm.activo)||(a.op1&&a.op1.activo);
+      var bAct=(b.crm&&b.crm.activo)||(b.op1&&b.op1.activo);
+      if(aAct!==bAct)return aAct?-1:1;
+      return (a.nombre||'').localeCompare(b.nombre||'');
+    });
     if(count)count.textContent='('+_admUsersData.length+')';
     if(!_admUsersData.length){
-      list.innerHTML='<div style="color:var(--ws);font-size:11px;padding:8px;">Sin usuarios.</div>';
+      list.innerHTML='<div style="color:var(--ws);font-size:11px;padding:8px;">Sin personas.</div>';
       return;
     }
     var h='<div style="overflow-x:auto;"><table style="width:100%;font-size:11px;border-collapse:collapse;">'+
       '<thead><tr style="border-bottom:1px solid var(--bd);text-align:left;color:var(--ws);font-size:9px;text-transform:uppercase;letter-spacing:1px;">'+
-        '<th style="padding:8px 6px;">Nombre</th>'+
-        '<th style="padding:8px 6px;">Rol</th>'+
+        '<th style="padding:8px 6px;">Persona</th>'+
         '<th style="padding:8px 6px;">PIN</th>'+
-        '<th style="padding:8px 6px;">Estado</th>'+
+        '<th style="padding:8px 6px;">🎯 CRM</th>'+
+        '<th style="padding:8px 6px;">🏗️ Operativa 1</th>'+
         '<th style="padding:8px 6px;text-align:right;">Acciones</th>'+
       '</tr></thead><tbody>';
     for(var i=0;i<_admUsersData.length;i++){
-      var u=_admUsersData[i];
-      var rolInfo=_OP1_ROLES[u.rol]||{label:u.rol,color:'var(--ws)'};
-      var estado=u.activo?
-        '<span style="color:var(--Gc);font-weight:700;">● Activo</span>':
-        '<span style="color:var(--ws);">○ Inactivo</span>';
-      h+='<tr style="border-bottom:1px solid var(--bd);'+(u.activo?'':'opacity:.55;')+'">'+
-        '<td style="padding:8px 6px;font-weight:700;">'+(u.icon||'👤')+' '+u.nombre+'</td>'+
-        '<td style="padding:8px 6px;color:'+rolInfo.color+';">'+rolInfo.label+'</td>'+
-        '<td style="padding:8px 6px;font-family:monospace;letter-spacing:2px;">'+(u.activo?u.pin:'****')+'</td>'+
-        '<td style="padding:8px 6px;">'+estado+'</td>'+
+      var p=_admUsersData[i];
+      var anyActive=(p.crm&&p.crm.activo)||(p.op1&&p.op1.activo);
+      var crmCell=_admBadgeSistema(p.crm,_CRM_ROLES);
+      var op1Cell=_admBadgeSistema(p.op1,_OP1_ROLES);
+      var icon=(p.op1&&p.op1.icon)||'👤';
+      h+='<tr style="border-bottom:1px solid var(--bd);'+(anyActive?'':'opacity:.55;')+'">'+
+        '<td style="padding:8px 6px;font-weight:700;">'+icon+' '+p.nombre+'</td>'+
+        '<td style="padding:8px 6px;font-family:monospace;letter-spacing:2px;">'+p.pin+'</td>'+
+        '<td style="padding:8px 6px;">'+crmCell+'</td>'+
+        '<td style="padding:8px 6px;">'+op1Cell+'</td>'+
         '<td style="padding:8px 6px;text-align:right;white-space:nowrap;">'+
-          '<button class="btn btn-o btn-sm" onclick="_admUsersEditar('+u.id+')">✏️ Editar</button> '+
-          (u.activo?
-            '<button class="btn btn-r btn-sm" onclick="_admUsersDesactivar('+u.id+')">🚫 Desactivar</button>':
-            '<button class="btn btn-y btn-sm" onclick="_admUsersReactivar('+u.id+')">↩️ Reactivar</button>')+
+          '<button class="btn btn-o btn-sm" onclick="_admUsersEditar(\''+p.pin+'\')">✏️ Editar</button>'+
         '</td>'+
       '</tr>';
     }
@@ -4751,113 +4815,128 @@ async function _admUsersRender(){
     list.innerHTML=h;
   }catch(e){
     list.innerHTML='<div style="color:var(--Rc);font-size:11px;padding:8px;">Error: '+e.message+'</div>';
+    console.error('_admUsersRender:',e);
   }
+}
+
+function _admBadgeSistema(sysData,rolesMap){
+  if(!sysData)return '<span style="color:var(--ws);font-size:10px;">—</span>';
+  if(!sysData.activo){
+    return '<span style="background:var(--p1);color:var(--ws);font-size:9px;padding:2px 7px;border-radius:10px;">○ inactivo</span>';
+  }
+  var rolInfo=rolesMap[sysData.rol]||{label:sysData.rol,color:'var(--ws)'};
+  return '<span style="background:rgba(4,120,86,.15);color:'+rolInfo.color+';font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;">● '+rolInfo.label+'</span>';
 }
 
 function _admUsersLimpiarForm(){
-  var n=document.getElementById('admu-nombre');if(n)n.value='';
-  var p=document.getElementById('admu-pin');if(p)p.value='';
-  var r=document.getElementById('admu-rol');if(r)r.value='';
+  ['admu-nombre','admu-pin'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});
+  ['admu-rol-crm','admu-rol-op1'].forEach(function(id){var e=document.getElementById(id);if(e){e.value='';e.disabled=true;}});
+  ['admu-crm-on','admu-op1-on'].forEach(function(id){var e=document.getElementById(id);if(e)e.checked=false;});
 }
 
 async function _admUsersCrear(){
-  if(!CU||CU.r!=='admin'){toast('Solo admin puede crear usuarios','warning');return;}
-  var nombre=(document.getElementById('admu-nombre')||{}).value||'';
-  var pin=(document.getElementById('admu-pin')||{}).value||'';
-  var rol=(document.getElementById('admu-rol')||{}).value||'';
-  nombre=nombre.trim();
-  pin=pin.trim();
-  if(!nombre){toast('Ingresá un nombre','warning');return;}
-  if(!/^[0-9]{4}$/.test(pin)){toast('PIN debe ser 4 dígitos numéricos','warning');return;}
-  if(!_OP1_ROLES[rol]){toast('Elegí un rol válido','warning');return;}
-  // Ícono según rol
-  var iconMap={admin:'⚙️',steffi:'⚖️',fatima:'📋',supervisor:'🏗️',david:'📐',carolina:'📋',lector:'👀'};
-  var icon=iconMap[rol]||'👤';
+  if(!CU||CU.r!=='admin'){toast('Solo admin puede crear personas','warning');return;}
+  var nombre=((document.getElementById('admu-nombre')||{}).value||'').trim();
+  var pin=((document.getElementById('admu-pin')||{}).value||'').trim();
+  var crmOn=(document.getElementById('admu-crm-on')||{}).checked;
+  var op1On=(document.getElementById('admu-op1-on')||{}).checked;
+  var rolCRM=(document.getElementById('admu-rol-crm')||{}).value||'';
+  var rolOP1=(document.getElementById('admu-rol-op1')||{}).value||'';
+  if(!nombre){toast('Ingresá nombre','warning');return;}
+  if(!/^[0-9]{4}$/.test(pin)){toast('PIN debe ser 4 dígitos','warning');return;}
+  if(!crmOn&&!op1On){toast('Marcá al menos un sistema (CRM o Operativa 1)','warning');return;}
+  if(crmOn&&!_CRM_ROLES[rolCRM]){toast('Elegí rol CRM','warning');return;}
+  if(op1On&&!_OP1_ROLES[rolOP1]){toast('Elegí rol Operativa 1','warning');return;}
+  // Validar PIN no usado en otra persona (en cualquier tabla)
+  var pinTomado=_admUsersData.find(function(p){return p.pin===pin;});
+  if(pinTomado){toast('El PIN '+pin+' ya está usado por "'+pinTomado.nombre+'"','error');return;}
   try{
-    var res=await sb.from('colaboradores_op1').insert({nombre:nombre,rol:rol,pin:pin,icon:icon,activo:true}).select().single();
-    if(res.error){
-      if(res.error.message&&res.error.message.indexOf('colaboradores_op1_pin_key')>=0){
-        toast('El PIN '+pin+' ya está en uso. Elegí otro.','error');
-      } else {
-        toast('Error: '+res.error.message,'error');
-      }
-      return;
+    if(crmOn){
+      var rCrm=await sb.from('colaboradores').insert({nombre:nombre,rol:rolCRM,pin:pin,activo:true});
+      if(rCrm.error)throw new Error('CRM: '+rCrm.error.message);
     }
-    toast('Usuario "'+nombre+'" creado','success','✅');
+    if(op1On){
+      var icon=_OP1_ROLES[rolOP1].icon||'👤';
+      var rOp1=await sb.from('colaboradores_op1').insert({nombre:nombre,rol:rolOP1,pin:pin,icon:icon,activo:true});
+      if(rOp1.error)throw new Error('OP1: '+rOp1.error.message);
+    }
+    var sistemas=[];if(crmOn)sistemas.push('CRM');if(op1On)sistemas.push('Operativa 1');
+    toast('"'+nombre+'" creada en '+sistemas.join(' + '),'success','✅');
     _admUsersLimpiarForm();
     await cargarUsuariosOP1();
     _admUsersRender();
-  }catch(e){toast('Error: '+e.message,'error');}
+  }catch(e){toast('Error: '+e.message,'error');console.error(e);}
 }
 
-async function _admUsersEditar(id){
+async function _admUsersEditar(pin){
   if(!CU||CU.r!=='admin')return;
-  var u=_admUsersData.find(function(x){return x.id===id;});
-  if(!u){toast('Usuario no encontrado','error');return;}
-  var nuevoNombre=prompt('Nombre completo:',u.nombre);
+  var p=_admUsersData.find(function(x){return x.pin===pin;});
+  if(!p){toast('Persona no encontrada','error');return;}
+  // Editor por prompts (simple, rápido)
+  var nuevoNombre=prompt('Nombre completo:',p.nombre);
   if(nuevoNombre===null)return;
   nuevoNombre=nuevoNombre.trim();
-  if(!nuevoNombre){toast('Nombre no puede estar vacío','warning');return;}
-  var nuevoPin=prompt('PIN (4 dígitos):',u.pin);
+  if(!nuevoNombre){toast('Nombre vacío','warning');return;}
+  var nuevoPin=prompt('PIN (4 dígitos):',p.pin);
   if(nuevoPin===null)return;
   nuevoPin=nuevoPin.trim();
-  if(!/^[0-9]{4}$/.test(nuevoPin)){toast('PIN debe ser 4 dígitos numéricos','warning');return;}
-  var rolesValidos=Object.keys(_OP1_ROLES).join('/');
-  var nuevoRol=prompt('Rol ('+rolesValidos+'):',u.rol);
-  if(nuevoRol===null)return;
-  nuevoRol=nuevoRol.trim();
-  if(!_OP1_ROLES[nuevoRol]){toast('Rol inválido. Usá uno de: '+rolesValidos,'warning');return;}
-  var iconMap={admin:'⚙️',steffi:'⚖️',fatima:'📋',supervisor:'🏗️',david:'📐',carolina:'📋',lector:'👀'};
-  try{
-    var res=await sb.from('colaboradores_op1').update({
-      nombre:nuevoNombre,
-      pin:nuevoPin,
-      rol:nuevoRol,
-      icon:iconMap[nuevoRol]||u.icon||'👤'
-    }).eq('id',id).select().single();
-    if(res.error){
-      if(res.error.message&&res.error.message.indexOf('colaboradores_op1_pin_key')>=0){
-        toast('El PIN '+nuevoPin+' ya está en uso por otro usuario','error');
-      } else {
-        toast('Error: '+res.error.message,'error');
-      }
-      return;
-    }
-    toast('Usuario actualizado','success','✅');
-    await cargarUsuariosOP1();
-    _admUsersRender();
-  }catch(e){toast('Error: '+e.message,'error');}
-}
-
-async function _admUsersDesactivar(id){
-  if(!CU||CU.r!=='admin')return;
-  var u=_admUsersData.find(function(x){return x.id===id;});
-  if(!u)return;
-  if(u.id===CU.id||u.pin===Object.keys(USERS).find(function(p){return USERS[p].id===CU.id;})){
-    toast('No podés desactivarte a vos mismo','warning');return;
+  if(!/^[0-9]{4}$/.test(nuevoPin)){toast('PIN debe ser 4 dígitos','warning');return;}
+  if(nuevoPin!==p.pin){
+    var pinTomado=_admUsersData.find(function(x){return x.pin===nuevoPin;});
+    if(pinTomado){toast('PIN ya usado por "'+pinTomado.nombre+'"','error');return;}
   }
-  if(!confirm('¿Desactivar a "'+u.nombre+'"? Ya no podrá entrar a Operativa 1.\n\nLos datos históricos se mantienen. Podés reactivarlo cuando quieras.'))return;
+  // Rol CRM
+  var nuevoRolCRM=p.crm?p.crm.rol:null;
+  if(p.crm){
+    var rolesC=Object.keys(_CRM_ROLES).join('/');
+    var nr=prompt('Rol CRM ('+rolesC+') — vacío para QUITAR acceso CRM:',p.crm.rol);
+    if(nr===null)return;
+    nr=nr.trim();
+    if(nr===''){nuevoRolCRM='__remove__';}
+    else if(!_CRM_ROLES[nr]){toast('Rol CRM inválido','warning');return;}
+    else nuevoRolCRM=nr;
+  }
+  // Rol OP1
+  var nuevoRolOP1=p.op1?p.op1.rol:null;
+  if(p.op1){
+    var rolesO=Object.keys(_OP1_ROLES).join('/');
+    var no=prompt('Rol Operativa 1 ('+rolesO+') — vacío para QUITAR acceso OP1:',p.op1.rol);
+    if(no===null)return;
+    no=no.trim();
+    if(no===''){nuevoRolOP1='__remove__';}
+    else if(!_OP1_ROLES[no]){toast('Rol OP1 inválido','warning');return;}
+    else nuevoRolOP1=no;
+  }
+  if(!confirm('Confirmar cambios para "'+nuevoNombre+'":\n'+
+    '• PIN: '+nuevoPin+'\n'+
+    '• CRM: '+(nuevoRolCRM==='__remove__'?'QUITAR':(nuevoRolCRM||'sin cambios'))+'\n'+
+    '• OP1: '+(nuevoRolOP1==='__remove__'?'QUITAR':(nuevoRolOP1||'sin cambios'))))return;
   try{
-    var res=await sb.from('colaboradores_op1').update({activo:false}).eq('id',id);
-    if(res.error)throw new Error(res.error.message);
-    toast('Usuario desactivado','info');
+    // CRM
+    if(p.crm){
+      if(nuevoRolCRM==='__remove__'){
+        var rd=await sb.from('colaboradores').update({activo:false}).eq('id',p.crm.id);
+        if(rd.error)throw new Error('CRM desactivar: '+rd.error.message);
+      } else {
+        var ru=await sb.from('colaboradores').update({nombre:nuevoNombre,pin:nuevoPin,rol:nuevoRolCRM}).eq('id',p.crm.id);
+        if(ru.error)throw new Error('CRM update: '+ru.error.message);
+      }
+    }
+    // OP1
+    if(p.op1){
+      if(nuevoRolOP1==='__remove__'){
+        var rd2=await sb.from('colaboradores_op1').update({activo:false}).eq('id',p.op1.id);
+        if(rd2.error)throw new Error('OP1 desactivar: '+rd2.error.message);
+      } else {
+        var icon=_OP1_ROLES[nuevoRolOP1].icon||p.op1.icon||'👤';
+        var ru2=await sb.from('colaboradores_op1').update({nombre:nuevoNombre,pin:nuevoPin,rol:nuevoRolOP1,icon:icon}).eq('id',p.op1.id);
+        if(ru2.error)throw new Error('OP1 update: '+ru2.error.message);
+      }
+    }
+    toast('"'+nuevoNombre+'" actualizada','success','✅');
     await cargarUsuariosOP1();
     _admUsersRender();
-  }catch(e){toast('Error: '+e.message,'error');}
-}
-
-async function _admUsersReactivar(id){
-  if(!CU||CU.r!=='admin')return;
-  var u=_admUsersData.find(function(x){return x.id===id;});
-  if(!u)return;
-  if(!confirm('¿Reactivar a "'+u.nombre+'"? Volverá a poder entrar con su PIN.'))return;
-  try{
-    var res=await sb.from('colaboradores_op1').update({activo:true}).eq('id',id);
-    if(res.error)throw new Error(res.error.message);
-    toast('Usuario reactivado','success','✅');
-    await cargarUsuariosOP1();
-    _admUsersRender();
-  }catch(e){toast('Error: '+e.message,'error');}
+  }catch(e){toast('Error: '+e.message,'error');console.error(e);}
 }
 
 function _dvPendientes(o){
