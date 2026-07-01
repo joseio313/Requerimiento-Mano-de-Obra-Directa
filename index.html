@@ -489,6 +489,7 @@ function mapContrato(c){return{
   contrato_firmado_subido_por:c.contrato_firmado_subido_por||null,
   contrato_firmado_fecha:c.contrato_firmado_fecha||null,
   cronograma_quincenal:c.cronograma_quincenal||[],
+  items_obra:c.items_obra||[],
   plazo_planos_dias:c.plazo_planos_dias||8,
   planos_pendientes_alerta:c.planos_pendientes_alerta||false,
   // T19 — 2 nuevos docs de Carolina + confirmación
@@ -532,7 +533,8 @@ async function dbGuardarContrato(c){
     aprobado_por:c.aprobado_por||null,
     fecha_registro:c.fec_iso||new Date().toISOString().slice(0,10),
     ediciones_count:c.ed_count||0,historial_cambios:c.historial||[],
-    contrato_bloqueado:c.bloqueado||false
+    contrato_bloqueado:c.bloqueado||false,
+    items_obra:c.items_obra||[]
   };
   if(!esTemp&&c.id)payload.id=c.id;
   const {data,error}=await sb.from('rec_contratos').upsert(payload,{onConflict:'id'}).select().single();
@@ -784,7 +786,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v87 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v88 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1204,6 +1206,18 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
             <div class="fg fg2" style="margin-bottom:14px;">
               <div class="f full"><label>Condiciones especiales pactadas</label><textarea id="adm-ct-cond" rows="2" placeholder="Condiciones de ejecución, materiales a cargo, herramientas especiales..."></textarea></div>
               <div class="f full"><label>Datos de negociación (precio final, ajustes, acuerdos)</label><textarea id="adm-ct-neg" rows="3" placeholder="ej: Se acordó precio de $8,500 USD por la obra completa. Se incluye movilización. Pago 30/40/30 según avance verificado por supervisor..."></textarea></div>
+            </div>
+
+            <!-- 📦 ITEMS / MÓDULOS DE LA OBRA (auto desde Fátima) -->
+            <div id="adm-ct-items-wrap" style="background:rgba(64,108,202,.06);border:1px solid rgba(125,167,255,.35);border-radius:6px;padding:14px;margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                <div>
+                  <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#7da7ff;font-weight:700;">📦 Items / Módulos a ejecutar</div>
+                  <div style="font-size:10px;color:var(--wd);margin-top:2px;">Estos son los módulos que cargó Fátima para esta obra. El contratista los ejecuta.</div>
+                </div>
+                <button type="button" class="btn btn-o btn-sm" onclick="_admItemAdd()">+ Item</button>
+              </div>
+              <div id="adm-ct-items" style="margin-top:10px;"></div>
             </div>
 
             <!-- ⏱ CRONOGRAMA QUINCENAL DE AVANCE -->
@@ -3191,7 +3205,7 @@ function admSelObra(oid){
       <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 2 — 40%</div><div style="font-size:12px;font-weight:900;">$${p2u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p2b.toLocaleString('es-BO')}</div></div>
       <div style="background:var(--Gbg);border-radius:4px;padding:8px;text-align:center;"><div style="font-size:11px;color:var(--Gc);font-weight:700;">Pago 3 — 30%</div><div style="font-size:12px;font-weight:900;">$${p3u}</div><div style="font-size:9px;color:var(--ws);">Bs ${p3b.toLocaleString('es-BO')}</div></div>
     </div>
-    '+(o.mods&&o.mods.length?'<div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Módulos confirmados por Fátima</div><div class="mods-grid">'+o.mods.map(function(m,i){return '<div class="mod-item"><span class="mod-num">M'+String(i+1).padStart(2,'0')+'</span> '+m+'</div>';}).join('')+'</div>':'')+'
+    ${o.mods&&o.mods.length?`<div style="font-size:9px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Módulos confirmados por Fátima</div><div class="mods-grid">${o.mods.map(function(m,i){return '<div class="mod-item"><span class="mod-num">M'+String(i+1).padStart(2,'0')+'</span> '+m+'</div>';}).join('')}</div>`:''}
   </div>`;
   opc.style.display='block';
   form.style.display='none';
@@ -3212,6 +3226,10 @@ function admOpcion(tipo){
     // Inicializar cronograma vacío (Josemiguel lo arma o usa Auto-distribuir)
     admCrono=[];
     admCronoRender();
+    // T36 — Cargar items/módulos de la obra automáticamente desde Fátima
+    var oSel=obras.find(function(x){return x.id===admObraId;});
+    admItems=(oSel&&Array.isArray(oSel.mods))?oSel.mods.slice():[];
+    _admItemsRender();
     form.scrollIntoView({behavior:'smooth'});
   }
 }
@@ -3261,19 +3279,21 @@ async function admGuardarContratista(){
     };
   });
   const textoContrato=generarContrato(nom,ci_n,dir,o,cond,neg,cronoVal);
+  // T36 — Items/módulos definidos (limpiar vacíos)
+  var itemsLimpios=admItems.map(function(s){return String(s||'').trim();}).filter(function(s){return s.length>0;});
   const ct={id:Date.now(),nom,tel,ci_n,dir,oid:admObraId,
     ci:ctFiles.ci?.name||null,ag:ctFiles.ag?.name||null,lz:ctFiles.lz?.name||null,
     cond,negociacion:neg,est:'generado',est_ct:'generado',
     texto:textoContrato,firm_scan:null,aprobado_por:null,
     ed_count:0,historial:[],bloqueado:false,
     fec_iso:new Date().toISOString().slice(0,10),
-    cronograma_quincenal:cronoVal};
+    cronograma_quincenal:cronoVal,items_obra:itemsLimpios};
   contratos.push(ct);
   try{
     await dbGuardarContrato(ct);
-    // Guardar cronograma por separado
-    if(cronoVal.length){
-      await sb.from('rec_contratos').update({cronograma_quincenal:cronoVal}).eq('id',ct.id);
+    // Guardar cronograma + items por separado
+    if(cronoVal.length||itemsLimpios.length){
+      await sb.from('rec_contratos').update({cronograma_quincenal:cronoVal,items_obra:itemsLimpios}).eq('id',ct.id);
     }
     // Subir docs identificación
     if(ctFiles.ci){const p=storagePath('contratos',ct.id,'ci',ctFiles.ci.name);await storageUpload(p,ctFiles.ci);ct.ci=p;}
@@ -3295,6 +3315,7 @@ function admLimpiar(){
   document.getElementById('adm-obra-preview').style.display='none';
   document.getElementById('adm-sel-obra').value='';admObraId=null;
   admCrono=[];admCronoRender();
+  admItems=[];_admItemsRender();
 }
 
 function renderAdmTabla(){
@@ -5792,6 +5813,42 @@ async function _supVerArchivo(fname){
 // CRONOGRAMA QUINCENAL — admin asigna contratista
 // ═══════════════════════════════════════════════════
 let admCrono=[];
+
+// ═══════════════════════════════════════════════════════════════
+// T36 — ITEMS / MÓDULOS DE OBRA (auto desde Fátima, editable por admin)
+// ═══════════════════════════════════════════════════════════════
+let admItems=[];
+
+function _admItemsRender(){
+  var el=document.getElementById('adm-ct-items');
+  if(!el)return;
+  if(!admItems.length){
+    el.innerHTML='<div style="text-align:center;padding:12px;color:var(--ws);font-size:11px;">Esta obra no tiene módulos cargados por Fátima. Podés agregarlos manualmente con "+ Item".</div>';
+    return;
+  }
+  el.innerHTML=admItems.map(function(item,i){
+    return '<div style="display:grid;grid-template-columns:44px 1fr 30px;gap:6px;align-items:center;margin-bottom:6px;">'+
+      '<div style="font-size:11px;color:#7da7ff;font-weight:700;text-align:center;">M'+String(i+1).padStart(2,'0')+'</div>'+
+      '<input type="text" value="'+String(item).replace(/"/g,'&quot;')+'" onchange="_admItemEdit('+i+',this.value)" style="padding:6px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;color:var(--w);font-size:11px;" placeholder="ej: Cimientos y estructura">'+
+      '<button type="button" onclick="_admItemDel('+i+')" style="background:none;border:none;color:var(--Rc);cursor:pointer;font-size:14px;">✕</button>'+
+      '</div>';
+  }).join('');
+}
+
+function _admItemAdd(){
+  admItems.push('');
+  _admItemsRender();
+}
+
+function _admItemEdit(i,v){
+  if(i>=0&&i<admItems.length)admItems[i]=v;
+}
+
+function _admItemDel(i){
+  admItems.splice(i,1);
+  _admItemsRender();
+}
+
 
 function admCronoRender(){
   var el=document.getElementById('adm-crono-rows');
