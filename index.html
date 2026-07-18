@@ -489,6 +489,13 @@ function mapObra(o){return{
   planos_propietario_subido_por:o.planos_propietario_subido_por||null,
   planos_propietario_fecha:o.planos_propietario_fecha||null,
   especificaciones_pdf:o.especificaciones_pdf||null,
+  especificaciones_texto:o.especificaciones_texto||null,
+  especificaciones_estado:o.especificaciones_estado||'borrador',
+  especificaciones_observacion:o.especificaciones_observacion||null,
+  especificaciones_redactor:o.especificaciones_redactor||null,
+  especificaciones_aprobada_por:o.especificaciones_aprobada_por||null,
+  especificaciones_aprobada_fecha:o.especificaciones_aprobada_fecha||null,
+  especificaciones_formato:o.especificaciones_formato||'pdf',
   especificaciones_subido_por:o.especificaciones_subido_por||null,
   especificaciones_fecha:o.especificaciones_fecha||null,
   materiales_pdf:o.materiales_pdf||null,
@@ -971,7 +978,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v90 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v92 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1198,6 +1205,13 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         <div class="flujo-paso f-pend"><div class="fp-ico">👤</div><div class="fp-num">PASO 3</div><div class="fp-label">Admin contratista</div></div>
         <div class="flujo-paso f-pend"><div class="fp-ico">⚖️</div><div class="fp-num">PASO 4</div><div class="fp-label">Steffi aprueba</div></div>
         <div class="flujo-paso f-pend"><div class="fp-ico">✅</div><div class="fp-num">PASO 5</div><div class="fp-label">Firmado</div></div>
+      </div>
+
+      <!-- T40 — ESPECIFICACIONES (Fátima solo VE el estado, no aprueba) -->
+      <div class="card" id="fat-espec-card" style="border-top:3px solid #38bdf8;display:none;">
+        <div class="ct" style="color:#38bdf8;">📋 Estado de especificaciones <span id="fat-espec-count" style="font-size:11px;color:var(--ws);font-weight:600;"></span></div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">👁️ Vista de supervisión. Acá ves en qué estado están las especificaciones de cada obra. La revisión y aprobación las hace Carolina (gabinete técnico).</div>
+        <div id="fat-espec-list"></div>
       </div>
 
       <div class="card" style="border-top:3px solid #38bdf8;">
@@ -1583,6 +1597,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
                 </div>
               </div>
               <div class="up-card-btns">
+                <button type="button" class="up-card-btn" style="background:rgba(64,108,202,.15);color:#7da7ff;border-color:rgba(125,167,255,.4);" onclick="_especAbrirEditor()">✏️ Redactar / Editar</button>
                 <button type="button" class="up-card-btn cam" onclick="scanOpen('dv','especificaciones')">📷 Escanear</button>
                 <label class="up-card-btn">
                   📁 Archivo
@@ -1619,6 +1634,13 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
           <b>① Contrato firmado por contratista</b> · <b>② Planos de ejecución firmados</b><br>
           <span style="color:var(--ws);font-size:10px;">⚡ Solo aparecen contratos ya aprobados por Steffi. Al subir el contrato firmado, la obra pasa automáticamente a estado "Completo".</span>
         </div>
+      </div>
+
+      <!-- T40 — ESPECIFICACIONES PARA APROBAR (control técnico de Carolina) -->
+      <div class="card" id="ca-espec-card" style="border-top:3px solid #f59e0b;display:none;">
+        <div class="ct" style="color:#f59e0b;">📋 Especificaciones para revisar y aprobar <span id="ca-espec-count" style="font-size:11px;color:var(--ws);font-weight:600;"></span></div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 David envió estas especificaciones. Revisalas: podés <b>editarlas a mano</b>, <b>observarlas</b> (vuelven a David con tu comentario) o <b>aprobarlas</b>. Sin tu aprobación, no se pueden firmar.</div>
+        <div id="ca-espec-list"></div>
       </div>
 
       <!-- T22: CONSULTA ANTICIPADA — contratos del propietario para preparar cómputo/planos -->
@@ -1922,6 +1944,41 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
   <div class="modal">
     <div class="modal-hdr"><h3>📢 Activar Búsqueda de Contratista</h3><button class="xbtn" onclick="cOv('busqueda')">✕</button></div>
     <div id="modal-busqueda-body"></div>
+  </div>
+</div>
+
+<!-- T40 — MODAL EDITOR DE ESPECIFICACIONES TÉCNICAS -->
+<div class="overlay" id="ov-especeditor">
+  <div class="modal" style="max-width:720px;width:96%;">
+    <div class="modal-hdr">
+      <h3>📋 Especificaciones Técnicas</h3>
+      <button class="xbtn" onclick="cOv('especeditor')">✕</button>
+    </div>
+    <div id="espec-estado-badge" style="margin-bottom:12px;"></div>
+    <div id="espec-observacion-box" style="display:none;background:rgba(245,158,11,.1);border:1px solid #f59e0b;border-radius:8px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:4px;">📝 Observación del área técnica:</div>
+      <div id="espec-observacion-txt" style="font-size:12px;color:var(--wd);"></div>
+    </div>
+    <div style="font-size:11px;color:var(--wd);margin-bottom:8px;">
+      Escribí las especificaciones a mano, o describí en pocas palabras y usá <b>Redactar con IA</b> para desarrollarlas. El área técnica las revisa y aprueba antes de firmar.
+    </div>
+    <textarea id="espec-texto" rows="14" style="width:100%;font-size:12px;line-height:1.5;padding:12px;background:var(--p1);border:1px solid var(--bd);border-radius:8px;color:var(--w);font-family:inherit;resize:vertical;" placeholder="Ej: muro de ladrillo 6 huecos, contrapiso, cerámica 30x30 en baños y cocina, pintura látex 2 manos...&#10;&#10;(escribí corto y tocá 'Redactar con IA', o escribí la especificación completa a mano)"></textarea>
+    <div id="espec-ia-status" style="font-size:11px;margin-top:6px;"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center;">
+      <button class="btn btn-y btn-sm" id="espec-btn-ia" onclick="_especRedactarIA()" style="background:rgba(64,108,202,.15);color:#7da7ff;border:1px solid rgba(125,167,255,.4);">✨ Redactar con IA</button>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--wd);">
+        Formato:
+        <select id="espec-formato" style="font-size:11px;padding:4px 8px;">
+          <option value="pdf">📄 PDF</option>
+          <option value="word">📝 Word</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;border-top:1px solid var(--bd);padding-top:14px;">
+      <button class="btn btn-o btn-sm" onclick="_especGuardarBorrador()">💾 Guardar borrador</button>
+      <button class="btn btn-y btn-sm" onclick="_especEnviarAprobacion()">📤 Enviar a aprobación técnica</button>
+      <button class="btn btn-o btn-sm" id="espec-btn-generar" onclick="_especGenerarArchivo()" style="display:none;">⬇️ Descargar</button>
+    </div>
   </div>
 </div>
 
@@ -3141,8 +3198,111 @@ function renderFatima(){
     pendientes.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
   // T21 — Poblar dropdown "copiar de"
   _fatPoblarCopiarDesde();
+  // T40 — Especificaciones: Fátima solo VE el estado
+  _especRenderEstadoFatima();
   // Lista completadas
   renderFatCompletadas();
+}
+
+// T40 — Fátima: vista de solo lectura del estado de especificaciones
+function _especRenderEstadoFatima(){
+  var card=document.getElementById('fat-espec-card');
+  var list=document.getElementById('fat-espec-list');
+  var count=document.getElementById('fat-espec-count');
+  if(!card||!list)return;
+  // Mostrar obras que tienen especificaciones en cualquier estado activo
+  var conEspec=obras.filter(function(o){return o.especificaciones_texto&&o.especificaciones_estado&&o.especificaciones_estado!=='borrador';});
+  if(!conEspec.length){card.style.display='none';return;}
+  card.style.display='block';
+  if(count)count.textContent='('+conEspec.length+')';
+  list.innerHTML=conEspec.map(function(o){
+    var info=_especEstados[o.especificaciones_estado]||_especEstados['borrador'];
+    return '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:8px;">'+
+      '<div><div style="font-size:13px;font-weight:700;color:var(--am);">'+o.nom+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);">'+o.cod+' · redactó: '+(o.especificaciones_redactor||'—')+(o.especificaciones_aprobada_por?' · aprobó: '+o.especificaciones_aprobada_por:'')+'</div></div>'+
+      '<span style="background:'+info.bg+';color:'+info.color+';font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;">'+info.label+'</span>'+
+    '</div>';
+  }).join('');
+}
+
+// T40 — Carolina: revisa y aprueba/observa especificaciones (control técnico)
+function _especRenderPendientesTecnico(){
+  var card=document.getElementById('ca-espec-card');
+  var list=document.getElementById('ca-espec-list');
+  var count=document.getElementById('ca-espec-count');
+  if(!card||!list)return;
+  var pend=obras.filter(function(o){return o.especificaciones_estado==='en_aprobacion'&&o.especificaciones_texto;});
+  if(!pend.length){card.style.display='none';return;}
+  card.style.display='block';
+  if(count)count.textContent='('+pend.length+')';
+  list.innerHTML=pend.map(function(o){
+    var textoEsc=(o.especificaciones_texto||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div style="background:var(--p1);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:12px;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'+
+        '<div><div style="font-size:14px;font-weight:800;color:var(--am);">'+o.nom+'</div>'+
+        '<div style="font-size:10px;color:var(--ws);">'+o.cod+' · redactó: '+(o.especificaciones_redactor||'—')+'</div></div>'+
+      '</div>'+
+      '<textarea id="ca-espec-ta-'+o.id+'" rows="10" style="width:100%;font-size:12px;line-height:1.5;padding:10px;background:var(--p2);border:1px solid var(--bd);border-radius:8px;color:var(--w);font-family:inherit;resize:vertical;margin-bottom:8px;">'+textoEsc+'</textarea>'+
+      '<div style="font-size:10px;color:var(--ws);margin-bottom:10px;">Podés editar el texto directamente antes de aprobar.</div>'+
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+        '<button class="btn btn-y btn-sm" onclick="_especAprobar('+o.id+')" style="background:rgba(4,120,86,.15);color:var(--Gc);border:1px solid var(--Gc);">✅ Aprobar</button>'+
+        '<button class="btn btn-o btn-sm" onclick="_especObservar('+o.id+')">📝 Observar (devolver a David)</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+async function _especAprobar(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o)return;
+  var textoEditado=(document.getElementById('ca-espec-ta-'+oid)||{}).value||o.especificaciones_texto;
+  if(!confirm('¿Aprobar las especificaciones de "'+o.nom+'"?\n\nUna vez aprobadas, quedan listas para imprimir/firmar. Confirmás que son técnicamente ejecutables.'))return;
+  try{
+    var upd={
+      especificaciones_texto:textoEditado,
+      especificaciones_estado:'aprobada',
+      especificaciones_aprobada_por:CU.n,
+      especificaciones_aprobada_fecha:new Date().toISOString(),
+      especificaciones_observacion:null
+    };
+    var res=await sb.from('rec_obras').update(upd).eq('id',oid);
+    if(res.error)throw new Error(res.error.message);
+    o.especificaciones_texto=textoEditado;
+    o.especificaciones_estado='aprobada';
+    o.especificaciones_aprobada_por=CU.n;
+    o.especificaciones_aprobada_fecha=upd.especificaciones_aprobada_fecha;
+    o.especificaciones_observacion=null;
+    // Notificar a David
+    try{notifCrear(o.especificaciones_redactor||'David','espec_aprobada','Especificaciones aprobadas',
+      'Las especificaciones de '+o.nom+' fueron aprobadas por '+CU.n+'. Ya se pueden firmar.',{obra_id:oid});}catch(_e){}
+    toast('Especificaciones aprobadas','success','✅');
+    dbLog(CU.n,'Aprobó especificaciones: '+o.nom);
+    renderTodo();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _especObservar(oid){
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o)return;
+  var obs=prompt('¿Qué hay que corregir? Escribí la observación para David:');
+  if(obs===null)return;
+  obs=obs.trim();
+  if(!obs){toast('Escribí la observación','warning');return;}
+  try{
+    var upd={
+      especificaciones_estado:'observada',
+      especificaciones_observacion:obs
+    };
+    var res=await sb.from('rec_obras').update(upd).eq('id',oid);
+    if(res.error)throw new Error(res.error.message);
+    o.especificaciones_estado='observada';
+    o.especificaciones_observacion=obs;
+    try{notifCrear(o.especificaciones_redactor||'David','espec_observada','Especificaciones observadas',
+      CU.n+' observó las especificaciones de '+o.nom+': '+obs,{obra_id:oid,prioridad:'alta'});}catch(_e){}
+    toast('Observación enviada a David','info','📝');
+    dbLog(CU.n,'Observó especificaciones: '+o.nom);
+    renderTodo();
+  }catch(e){toast('Error: '+e.message,'error');}
 }
 
 // T21 — Pobla el dropdown "Copiar OBJETO/INC/EXC desde otra obra"
@@ -5368,14 +5528,203 @@ async function dvUpload(tipo,inp){
   }
 }
 
-// ═══════════════════════════════════════════════════
-// PANEL CAROLINA — escaneados firmados del CONTRATISTA
-// ═══════════════════════════════════════════════════
-let caCtId=null;
+// ═══════════════════════════════════════════════════════════════
+// T40 — EDITOR DE ESPECIFICACIONES TÉCNICAS (con IA + aprobación)
+// ═══════════════════════════════════════════════════════════════
+var _especEstados={
+  'borrador':{label:'📝 Borrador',color:'var(--ws)',bg:'var(--p1)'},
+  'en_aprobacion':{label:'⏳ En aprobación técnica',color:'#f59e0b',bg:'rgba(245,158,11,.12)'},
+  'aprobada':{label:'✅ Aprobada — lista para firmar',color:'var(--Gc)',bg:'rgba(4,120,86,.12)'},
+  'observada':{label:'⚠️ Observada — revisá los comentarios',color:'var(--Rc)',bg:'rgba(220,38,38,.12)'}
+};
+
+function _especAbrirEditor(){
+  if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
+  var o=obras.find(function(x){return x.id===dvObraId;});
+  if(!o)return;
+  // Cargar texto y estado actuales
+  document.getElementById('espec-texto').value=o.especificaciones_texto||'';
+  document.getElementById('espec-formato').value=o.especificaciones_formato||'pdf';
+  _especRenderEstado(o);
+  document.getElementById('espec-ia-status').innerHTML='';
+  aOv('especeditor');
+}
+
+function _especRenderEstado(o){
+  var estado=o.especificaciones_estado||'borrador';
+  var info=_especEstados[estado]||_especEstados['borrador'];
+  var badge=document.getElementById('espec-estado-badge');
+  var extra='';
+  if(estado==='aprobada'&&o.especificaciones_aprobada_por){
+    extra=' · por '+o.especificaciones_aprobada_por;
+  }
+  badge.innerHTML='<span style="display:inline-block;background:'+info.bg+';color:'+info.color+';font-size:11px;font-weight:700;padding:4px 12px;border-radius:12px;">'+info.label+extra+'</span>';
+  // Observación
+  var obsBox=document.getElementById('espec-observacion-box');
+  if(estado==='observada'&&o.especificaciones_observacion){
+    document.getElementById('espec-observacion-txt').textContent=o.especificaciones_observacion;
+    obsBox.style.display='block';
+  } else {
+    obsBox.style.display='none';
+  }
+  // Botón descargar solo si aprobada
+  var btnGen=document.getElementById('espec-btn-generar');
+  if(btnGen)btnGen.style.display=(estado==='aprobada')?'inline-block':'none';
+  // Si está en aprobación o aprobada, textarea de solo lectura para David
+  var ta=document.getElementById('espec-texto');
+  if(estado==='en_aprobacion'){
+    ta.setAttribute('readonly','readonly');
+    ta.style.opacity='.7';
+  } else {
+    ta.removeAttribute('readonly');
+    ta.style.opacity='1';
+  }
+}
+
+async function _especRedactarIA(){
+  var texto=(document.getElementById('espec-texto').value||'').trim();
+  if(texto.length<3){toast('Escribí al menos una descripción breve para que la IA la desarrolle','warning');return;}
+  var st=document.getElementById('espec-ia-status');
+  var btn=document.getElementById('espec-btn-ia');
+  btn.disabled=true;btn.style.opacity='.5';
+  st.innerHTML='<span style="color:#7da7ff;">✨ La IA está redactando la especificación técnica...</span>';
+  try{
+    var o=obras.find(function(x){return x.id===dvObraId;});
+    var contexto=o?('Obra: '+o.nom+(o.sup?', '+o.sup+' m²':'')):'';
+    // Detectar si es "mejorar" (texto largo) o "redactar" (descripción corta)
+    var modo=texto.length>200?'mejorar':'redactar';
+    var resp=await fetch(SB_URL+'/functions/v1/geat-especificaciones-ia',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY},
+      body:JSON.stringify({descripcion:texto,contexto_obra:contexto,modo:modo})
+    });
+    if(!resp.ok){throw new Error('El servicio de IA respondió '+resp.status);}
+    var data=await resp.json();
+    if(data.error){throw new Error(data.detail||data.error);}
+    if(data.especificacion){
+      document.getElementById('espec-texto').value=data.especificacion;
+      st.innerHTML='<span style="color:var(--Gc);">✅ Redactado. Revisá y ajustá lo que necesites antes de enviar a aprobación.</span>';
+    } else {
+      throw new Error('La IA no devolvió texto');
+    }
+  }catch(e){
+    st.innerHTML='<span style="color:var(--Rc);">❌ '+e.message+'. Podés escribir la especificación a mano igual.</span>';
+    _guardarError('espec_ia',e.message);
+  }finally{
+    btn.disabled=false;btn.style.opacity='1';
+  }
+}
+
+async function _especGuardarBorrador(){
+  if(!dvObraId){toast('Seleccioná una obra','warning');return;}
+  var texto=document.getElementById('espec-texto').value||'';
+  var formato=document.getElementById('espec-formato').value||'pdf';
+  try{
+    var upd={especificaciones_texto:texto,especificaciones_formato:formato,especificaciones_redactor:CU.n};
+    var o=obras.find(function(x){return x.id===dvObraId;});
+    // Si estaba observada y David edita, vuelve a borrador
+    if(o&&o.especificaciones_estado==='observada'){upd.especificaciones_estado='borrador';}
+    var res=await sb.from('rec_obras').update(upd).eq('id',dvObraId);
+    if(res.error)throw new Error(res.error.message);
+    if(o){o.especificaciones_texto=texto;o.especificaciones_formato=formato;o.especificaciones_redactor=CU.n;if(upd.especificaciones_estado)o.especificaciones_estado=upd.especificaciones_estado;}
+    _especRenderEstado(o);
+    toast('Borrador guardado','success','💾');
+    dbLog(CU.n,'Guardó borrador especificaciones: '+(o?o.nom:''));
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+async function _especEnviarAprobacion(){
+  if(!dvObraId){toast('Seleccioná una obra','warning');return;}
+  var texto=(document.getElementById('espec-texto').value||'').trim();
+  if(texto.length<10){toast('Escribí las especificaciones antes de enviar a aprobación','warning');return;}
+  if(!confirm('¿Enviar las especificaciones a aprobación técnica?\n\nCarolina (gabinete técnico) las va a revisar. No vas a poder editarlas hasta que las aprueben u observen.'))return;
+  var formato=document.getElementById('espec-formato').value||'pdf';
+  try{
+    var upd={
+      especificaciones_texto:texto,
+      especificaciones_formato:formato,
+      especificaciones_estado:'en_aprobacion',
+      especificaciones_redactor:CU.n,
+      especificaciones_observacion:null
+    };
+    var res=await sb.from('rec_obras').update(upd).eq('id',dvObraId);
+    if(res.error)throw new Error(res.error.message);
+    var o=obras.find(function(x){return x.id===dvObraId;});
+    if(o){o.especificaciones_texto=texto;o.especificaciones_estado='en_aprobacion';o.especificaciones_formato=formato;o.especificaciones_redactor=CU.n;o.especificaciones_observacion=null;}
+    _especRenderEstado(o);
+    // Notificar al área técnica
+    try{
+      notifCrear('Carolina','espec_aprobar','Especificaciones para aprobar',
+        (o?o.nom:'Una obra')+' tiene especificaciones técnicas esperando tu aprobación.',
+        {obra_id:dvObraId,prioridad:'alta'});
+    }catch(_e){}
+    toast('Enviado a aprobación técnica','success','📤');
+    dbLog(CU.n,'Envió especificaciones a aprobación: '+(o?o.nom:''));
+    renderTodo();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// Generar archivo (PDF/Word) desde el texto — solo si aprobada
+function _especGenerarArchivo(){
+  var o=obras.find(function(x){return x.id===dvObraId;});
+  if(!o||o.especificaciones_estado!=='aprobada'){toast('Solo se puede descargar una especificación aprobada','warning');return;}
+  var texto=o.especificaciones_texto||'';
+  var formato=o.especificaciones_formato||'pdf';
+  if(formato==='word'){
+    _especDescargarWord(o,texto);
+  } else {
+    _especDescargarPDF(o,texto);
+  }
+}
+
+function _especDescargarPDF(o,texto){
+  try{
+    var JsPDF=(window.jspdf&&window.jspdf.jsPDF)?window.jspdf.jsPDF:window.jsPDF;
+    var doc=new JsPDF({unit:'mm',format:'a4'});
+    var margin=18,y=margin,pw=210-margin*2;
+    doc.setFontSize(14);doc.setFont(undefined,'bold');
+    doc.text('ESPECIFICACIONES TÉCNICAS',margin,y);y+=7;
+    doc.setFontSize(10);doc.setFont(undefined,'normal');
+    doc.text('Obra: '+(o.nom||'')+'  ·  '+(o.cod||''),margin,y);y+=5;
+    doc.text('Aprobada por: '+(o.especificaciones_aprobada_por||'')+'  ·  '+(o.especificaciones_aprobada_fecha?new Date(o.especificaciones_aprobada_fecha).toLocaleDateString('es-BO'):''),margin,y);y+=8;
+    doc.setDrawColor(200);doc.line(margin,y,210-margin,y);y+=6;
+    doc.setFontSize(10);
+    var lineas=doc.splitTextToSize(texto,pw);
+    for(var i=0;i<lineas.length;i++){
+      if(y>280){doc.addPage();y=margin;}
+      doc.text(lineas[i],margin,y);y+=5;
+    }
+    doc.save('Especificaciones_'+(o.cod||o.nom||'obra').replace(/[^a-zA-Z0-9]/g,'_')+'.pdf');
+    toast('PDF generado','success','📄');
+  }catch(e){toast('Error generando PDF: '+e.message,'error');}
+}
+
+function _especDescargarWord(o,texto){
+  try{
+    // Word simple vía HTML (.doc) — abre en Word sin librería extra
+    var html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">'+
+      '<head><meta charset="utf-8"><title>Especificaciones</title></head><body>'+
+      '<h2 style="font-family:Arial;">ESPECIFICACIONES TÉCNICAS</h2>'+
+      '<p style="font-family:Arial;font-size:11px;"><b>Obra:</b> '+(o.nom||'')+' · '+(o.cod||'')+'<br>'+
+      '<b>Aprobada por:</b> '+(o.especificaciones_aprobada_por||'')+' · '+(o.especificaciones_aprobada_fecha?new Date(o.especificaciones_aprobada_fecha).toLocaleDateString('es-BO'):'')+'</p><hr>'+
+      '<pre style="font-family:Arial;font-size:11px;white-space:pre-wrap;">'+texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>'+
+      '</'+'body></html>';
+    var blob=new Blob(['\ufeff',html],{type:'application/msword'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='Especificaciones_'+(o.cod||o.nom||'obra').replace(/[^a-zA-Z0-9]/g,'_')+'.doc';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    toast('Word generado','success','📝');
+  }catch(e){toast('Error generando Word: '+e.message,'error');}
+}
+
 
 function renderCarolina(){
   // T22: render consulta anticipada de contratos del propietario
   _renderCarolinaConsultaContratos();
+  // T40 — Especificaciones para revisar y aprobar (Carolina)
+  _especRenderPendientesTecnico();
   var sel=document.getElementById('ca-sel-ct');
   if(!sel)return;
   var aprobados=contratos.filter(function(c){
