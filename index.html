@@ -978,7 +978,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v92 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v93 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -3044,10 +3044,17 @@ async function steffGuardar(ctId,oid){
   if(ed>=3){ct.bloqueado=true;await dbGuardarContrato(ct);alert('Límite 3 ediciones. Bloqueado.');steffAbrirEditor(oid);return;}
   const ta=document.getElementById('ed-txt-'+ctId);if(!ta)return;
   const ahora=new Date().toLocaleString('es-BO',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  const prevTexto=ct.texto,prevEd=ct.ed_count,prevEst=ct.est_ct,prevHist=ct.historial;
   ct.texto=ta.value;ct.ed_count=ed+1;
   if(ct.est_ct==='generado')ct.est_ct='revisado';
   ct.historial=[...(ct.historial||[]),{n:CU.n,f:ahora,e:ct.ed_count}];
-  await dbGuardarContrato(ct);
+  try{
+    await dbGuardarContrato(ct);
+  }catch(e){
+    ct.texto=prevTexto;ct.ed_count=prevEd;ct.est_ct=prevEst;ct.historial=prevHist;
+    alert('❌ No se pudo guardar. La edición NO se consumió, reintentá.\n'+(e.message||''));
+    return;
+  }
   try{localStorage.removeItem('geat_borrador_ct_'+ctId);}catch(e){}
   dbLog(CU.n,'Contrato editado ed.'+ct.ed_count+': '+ct.nom);
   alert('✅ Guardado. Edición '+ct.ed_count+'/3.');
@@ -3087,8 +3094,15 @@ async function steffIA(ctId){
 async function steffAprobar(ctId){
   const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
   if(!confirm('¿APROBAR contrato de '+ct.nom+'?\nEsto habilitará la opción de imprimir para firma.'))return;
+  const prevEst=ct.est_ct,prevApr=ct.aprobado_por;
   ct.est_ct='aprobado';ct.aprobado_por=CU.n;
-  await dbGuardarContrato(ct);
+  try{
+    await dbGuardarContrato(ct);
+  }catch(e){
+    ct.est_ct=prevEst;ct.aprobado_por=prevApr;
+    alert('❌ No se pudo aprobar. Reintentá.\n'+(e.message||''));
+    return;
+  }
   dbLog(CU.n,'Contrato aprobado: '+ct.nom);
   alert('✅ Aprobado. Ahora podés imprimirlo para firma.');
   const oid=ct.oid;steffAbrirEditor(oid);renderSteffii();
@@ -3151,8 +3165,16 @@ async function steffSubirFirmado(ctId,inp){
 async function steffDesbloquear(ctId){
   const ct=contratos.find(x=>x.id===ctId);if(!ct)return;
   if(!confirm('¿Desbloquear contrato? Reset contador de ediciones.'))return;
+  const prevBloq=ct.bloqueado,prevEd=ct.ed_count,prevHist=ct.historial;
   ct.bloqueado=false;ct.ed_count=0;ct.historial=[];
-  await dbGuardarContrato(ct);renderSteffii();
+  try{
+    await dbGuardarContrato(ct);
+  }catch(e){
+    ct.bloqueado=prevBloq;ct.ed_count=prevEd;ct.historial=prevHist;
+    alert('❌ No se pudo desbloquear. Reintentá.\n'+(e.message||''));
+    return;
+  }
+  renderSteffii();
 }
 
 // ═══════════════════════════════════════════════════
@@ -4315,8 +4337,16 @@ function renderAdmFull(){
 async function admDesbloquear(ctId){
   var ct=contratos.find(function(x){return x.id===ctId;});if(!ct)return;
   if(!confirm('¿Desbloquear contrato de '+ct.nom+'?'))return;
+  var prevBloq=ct.bloqueado,prevEd=ct.ed_count,prevHist=ct.historial;
   ct.bloqueado=false;ct.ed_count=0;ct.historial=[];
-  await dbGuardarContrato(ct);renderAdmFull();
+  try{
+    await dbGuardarContrato(ct);
+  }catch(e){
+    ct.bloqueado=prevBloq;ct.ed_count=prevEd;ct.historial=prevHist;
+    alert('❌ No se pudo desbloquear. Reintentá.\n'+(e.message||''));
+    return;
+  }
+  renderAdmFull();
 }
 function admVerContrato(ctId){
   var ct=contratos.find(function(x){return x.id===ctId;});if(!ct||!ct.texto)return;
@@ -6910,7 +6940,7 @@ function _carolinaCalcularEstado(c,o){
 // Flujo: captura -> recorte 4 esquinas -> enderezado -> filtro -> PDF
 // ═══════════════════════════════════════════════════════════════
 var scanCtx={destino:null,tipo:null,pages:[],filtro:'doc',step:'inicio',
-  tempImg:null,corners:null,dragIdx:-1,canvasScale:1};
+  tempImg:null,tempImgEl:null,corners:null,dragIdx:-1,canvasScale:1};
 
 function scanOpen(destino,tipo,oid){
   if(destino==='dv'&&!dvObraId){toast('Seleccioná una obra primero','warning');return;}
@@ -6925,6 +6955,7 @@ function scanOpen(destino,tipo,oid){
   scanCtx.filtro='doc';
   scanCtx.step='inicio';
   scanCtx.tempImg=null;
+  scanCtx.tempImgEl=null;
   scanCtx.corners=null;
   document.getElementById('scan-title').textContent='📷 Escanear ('+_scanTipoLabel(destino,tipo)+')';
   document.getElementById('scan-modal').classList.add('on');
@@ -6947,7 +6978,7 @@ function scanClose(){
   if(scanCtx.pages.length>0&&!confirm('¿Cerrar sin guardar? Se perderán las páginas.'))return;
   document.getElementById('scan-modal').classList.remove('on');
   scanCtx.destino=null;scanCtx.tipo=null;scanCtx.bancoOid=null;scanCtx.pages=[];scanCtx.step='inicio';
-  scanCtx.tempImg=null;scanCtx.corners=null;
+  scanCtx.tempImg=null;scanCtx.tempImgEl=null;scanCtx.corners=null;
 }
 
 function scanPickCamera(){
@@ -6990,7 +7021,13 @@ function scanCapture(inp){
         {x:w-mx,y:h-my},{x:mx,y:h-my}
       ];
       scanCtx.step='recorte';
-      _scanRender();
+      // FIX #2: decodificar la imagen UNA sola vez y guardarla para reusar en cada
+      // frame de arrastre (evita reconstruir/decodificar el dataURL en _scanDrawRecorte).
+      scanCtx.tempImgEl=null;
+      var pre=new Image();
+      pre.onload=function(){scanCtx.tempImgEl=pre;_scanRender();};
+      pre.onerror=function(){scanCtx.tempImgEl=null;_scanRender();};
+      pre.src=scanCtx.tempImg.src;
     }catch(eX){URL.revokeObjectURL(url);toast('Error procesando: '+eX.message,'error');console.error(eX);}
   };
   img.onerror=function(){URL.revokeObjectURL(url);toast('No se pudo leer la imagen','error');};
@@ -7010,10 +7047,9 @@ function _scanDrawRecorte(){
   var ch=Math.round(scanCtx.tempImg.h*scale);
   canvas.width=cw;canvas.height=ch;
   var ctx=canvas.getContext('2d');
-  var img=new Image();
-  img.onload=function(){
+  function paint(imgEl){
     ctx.clearRect(0,0,cw,ch);
-    ctx.drawImage(img,0,0,cw,ch);
+    ctx.drawImage(imgEl,0,0,cw,ch);
     // Oscurecer afuera del polígono
     ctx.save();
     ctx.beginPath();
@@ -7043,8 +7079,16 @@ function _scanDrawRecorte(){
       ctx.lineWidth=2;
       ctx.stroke();
     }
-  };
-  img.src=scanCtx.tempImg.src;
+  }
+  // FIX #2: reusar la imagen ya decodificada en scanCapture; reconstruir solo si aún no está lista
+  var pre=scanCtx.tempImgEl;
+  if(pre&&pre.complete&&pre.naturalWidth){
+    paint(pre);
+  }else{
+    var img=new Image();
+    img.onload=function(){paint(img);};
+    img.src=scanCtx.tempImg.src;
+  }
 }
 
 function _scanCanvasPoint(ev){
@@ -7169,6 +7213,7 @@ function scanAplicarRecorte(){
       warped.width=0;warped.height=0;
       img.src='';
       scanCtx.tempImg=null;
+      scanCtx.tempImgEl=null;
       scanCtx.corners=null;
       scanCtx.step='filtro';
       _scanRender();
@@ -7176,8 +7221,8 @@ function scanAplicarRecorte(){
     }catch(eScan){
       _guardarError('escaner', eScan.message||eScan);
       toast('Error procesando la imagen: '+(eScan.message||'memoria insuficiente')+'. Probá con menos zoom o una foto más chica.','error');
-      scanCtx.tempImg=null;scanCtx.corners=null;
-      scanCtx.step='captura';_scanRender();
+      scanCtx.tempImg=null;scanCtx.tempImgEl=null;scanCtx.corners=null;
+      scanCtx.step='inicio';_scanRender();
     }
   };
   img.onerror=function(){toast('No se pudo cargar la imagen','error');};
@@ -7223,6 +7268,7 @@ function scanSetFiltro(f){
         cv.width=img.width;cv.height=img.height;
         cv.getContext('2d').drawImage(img,0,0);
         scanCtx.pages[idx].processed=_scanFiltrarCanvas(cv,scanCtx.filtro);
+        cv.width=0;cv.height=0;
         var list=document.getElementById('scan-pages-list');
         if(list){var imgs=list.querySelectorAll('img');if(imgs[idx])imgs[idx].src=scanCtx.pages[idx].processed;}
       };
@@ -7235,6 +7281,7 @@ function scanSetFiltro(f){
 function scanOtraPagina(){
   scanCtx.step='inicio';
   scanCtx.tempImg=null;
+  scanCtx.tempImgEl=null;
   scanCtx.corners=null;
   _scanRender();
 }
