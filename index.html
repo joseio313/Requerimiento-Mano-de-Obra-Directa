@@ -312,7 +312,9 @@ tbody td:first-child{color:var(--w);font-weight:600;}
   .flujo-paso .fp-label{display:none;}
 }
 /* TOAST NOTIFICATIONS */
-.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+/* v95 FIX #1: z-index por encima de .scan-modal (10000) — antes los avisos y errores
+   del upload quedaban TAPADOS por el modal del escáner y el usuario no veía nada. */
+.toast-container{position:fixed;top:20px;right:20px;z-index:10050;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
 .toast{background:var(--p2);border:1px solid var(--bd);border-left:4px solid var(--am);border-radius:6px;padding:12px 16px;min-width:280px;max-width:380px;box-shadow:0 4px 16px rgba(0,0,0,.4);display:flex;gap:10px;align-items:flex-start;animation:toastIn .3s ease;pointer-events:auto;}
 .toast.toast-success{border-left-color:var(--Gc);}
 .toast.toast-warning{border-left-color:var(--Nc);}
@@ -538,8 +540,17 @@ function mapObra(o){return{
   // T19 — confirmación docs propietario
   docs_prop_confirmados:o.docs_prop_confirmados||false,
   docs_prop_confirmados_en:o.docs_prop_confirmados_en||null,
-  docs_prop_confirmados_por:o.docs_prop_confirmados_por||null
+  docs_prop_confirmados_por:o.docs_prop_confirmados_por||null,
+  // v95 — baja lógica (soft delete): la obra NO se borra, se marca activo=false
+  activo:o.activo!==false,
+  baja_motivo:o.baja_motivo||null,
+  baja_por:o.baja_por||null,
+  baja_fecha:o.baja_fecha||null
 };}
+// v95 — Obras vigentes (excluye las dadas de baja). Usar en TODA lista activa.
+function obrasActivas(){
+  return obras.filter(function(o){return o.activo!==false;});
+}
 function mapContrato(c){return{
   id:c.id,nom:c.nombre_contratista||'',tel:c.telefono||'',
   dir:c.direccion||'',ci_n:c.ci_numero||'',oid:c.obra_id,
@@ -584,7 +595,9 @@ async function dbGuardarObra(o){
     // T22 — financiamiento
     tipo_financiamiento:o.tipo_financiamiento||null,
     porcentaje_financiado:o.porcentaje_financiado||null,
-    estado_financiamiento:o.estado_financiamiento||null
+    estado_financiamiento:o.estado_financiamiento||null,
+    // v95 — preservar la baja lógica: editar una obra no la reactiva sola
+    activo:o.activo!==false
   },{onConflict:'id'}).select().single();
   if(error)throw new Error(error.message);
   o.id=data.id;return data;
@@ -978,7 +991,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v94 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v95 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -2383,6 +2396,7 @@ function _detectarDuplicado(p1,p2){
   // Buscar obra cuyas notas/nombre contengan algún apellido y haya sido creada en últimas 24h
   for(var i=0;i<obras.length;i++){
     var o=obras[i];
+    if(o.activo===false)continue; // v95: una obra dada de baja no bloquea una nueva
     var notaN=normalizar(o.not||'');
     var nomN=normalizar(o.nom||'');
     var match=(p1n&&p1n.length>=3&&(notaN.indexOf(p1n)>=0||nomN.indexOf(p1n)>=0))||
@@ -2733,7 +2747,7 @@ function renderSteffii(){
   }
   // Lista obras para PASO 4
   const el=document.getElementById('steffi-obras-lista');if(!el)return;
-  const cands=obras.filter(o=>{
+  const cands=obrasActivas().filter(o=>{
     const ct=gCByObra(o.id);
     return ct&&ct.texto&&ct.est_ct!=='firmado';
   });
@@ -2758,12 +2772,13 @@ function _renderSteffiMisObras(){
   console.log('[GEAT] _renderSteffiMisObras · el:',el?'OK':'NULL','· obras.length:',obras.length);
   if(!el)return;
   // Para admin: ve todas. Para Steffi: ve todas también (no las filtramos por creador)
-  if(!obras.length){
+  // v95: las obras dadas de baja no cuentan
+  if(!obrasActivas().length){
     el.innerHTML='<p style="color:var(--ws);font-size:12px;padding:8px 0;">Todavía no registraste obras. <a href="javascript:dbCargar()" style="color:var(--am);">🔄 Recargar</a></p>';
     return;
   }
   // Ordenadas por creación descendente
-  var arr=obras.slice().sort(function(a,b){
+  var arr=obrasActivas().sort(function(a,b){
     var fa=a.created_at?new Date(a.created_at).getTime():a.id;
     var fb=b.created_at?new Date(b.created_at).getTime():b.id;
     return fb-fa;
@@ -3240,7 +3255,7 @@ h) Costos de SOAT-C del contratista (debe presentarlo en máximo 3 días del pri
 function renderFatima(){
   // Poblar selector con obras SIN datos técnicos (sup=0)
   const sel=document.getElementById('fat-sel-obra');if(!sel)return;
-  const pendientes=obras.filter(o=>(o.cp_dig||o.cp_esc)&&!o.sup);
+  const pendientes=obrasActivas().filter(o=>(o.cp_dig||o.cp_esc)&&!o.sup);
   sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+
     pendientes.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
   // T21 — Poblar dropdown "copiar de"
@@ -3258,7 +3273,7 @@ function _especRenderEstadoFatima(){
   var count=document.getElementById('fat-espec-count');
   if(!card||!list)return;
   // Mostrar obras que tienen especificaciones en cualquier estado activo
-  var conEspec=obras.filter(function(o){return o.especificaciones_texto&&o.especificaciones_estado&&o.especificaciones_estado!=='borrador';});
+  var conEspec=obrasActivas().filter(function(o){return o.especificaciones_texto&&o.especificaciones_estado&&o.especificaciones_estado!=='borrador';});
   if(!conEspec.length){card.style.display='none';return;}
   card.style.display='block';
   if(count)count.textContent='('+conEspec.length+')';
@@ -3278,7 +3293,7 @@ function _especRenderPendientesTecnico(){
   var list=document.getElementById('ca-espec-list');
   var count=document.getElementById('ca-espec-count');
   if(!card||!list)return;
-  var pend=obras.filter(function(o){return o.especificaciones_estado==='en_aprobacion'&&o.especificaciones_texto;});
+  var pend=obrasActivas().filter(function(o){return o.especificaciones_estado==='en_aprobacion'&&o.especificaciones_texto;});
   if(!pend.length){card.style.display='none';return;}
   card.style.display='block';
   if(count)count.textContent='('+pend.length+')';
@@ -3357,7 +3372,7 @@ function _fatPoblarCopiarDesde(){
   var sel=document.getElementById('fat-copiar-desde');
   if(!sel)return;
   // Obras que SÍ tienen objeto, inclusiones o exclusiones cargados — y NO sea la actual
-  var origenes=obras.filter(function(o){
+  var origenes=obrasActivas().filter(function(o){
     if(fatObraId&&o.id===fatObraId)return false;
     return (o.obj&&o.obj.length>20)||(o.inc&&o.inc.length>20)||(o.exc&&o.exc.length>20);
   });
@@ -3610,7 +3625,7 @@ async function fatGuardar(){
 
 function renderFatCompletadas(){
   const el=document.getElementById('fat-completadas');if(!el)return;
-  const comp=obras.filter(o=>o.sup>0);
+  const comp=obrasActivas().filter(o=>o.sup>0);
   if(!comp.length){el.innerHTML='<p style="color:var(--ws);font-size:12px;">Sin obras completadas aún.</p>';return;}
   el.innerHTML=comp.map(o=>{
     const ct=gCByObra(o.id);
@@ -3668,8 +3683,8 @@ async function onUpCt(tipo,inp){
 function renderAdmin(){
   // Selector obras listas (con datos técnicos, sin contratista)
   const sel=document.getElementById('adm-sel-obra');if(!sel)return;
-  const listas=obras.filter(o=>o.sup>0&&!gCByObra(o.id));
-  const todas=obras.filter(o=>o.sup>0);
+  const listas=obrasActivas().filter(o=>o.sup>0&&!gCByObra(o.id));
+  const todas=obrasActivas().filter(o=>o.sup>0);
   sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+listas.map(o=>`<option value="${o.id}">${o.nom} (${o.cod})</option>`).join('');
   if(!listas.length&&sel){
     // Agregar un helper
@@ -3818,8 +3833,9 @@ function admLimpiar(){
 
 function renderAdmTabla(){
   const tb=document.getElementById('adm-tabla');if(!tb)return;
-  if(!obras.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--ws);">Sin obras.</td></tr>';return;}
-  tb.innerHTML=obras.map(o=>{
+  const _obrTab=obrasActivas();
+  if(!_obrTab.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--ws);">Sin obras.</td></tr>';return;}
+  tb.innerHTML=_obrTab.map(o=>{
     const ct=gCByObra(o.id);
     const est=estadoObra(o);
     return `<tr>
@@ -3982,7 +3998,7 @@ Contratista                          GAMBARTE ARQUITECTURA S.R.L.`;
 function renderSup(){
   // Mostrar todas las obras (no solo las con sup>0) para que vean también lo nuevo
   const sel=document.getElementById('sup-sel');if(!sel)return;
-  const lista=obras.slice().sort(function(a,b){return (a.nom||'').localeCompare(b.nom||'');});
+  const lista=obrasActivas().sort(function(a,b){return (a.nom||'').localeCompare(b.nom||'');});
   sel.innerHTML='<option value="">— Seleccioná una obra —</option>'+
     lista.map(function(o){
       var estado=o.sup>0?'':' (sin datos técnicos)';
@@ -4330,11 +4346,13 @@ function renderAdmFull(){
   var k=function(id){return document.getElementById(id);};
   // T10: render del selector de edición admin
   if(typeof admEditRenderSel==='function')admEditRenderSel();
-  var totalObras=obras.length;
-  var montoUSD=obras.filter(function(o){return o.monto>0;}).reduce(function(s,o){return s+o.monto;},0);
+  // v95 — KPIs y listados solo sobre obras vigentes (las dadas de baja no cuentan)
+  var _obrAct=obrasActivas();
+  var totalObras=_obrAct.length;
+  var montoUSD=_obrAct.filter(function(o){return o.monto>0;}).reduce(function(s,o){return s+o.monto;},0);
   var totalCt=contratos.length;
   var pendientes=0;
-  obras.forEach(function(o){
+  _obrAct.forEach(function(o){
     var ct=gCByObra(o.id);
     if(!o.cp_dig&&!o.cp_esc)pendientes++;
     else if(!o.sup)pendientes++;
@@ -4350,7 +4368,7 @@ function renderAdmFull(){
   var elA=k('adm-alertas');
   if(elA){
     var alerts=[];
-    obras.forEach(function(o){
+    _obrAct.forEach(function(o){
       var ct=gCByObra(o.id);
       var nom='<b>'+o.nom+'</b>';
       if(!o.cp_dig&&!o.cp_esc)alerts.push({t:'r',m:'⚠️ '+nom+' — Sin contrato propietario'});
@@ -4366,9 +4384,9 @@ function renderAdmFull(){
   // Tabla
   var tb=k('adm-tbody-full');
   if(tb){
-    if(!obras.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ws);padding:20px;">Sin obras.</td></tr>';}
+    if(!_obrAct.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--ws);padding:20px;">Sin obras.</td></tr>';}
     else{
-      tb.innerHTML=obras.map(function(o){
+      tb.innerHTML=_obrAct.map(function(o){
         var ct=gCByObra(o.id);
         var est=estadoObra(o);
         var bs=Math.round(o.monto*6.96);
@@ -4391,7 +4409,7 @@ function renderAdmFull(){
   // Financiero
   var elF=k('adm-financiero');
   if(elF){
-    var conMonto=obras.filter(function(o){return o.monto>0;});
+    var conMonto=_obrAct.filter(function(o){return o.monto>0;});
     if(!conMonto.length){elF.innerHTML='<p style="color:var(--ws);">Sin datos financieros.</p>';}
     else{
       var tUSD=conMonto.reduce(function(s,o){return s+o.monto;},0);
@@ -4449,15 +4467,35 @@ function renderAdmFull(){
   // Zona peligro
   var elP=k('adm-zona-peligro');
   if(elP){
-    if(!obras.length){elP.innerHTML='<p style="color:var(--ws);">Sin obras.</p>';}
+    // v95 — obras vigentes: dar de baja (recomendado) o eliminar definitivamente
+    var _bajas=obras.filter(function(o){return o.activo===false;});
+    var htmlP='';
+    if(!_obrAct.length){htmlP+='<p style="color:var(--ws);">Sin obras vigentes.</p>';}
     else{
-      elP.innerHTML=obras.map(function(o){
-        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2);border-radius:4px;margin-bottom:6px;">'+
+      htmlP+=_obrAct.map(function(o){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:rgba(220,38,38,.05);border:1px solid rgba(220,38,38,.2);border-radius:4px;margin-bottom:6px;">'+
           '<div><b>'+o.nom+'</b> <span style="font-size:10px;color:var(--ws);">'+o.cod+'</span></div>'+
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+          '<button class="btn btn-o btn-sm" onclick="obraDarDeBaja('+o.id+')">🚫 Dar de baja</button>'+
           '<button class="btn btn-r btn-sm" onclick="admEliminarObra('+o.id+')">🗑️ Eliminar</button>'+
-          '</div>';
+          '</div></div>';
       }).join('');
     }
+    // v95 — Listado de obras dadas de baja, con opción de reactivar (solo admin)
+    if(_bajas.length){
+      htmlP+='<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd);">'+
+        '<div style="font-size:11px;font-weight:800;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🚫 Obras dadas de baja ('+_bajas.length+')</div>'+
+        _bajas.map(function(o){
+          var f=o.baja_fecha?new Date(o.baja_fecha).toLocaleDateString('es-BO'):'';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--p2);border:1px solid var(--bd);border-radius:4px;margin-bottom:6px;opacity:.85;">'+
+            '<div><b style="color:var(--ws);">'+o.nom+'</b> <span style="font-size:10px;color:var(--ws);">'+o.cod+'</span>'+
+            '<div style="font-size:10px;color:var(--ws);margin-top:2px;">'+(o.baja_motivo||'sin motivo')+' · '+(o.baja_por||'—')+(f?' · '+f:'')+'</div></div>'+
+            '<button class="btn btn-g btn-sm" onclick="obraReactivar('+o.id+')">↩️ Reactivar</button>'+
+            '</div>';
+        }).join('')+
+        '</div>';
+    }
+    elP.innerHTML=htmlP;
   }
   admCargarAuditoria();
   admCargarHistorialExport();
@@ -4511,6 +4549,77 @@ async function admEliminarObra(oid){
     alert('✅ Obra eliminada.');
   }catch(e){alert('Error: '+e.message);}
 }
+// ═══════════════════════════════════════════════════════════════
+// v95 — BAJA LÓGICA DE OBRAS (soft delete): la obra NO se borra de la base,
+// se marca activo=false y desaparece de todas las listas activas.
+// Disponible para el cerrador (David) y para el admin.
+// ═══════════════════════════════════════════════════════════════
+function _puedeDarDeBaja(){
+  return !!(CU&&(CU.r==='david'||CU.r==='admin'));
+}
+
+async function obraDarDeBaja(oid){
+  if(!_puedeDarDeBaja()){toast('Solo el cerrador o el admin pueden dar de baja una obra','warning');return;}
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  if(o.activo===false){toast('Esa obra ya está dada de baja','info');return;}
+  if(!confirm('¿Dar de baja la obra "'+o.nom+'" ('+o.cod+')?\n\n'+
+    'Se va a marcar como NO PROCEDE y va a desaparecer de las listas activas.\n'+
+    'NO se borra de la base: el admin puede reactivarla después.'))return;
+  var motivo=prompt('Motivo de la baja (por qué no procede):','');
+  if(motivo===null)return; // canceló
+  motivo=(motivo||'').trim()||'Sin motivo especificado';
+  try{
+    var fecha=new Date().toISOString();
+    var res=await sb.from('rec_obras').update({
+      activo:false,
+      baja_motivo:motivo,
+      baja_por:CU.n,
+      baja_fecha:fecha
+    }).eq('id',oid);
+    if(res&&res.error)throw new Error(res.error.message);
+    o.activo=false;o.baja_motivo=motivo;o.baja_por=CU.n;o.baja_fecha=fecha;
+    dbLog(CU.n,'Dio de baja la obra: '+o.nom+' ('+o.cod+') — '+motivo);
+    toast('Obra "'+o.nom+'" dada de baja','success','🚫 No procede');
+    if(dvObraId===oid){
+      dvObraId=null;
+      var selDv=document.getElementById('dv-sel-obra');if(selDv)selDv.value='';
+      var formDv=document.getElementById('dv-form');if(formDv)formDv.style.display='none';
+    }
+    if(typeof admEditObraId!=='undefined'&&admEditObraId===oid){
+      admEditObraId=null;
+      var selAd=document.getElementById('admedit-sel-obra');if(selAd)selAd.value='';
+      var formAd=document.getElementById('admedit-form');if(formAd)formAd.style.display='none';
+    }
+    renderTodo();
+  }catch(e){
+    console.error('obraDarDeBaja error:',e);
+    _guardarError('obraDarDeBaja', e.message||e);
+    toast('No se pudo dar de baja: '+e.message,'error');
+  }
+}
+
+async function obraReactivar(oid){
+  if(!CU||CU.r!=='admin'){toast('Solo el admin puede reactivar una obra','warning');return;}
+  var o=obras.find(function(x){return x.id===oid;});
+  if(!o){toast('Obra no encontrada','error');return;}
+  if(!confirm('¿Reactivar la obra "'+o.nom+'"?\n\nVuelve a aparecer en todas las listas activas.'))return;
+  try{
+    var res=await sb.from('rec_obras').update({
+      activo:true,baja_motivo:null,baja_por:null,baja_fecha:null
+    }).eq('id',oid);
+    if(res&&res.error)throw new Error(res.error.message);
+    o.activo=true;o.baja_motivo=null;o.baja_por=null;o.baja_fecha=null;
+    dbLog(CU.n,'Reactivó la obra: '+o.nom+' ('+o.cod+')');
+    toast('Obra "'+o.nom+'" reactivada','success','↩️');
+    renderTodo();
+  }catch(e){
+    console.error('obraReactivar error:',e);
+    _guardarError('obraReactivar', e.message||e);
+    toast('No se pudo reactivar: '+e.message,'error');
+  }
+}
+
 async function admCargarAuditoria(){
   var el=document.getElementById('adm-auditoria');if(!el)return;
   el.innerHTML='<span style="color:var(--ws);">Cargando...</span>';
@@ -4771,16 +4880,20 @@ function renderDavid(){
   _renderDvFlujoBancario();
   var sel=document.getElementById('dv-sel-obra');
   if(!sel)return;
+  // v95 — solo obras vigentes (las dadas de baja no aparecen)
+  var _obrDv=obrasActivas();
+  var _prevSel=sel.value;
   sel.innerHTML='<option value="">— Elegir obra —</option>'+
-    obras.map(function(o){
+    _obrDv.map(function(o){
       var pendientes=_dvPendientes(o);
       var tag=pendientes===0?' ✅':' ('+pendientes+' faltan)';
       return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+')'+tag+'</option>';
     }).join('');
+  if(_prevSel)sel.value=_prevSel;
   var h=document.getElementById('dv-historial');
   if(h){
-    if(!obras.length){h.innerHTML='<div style="color:var(--ws);">Sin obras.</div>';return;}
-    h.innerHTML=obras.map(function(o){
+    if(!_obrDv.length){h.innerHTML='<div style="color:var(--ws);">Sin obras.</div>';return;}
+    h.innerHTML=_obrDv.map(function(o){
       var ct=o.contrato_propietario_escaneado?'✅':'⚠️';
       var pl=o.planos_propietario_pdf?'✅':'⚠️';
       var mat=o.materiales_pdf?'✅':'⚠️';
@@ -4801,7 +4914,7 @@ function _renderDvFlujoBancario(){
   // Filtrar: obras bancarias/mixtas donde el cerrador actual es responsable
   // Admin ve todas las bancarias
   var esAdmin=CU&&CU.r==='admin';
-  var obrasBanc=obras.filter(function(o){
+  var obrasBanc=obrasActivas().filter(function(o){
     if(o.tipo_financiamiento!=='bancario'&&o.tipo_financiamiento!=='mixto')return false;
     if(esAdmin)return true;
     // T24 FIX: si todavía no hay cerrador asignado (típico antes del desembolso), 
@@ -5029,7 +5142,7 @@ function _renderAdmFlujoBancario(){
   var card=document.getElementById('adm-flujo-bancario-card');
   var body=document.getElementById('adm-flujo-bancario-body');
   if(!card||!body)return;
-  var obrasBanc=obras.filter(function(o){
+  var obrasBanc=obrasActivas().filter(function(o){
     return o.tipo_financiamiento==='bancario'||o.tipo_financiamiento==='mixto';
   });
   if(!obrasBanc.length){
@@ -5519,9 +5632,16 @@ function dvSelObra(oid){
   _dvCargarFechaNotaria(o);
   var info=document.getElementById('dv-info-obra');
   if(info){
+    // v95 — el cerrador (David) y el admin pueden marcar la obra como "no procede"
+    var btnBaja=_puedeDarDeBaja()?
+      '<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);">'+
+      '<button type="button" class="btn btn-o btn-sm" onclick="obraDarDeBaja('+o.id+')">🚫 Dar de baja — no procede</button>'+
+      '<div style="font-size:9px;color:var(--ws);margin-top:4px;">La obra sale de las listas activas pero queda registrada.</div>'+
+      '</div>':'';
     info.innerHTML='<div style="background:var(--p2);border-radius:6px;padding:12px;margin-bottom:12px;">'+
       '<div style="font-weight:800;font-size:14px;">'+o.nom+'</div>'+
-      '<div style="font-size:10px;color:var(--ws);">'+o.cod+'</div></div>';
+      '<div style="font-size:10px;color:var(--ws);">'+o.cod+'</div>'+
+      btnBaja+'</div>';
   }
   var st=document.getElementById('dv-status');
   if(st){
@@ -5576,10 +5696,15 @@ function _dvRenderConfirmar(o){
   if(o.especificaciones_pdf)docsCargados++;
   if(o.docs_prop_confirmados){
     var fecha=o.docs_prop_confirmados_en?new Date(o.docs_prop_confirmados_en).toLocaleString('es-BO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    // v95 FIX #2: el bloqueo protege lo cargado, pero lo faltante se puede completar.
+    var faltan=total-docsCargados;
+    var avisoFaltan=faltan>0?
+      '<div style="font-size:11px;color:var(--am);font-weight:700;margin-top:8px;">📥 Todavía podés subir '+faltan+' documento(s) que falta(n) — los ya cargados quedan protegidos.</div>':
+      '<div style="font-size:10px;color:var(--ws);margin-top:6px;">Los 4 documentos están cargados y protegidos. Si necesitás modificar alguno, avisá al admin.</div>';
     zone.innerHTML='<div style="background:rgba(4,120,86,.12);border:1px solid var(--G);border-radius:8px;padding:14px;">'+
-      '<div style="font-size:11px;color:var(--Gc);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🔒 CARGA CONFIRMADA — BLOQUEADA</div>'+
+      '<div style="font-size:11px;color:var(--Gc);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">🔒 CARGA CONFIRMADA — '+docsCargados+'/'+total+' PROTEGIDOS</div>'+
       '<div style="font-size:11px;color:var(--wd);">Confirmada por <b>'+(o.docs_prop_confirmados_por||'—')+'</b> el '+fecha+'</div>'+
-      '<div style="font-size:10px;color:var(--ws);margin-top:6px;">Si necesitás modificar algo, avisá al admin.</div>'+
+      avisoFaltan+
       '</div>';
   } else if(docsCargados===0){
     zone.innerHTML='<div style="font-size:11px;color:var(--ws);">Cargá los documentos. Cuando termines, vas a poder confirmar la carga.</div>';
@@ -5630,20 +5755,30 @@ async function dvConfirmarCarga(){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
+// v95 — Devuelve true si el archivo quedó realmente subido, false si no.
+// El escáner (scanFinish) usa ese valor para NO cerrarse ni borrar las páginas si falló.
+var _DV_COL_POR_TIPO={
+  'contrato':'contrato_propietario_escaneado',
+  'planos':'planos_propietario_pdf',
+  'materiales':'materiales_pdf',
+  'especificaciones':'especificaciones_pdf'
+};
 async function dvUpload(tipo,inp){
-  if(!inp.files||!inp.files[0])return;
-  // T19: bloquear si ya confirmado
+  if(!inp.files||!inp.files[0])return false;
+  // T19 / v95 FIX #2: la confirmación protege los documentos YA cargados,
+  // pero NO impide completar los que quedaron "Sin cargar".
   if(dvObraId){
     var oCk=obras.find(function(x){return x.id===dvObraId;});
-    if(oCk&&oCk.docs_prop_confirmados){
-      toast('Carga confirmada y bloqueada. Avisá al admin para desbloquear.','warning');
-      inp.value='';
-      return;
+    var colCk=_DV_COL_POR_TIPO[tipo];
+    if(oCk&&oCk.docs_prop_confirmados&&colCk&&oCk[colCk]){
+      toast('Ese documento ya fue confirmado y está protegido. Para reemplazarlo avisá al admin.','warning','🔒 Documento protegido');
+      if(inp&&'value' in inp)inp.value='';
+      return false;
     }
   }
   var file=inp.files[0];
-  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return;}
-  if(!dvObraId){toast('Seleccioná una obra primero.','warning');return;}
+  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return false;}
+  if(!dvObraId){toast('Seleccioná una obra primero.','warning');return false;}
   var msg=document.getElementById('dv-msg');
   if(msg)msg.innerHTML='<div class="al al-z">⏳ Procesando '+tipo+'...</div>';
   try{
@@ -5673,17 +5808,24 @@ async function dvUpload(tipo,inp){
     o[m.d]=update[m.d];
     if(tipo==='contrato')o.cp_esc=fname;
     dbLog(CU.n,'Subió '+tipo+' propietario: '+o.nom);
-    msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
+    if(msg)msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
     toast(tipo.charAt(0).toUpperCase()+tipo.slice(1)+' subido correctamente para '+o.nom,'success','📄 Documento');
     // T39 — Validar con IA en segundo plano (no bloquea)
     _validarDocConIA(file, tipo).then(function(r){ if(r) _mostrarValidacionIA(r, tipo); });
     setTimeout(function(){
       dvSelObra(dvObraId);
       renderDavid();
-      msg.innerHTML='';
+      if(msg)msg.innerHTML='';
     },1500);
+    return true;
   }catch(e){
-    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+    // v95 FIX #1: el error también va a toast (dv-msg queda tapado por el modal del
+    // escáner) y se devuelve false para que scanFinish no simule éxito.
+    if(msg)msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+    toast('No se pudo subir '+tipo+': '+e.message,'error','❌ Subida fallida');
+    _guardarError('dvUpload_'+tipo, e.message||e);
+    console.error('dvUpload error:',e);
+    return false;
   }
 }
 
@@ -5930,7 +6072,7 @@ function _renderCarolinaConsultaContratos(){
   var el=document.getElementById('ca-consulta-contratos');
   if(!el)return;
   // Obras que tienen archivo de contrato cargado (cualquiera)
-  var conContrato=obras.filter(function(o){return o.cp_dig;});
+  var conContrato=obrasActivas().filter(function(o){return o.cp_dig;});
   if(!conContrato.length){
     el.innerHTML='<div style="color:var(--ws);font-size:12px;padding:8px 0;">Todavía no hay contratos cargados por Steffi.</div>';
     return;
@@ -6195,12 +6337,12 @@ async function _comprimirImagenParaPDF(file,maxLado,calidad){
 }
 
 async function _caSubirFirmado(oid,tipo,inp){
-  if(!inp.files||!inp.files.length)return;
+  if(!inp.files||!inp.files.length)return false;
   // tipo: 'plano' o 'ppto'
   var files=Array.from(inp.files);
   // T27: validación inicial más permisiva (60MB para fotos crudas, las comprimimos después)
   var totalSize=files.reduce(function(s,f){return s+f.size;},0);
-  if(totalSize>140*1024*1024){toast('Archivos muy grandes (total > 140MB). Sacá menos fotos o de menor resolución.','error');inp.value='';return;}
+  if(totalSize>140*1024*1024){toast('Archivos muy grandes (total > 140MB). Sacá menos fotos o de menor resolución.','error');if(inp&&'value' in inp)inp.value='';return false;}
   toast('Procesando '+files.length+' archivo(s)...','info');
   try{
     var finalFile=null;
@@ -6213,7 +6355,7 @@ async function _caSubirFirmado(oid,tipo,inp){
       // 1 PDF: subir tal cual sin tocar
       if(primero.size>25*1024*1024){
         toast('PDF muy grande (>25MB). Reducí el tamaño antes de subir.','error');
-        inp.value='';return;
+        if(inp&&'value' in inp)inp.value='';return false;
       }
       finalFile=primero;
       finalName=primero.name;
@@ -6223,7 +6365,7 @@ async function _caSubirFirmado(oid,tipo,inp){
       for(var k=0;k<files.length;k++){
         if(!esImagen(files[k])){
           toast('Si subís fotos, todos los archivos deben ser imágenes. Mezclaste con: '+files[k].name,'error');
-          inp.value='';return;
+          if(inp&&'value' in inp)inp.value='';return false;
         }
       }
       // Verificar jsPDF disponible
@@ -6232,7 +6374,7 @@ async function _caSubirFirmado(oid,tipo,inp){
       else if(window.jsPDF)JsPDF=window.jsPDF;
       if(!JsPDF){
         toast('No se pudo cargar el conversor PDF. Subí un solo PDF en su lugar.','error');
-        inp.value='';return;
+        if(inp&&'value' in inp)inp.value='';return false;
       }
       var pdf=new JsPDF({orientation:'portrait',unit:'mm',format:'a4',compress:true});
       var pageW=210,pageH=297;
@@ -6257,7 +6399,7 @@ async function _caSubirFirmado(oid,tipo,inp){
       // T27: validar tamaño FINAL del PDF
       if(blob.size>25*1024*1024){
         toast('PDF resultante muy grande ('+Math.round(blob.size/1024/1024)+'MB). Sacá menos fotos.','error');
-        inp.value='';return;
+        if(inp&&'value' in inp)inp.value='';return false;
       }
       finalName=tipo+'_firmado_'+oid+'_'+Date.now()+'.pdf';
       finalFile=new File([blob],finalName,{type:'application/pdf'});
@@ -6288,12 +6430,15 @@ async function _caSubirFirmado(oid,tipo,inp){
         (o?o.nom:'')+' — '+label+' subido. Recordá subir el otro documento.',
         {obra_id:oid,obra_nombre:o?o.nom:'',panel_destino:'carolina',prioridad:'normal'});
     }
-    inp.value='';
+    if(inp&&'value' in inp)inp.value='';
     _caRenderFlujoBancario(o);
+    return true;
   }catch(e){
     console.error('_caSubirFirmado error:',e);
-    toast('Error subiendo: '+(e.message||'error desconocido'),'error');
-    inp.value='';
+    toast('No se pudo subir: '+(e.message||'error desconocido'),'error','❌ Subida fallida');
+    _guardarError('caSubirFirmado_'+tipo, e.message||e);
+    if(inp&&'value' in inp)inp.value='';
+    return false;
   }
 }
 
@@ -6433,20 +6578,28 @@ async function caConfirmarCarga(){
   }catch(e){toast('Error: '+e.message,'error');}
 }
 
+// v95 — devuelve true/false igual que dvUpload (lo consume el escáner)
+var _CA_COL_POR_TIPO={
+  'contrato':'firm_scan',
+  'planos':'planos_contratista_pdf',
+  'calculo':'calculo_estructural_pdf',
+  'uso_suelo':'uso_suelo_pdf'
+};
 async function caUpload(tipo,inp){
-  if(!inp.files||!inp.files[0])return;
-  // T19: bloquear si ya confirmado
+  if(!inp.files||!inp.files[0])return false;
+  // T19 / v95 FIX #2: protege lo ya cargado, permite completar lo faltante
   if(caCtId){
     var ct=contratos.find(function(x){return x.id===caCtId;});
-    if(ct&&ct.docs_caro_confirmados){
-      toast('Carga confirmada y bloqueada. Avisá al admin para desbloquear.','warning');
-      inp.value='';
-      return;
+    var colCa=_CA_COL_POR_TIPO[tipo];
+    if(ct&&ct.docs_caro_confirmados&&colCa&&ct[colCa]){
+      toast('Ese documento ya fue confirmado y está protegido. Para reemplazarlo avisá al admin.','warning','🔒 Documento protegido');
+      if(inp&&'value' in inp)inp.value='';
+      return false;
     }
   }
   var file=inp.files[0];
-  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return;}
-  if(!caCtId){toast('Seleccioná un contrato primero.','warning');return;}
+  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return false;}
+  if(!caCtId){toast('Seleccioná un contrato primero.','warning');return false;}
   var msg=document.getElementById('ca-msg');
   if(msg)msg.innerHTML='<div class="al al-z">⏳ Procesando '+tipo+'...</div>';
   try{
@@ -6486,15 +6639,21 @@ async function caUpload(tipo,inp){
       c.planos_contratista_fecha=update.planos_contratista_fecha;
     }
     dbLog(CU.n,'Subió '+tipo+' contratista: '+(gO(c.oid).nom||'?'));
-    msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
+    if(msg)msg.innerHTML='<div class="al al-g">✅ '+tipo+' subido correctamente</div>';
     toast(tipo.charAt(0).toUpperCase()+tipo.slice(1)+' del contratista subido','success','📋 Documento');
     setTimeout(function(){
       caSelCt(caCtId);
       renderCarolina();
-      msg.innerHTML='';
+      if(msg)msg.innerHTML='';
     },1500);
+    return true;
   }catch(e){
-    msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+    // v95 FIX #1: avisar por toast (ca-msg queda tapado por el escáner) y reportar el fallo
+    if(msg)msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+    toast('No se pudo subir '+tipo+': '+e.message,'error','❌ Subida fallida');
+    _guardarError('caUpload_'+tipo, e.message||e);
+    console.error('caUpload error:',e);
+    return false;
   }
 }
 
@@ -6625,10 +6784,10 @@ function admCronoLimpiar(){admCrono=[];admCronoRender();}
 let fatCroquisFile=null;
 
 async function fatUploadCroquis(inp){
-  if(!inp.files||!inp.files[0])return;
+  if(!inp.files||!inp.files[0])return false;
   var file=inp.files[0];
-  if(file.size>140*1024*1024){toast('Máximo 140MB.','error');return;}
-  if(!fatObraId){toast('Seleccioná una obra primero.','warning');return;}
+  if(file.size>140*1024*1024){toast('Máximo 140MB.','error');return false;}
+  if(!fatObraId){toast('Seleccioná una obra primero.','warning');return false;}
   var st=document.getElementById('fat-croquis-status');
   if(st){st.textContent='⏳ Procesando croquis...';st.style.color='';}
   try{
@@ -6644,10 +6803,13 @@ async function fatUploadCroquis(inp){
     dbLog(CU.n,'Subió croquis: '+o.nom);
     if(st){st.textContent='✅ Croquis cargado: '+(file.name||'foto.jpg');st.style.color='var(--Gc)';}
     toast('Croquis cargado','success','✅');
+    return true;
   }catch(e){
     if(st){st.textContent='❌ Error: '+e.message;st.style.color='var(--Rc)';}
-    toast('Error: '+e.message,'error');
+    toast('No se pudo subir el croquis: '+e.message,'error','❌ Subida fallida');
+    _guardarError('fatUploadCroquis', e.message||e);
     console.error(e);
+    return false;
   }
 }
 
@@ -6675,7 +6837,7 @@ const AD_TIPOS={
 function renderAdendas(){
   var sel=document.getElementById('ad-sel-obra');
   if(!sel)return;
-  var aptas=obras.filter(function(o){
+  var aptas=obrasActivas().filter(function(o){
     var ct=gCByObra(o.id);
     return ct && (ct.est_ct==='aprobado'||ct.est_ct==='firmado');
   });
@@ -6891,10 +7053,10 @@ function adEditar(adId){
 }
 
 async function adSubirFirmado(adId,inp){
-  if(!inp.files||!inp.files[0])return;
+  if(!inp.files||!inp.files[0])return false;
   var file=inp.files[0];
-  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return;}
-  if(!adObraId)return;
+  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return false;}
+  if(!adObraId)return false;
   try{
     toast('Procesando...','info');
     file=await _compressImage(file);
@@ -6916,9 +7078,12 @@ async function adSubirFirmado(adId,inp){
     toast('Adenda firmada y registrada correctamente.','success','📑 Adenda');
     _adRenderHistorial(o);
     renderAdendas();
+    return true;
   }catch(e){
-    toast('Error: '+e.message,'error');
+    toast('No se pudo subir la adenda firmada: '+e.message,'error','❌ Subida fallida');
+    _guardarError('adSubirFirmado', e.message||e);
     console.error(e);
+    return false;
   }
 }
 
@@ -7504,13 +7669,28 @@ async function scanFinish(){
       pdf.addImage(src,'JPEG',x,y,imgW,imgH,'','FAST');
     }
     var pdfBlob=pdf.output('blob');
+    if(!pdfBlob||!pdfBlob.size)throw new Error('El PDF generado quedó vacío');
     var file=new File([pdfBlob],'escaneado_'+Date.now()+'.pdf',{type:'application/pdf'});
-    await _scanUploadToDestino(file);
+    // v95 FIX #1: antes se cerraba el modal y se borraban las páginas SIN verificar el
+    // resultado de la subida. Si el upload fallaba o quedaba bloqueado, el usuario veía
+    // "procesó" y el archivo nunca llegaba al bucket, perdiendo además las fotos.
+    toast('Subiendo al servidor...','info','☁️');
+    var ok=await _scanUploadToDestino(file);
+    if(ok===false){
+      // La subida NO se completó: dejamos el modal abierto con las páginas intactas
+      // para que el usuario pueda reintentar sin volver a escanear.
+      var infoR=document.getElementById('scan-step-info');
+      if(infoR)infoR.textContent='❌ No se pudo subir. Tus páginas siguen acá — reintentá "Finalizar y subir".';
+      return;
+    }
     document.getElementById('scan-modal').classList.remove('on');
     scanCtx.destino=null;scanCtx.tipo=null;scanCtx.bancoOid=null;scanCtx.pages=[];scanCtx.step='inicio';
   }catch(e){
     console.error(e);
-    toast('Error generando PDF: '+e.message,'error');
+    _guardarError('scanFinish', e.message||e);
+    toast('Error al finalizar el escaneo: '+e.message+'. Tus páginas no se perdieron.','error','❌ Escáner');
+    var infoE=document.getElementById('scan-step-info');
+    if(infoE)infoE.textContent='❌ '+e.message+' — reintentá "Finalizar y subir".';
   }
 }
 
@@ -7523,17 +7703,27 @@ function _scanImgDim(dataURL){
   });
 }
 
+// v95 FIX #1: devuelve true solo si el destino confirmó que el archivo quedó subido.
+// Antes ignoraba el resultado, así que un fallo (o el bloqueo por carga confirmada)
+// se veía exactamente igual que un éxito.
 async function _scanUploadToDestino(file){
-  var fakeInput={files:[file]};
-  if(scanCtx.destino==='dv'){await dvUpload(scanCtx.tipo,fakeInput);}
-  else if(scanCtx.destino==='ca'){await caUpload(scanCtx.tipo,fakeInput);}
-  else if(scanCtx.destino==='fat'){await fatUploadCroquis(fakeInput);}
-  else if(scanCtx.destino==='ad'){await adSubirFirmado(scanCtx.tipo,fakeInput);}
-  else if(scanCtx.destino==='steffiDig'){await onUpNuevaObra('dig',fakeInput);}
-  else if(scanCtx.destino==='admin'){await admEditDocumento(scanCtx.tipo,fakeInput);}
+  // 'value' incluido para que las funciones que hacen inp.value='' no rompan
+  var fakeInput={files:[file],value:''};
+  var r;
+  if(scanCtx.destino==='dv'){r=await dvUpload(scanCtx.tipo,fakeInput);}
+  else if(scanCtx.destino==='ca'){r=await caUpload(scanCtx.tipo,fakeInput);}
+  else if(scanCtx.destino==='fat'){r=await fatUploadCroquis(fakeInput);}
+  else if(scanCtx.destino==='ad'){r=await adSubirFirmado(scanCtx.tipo,fakeInput);}
+  else if(scanCtx.destino==='steffiDig'){onUpNuevaObra('dig',fakeInput);r=true;}
+  else if(scanCtx.destino==='admin'){r=await admEditDocumento(scanCtx.tipo,fakeInput);}
   // T29 — Flujo bancario Carolina (plano/ppto firmado)
-  else if(scanCtx.destino==='caBancoPlano'){await _caSubirFirmado(scanCtx.bancoOid,'plano',fakeInput);}
-  else if(scanCtx.destino==='caBancoPpto'){await _caSubirFirmado(scanCtx.bancoOid,'ppto',fakeInput);}
+  else if(scanCtx.destino==='caBancoPlano'){r=await _caSubirFirmado(scanCtx.bancoOid,'plano',fakeInput);}
+  else if(scanCtx.destino==='caBancoPpto'){r=await _caSubirFirmado(scanCtx.bancoOid,'ppto',fakeInput);}
+  else{
+    // Destino desconocido: antes no hacía nada y el escáner igual se cerraba "ok"
+    throw new Error('Destino de escaneo no reconocido: '+scanCtx.destino);
+  }
+  return r!==false;
 }
 
 
@@ -7546,7 +7736,7 @@ function admEditRenderSel(){
   var sel=document.getElementById('admedit-sel-obra');
   if(!sel)return;
   sel.innerHTML='<option value="">— Elegir obra —</option>'+
-    obras.map(function(o){
+    obrasActivas().map(function(o){
       var n=0;
       if(!o.contrato_propietario_escaneado)n++;
       if(!o.planos_propietario_pdf)n++;
@@ -7611,10 +7801,10 @@ function _admUrlArchivo(nombre){
 }
 
 async function admEditDocumento(tipo,inp){
-  if(!admEditObraId){toast('Seleccioná una obra primero','warning');return;}
-  if(!inp.files||!inp.files[0])return;
+  if(!admEditObraId){toast('Seleccioná una obra primero','warning');return false;}
+  if(!inp.files||!inp.files[0])return false;
   var file=inp.files[0];
-  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return;}
+  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');return false;}
   var mapping={
     'admin_cp_esc':{col:'contrato_propietario_escaneado',byCol:'contrato_propietario_subido_por',dCol:'contrato_propietario_fecha',prefix:'adm_cp'},
     'admin_planos_prop':{col:'planos_propietario_pdf',byCol:'planos_propietario_subido_por',dCol:'planos_propietario_fecha',prefix:'adm_pl'},
@@ -7623,7 +7813,7 @@ async function admEditDocumento(tipo,inp){
     'admin_croquis':{col:'croquis_imagen',byCol:null,dCol:null,prefix:'adm_croquis'}
   };
   var m=mapping[tipo];
-  if(!m){toast('Tipo no reconocido: '+tipo,'error');return;}
+  if(!m){toast('Tipo no reconocido: '+tipo,'error');return false;}
   toast('Procesando archivo...','info');
   try{
     file=await _compressImage(file);
@@ -7648,9 +7838,12 @@ async function admEditDocumento(tipo,inp){
     toast('Documento actualizado correctamente','success','🛠️ Admin');
     admEditSelObra(admEditObraId);
     admEditRenderSel();
+    return true;
   }catch(e){
     console.error(e);
-    toast('Error: '+e.message,'error');
+    toast('No se pudo subir el documento: '+e.message,'error','❌ Subida fallida');
+    _guardarError('admEditDocumento_'+tipo, e.message||e);
+    return false;
   }
 }
 
