@@ -978,7 +978,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v93 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v94 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1265,6 +1265,19 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
           <div id="fat-clausulas-origen" style="background:rgba(245,196,0,.06);border:1px solid rgba(245,196,0,.2);border-radius:6px;padding:12px;margin-bottom:10px;">
             <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--am);font-weight:700;margin-bottom:4px;">📋 Cláusulas del Contrato con el Contratista</div>
             <div style="font-size:10px;color:var(--wd);" id="fat-clausulas-msg">Texto pre-cargado. Editá solo si hay condiciones especiales para esta obra.</div>
+          </div>
+
+          <!-- T41 — Contrato del cliente: ver + transferir requerimientos con IA -->
+          <div style="background:rgba(64,108,202,.06);border:1px solid rgba(125,167,255,.35);border-radius:6px;padding:12px;margin-bottom:10px;">
+            <div style="font-size:10px;color:#7da7ff;margin-bottom:8px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">📄 Contrato del cliente</div>
+            <div style="font-size:10px;color:var(--wd);margin-bottom:10px;">Lo que GEAT le prometió al cliente. Podés verlo y transferir esos requerimientos al contrato del contratista.</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-o btn-sm" onclick="_ccVerContrato()">👁️ Ver contrato</button>
+              <button type="button" class="btn btn-o btn-sm" onclick="_ccVerArchivo()">📄 Ver archivo</button>
+              <button type="button" class="btn btn-y btn-sm" id="cc-btn-modelo" onclick="_ccUsarComoModelo()" style="background:rgba(64,108,202,.15);color:#7da7ff;border:1px solid rgba(125,167,255,.4);">📥 Usar como modelo (ordena solo)</button>
+            </div>
+            <div id="cc-modelo-status" style="font-size:10px;margin-top:6px;"></div>
+            <div style="font-size:10px;color:var(--ws);margin-top:6px;">Es solo un modelo — usalo o no, editá lo que quieras antes de guardar.</div>
           </div>
 
           <!-- T21 — Copiar de otra obra -->
@@ -1944,6 +1957,18 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
   <div class="modal">
     <div class="modal-hdr"><h3>📢 Activar Búsqueda de Contratista</h3><button class="xbtn" onclick="cOv('busqueda')">✕</button></div>
     <div id="modal-busqueda-body"></div>
+  </div>
+</div>
+
+<!-- T41 — MODAL VER CONTRATO DEL CLIENTE -->
+<div class="overlay" id="ov-cccontrato">
+  <div class="modal" style="max-width:760px;width:96%;">
+    <div class="modal-hdr">
+      <h3>📄 Contrato del cliente</h3>
+      <button class="xbtn" onclick="cOv('cccontrato')">✕</button>
+    </div>
+    <div id="cc-contrato-obra" style="font-size:12px;color:var(--am);font-weight:700;margin-bottom:12px;"></div>
+    <div id="cc-contrato-body" style="max-height:60vh;overflow-y:auto;"></div>
   </div>
 </div>
 
@@ -3346,6 +3371,110 @@ function _fatPoblarCopiarDesde(){
       if(o.exc)camposTxt.push('exc');
       return '<option value="'+o.id+'">'+o.nom+' ('+o.cod+') · '+camposTxt.join('+')+'</option>';
     }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// T41 — CONTRATO DEL CLIENTE: ver + transferir requerimientos con IA
+// ═══════════════════════════════════════════════════════════════
+function _ccObraActual(){
+  if(!fatObraId)return null;
+  return obras.find(function(x){return x.id===fatObraId;})||null;
+}
+
+function _ccTextoContrato(o){
+  var partes=[];
+  if(o.obj&&o.obj.trim())partes.push('OBJETO:\n'+o.obj.trim());
+  if(o.inc&&o.inc.trim())partes.push('INCLUYE:\n'+o.inc.trim());
+  if(o.exc&&o.exc.trim())partes.push('EXCLUYE:\n'+o.exc.trim());
+  return partes.join('\n\n');
+}
+
+async function _ccVerContrato(){
+  var o=_ccObraActual();
+  if(!o){toast('Elegí primero una obra','warning');return;}
+  document.getElementById('cc-contrato-obra').textContent=o.nom+' · '+o.cod;
+  var body=document.getElementById('cc-contrato-body');
+  var texto=_ccTextoContrato(o);
+  var html='';
+  if(texto){
+    html+='<div style="background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:14px;margin-bottom:12px;">'+
+      '<div style="font-size:10px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Requerimientos extraídos</div>'+
+      '<pre style="white-space:pre-wrap;font-family:inherit;font-size:12px;line-height:1.5;color:var(--w);margin:0;">'+texto.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre></div>';
+  } else {
+    html+='<div class="al al-z" style="margin-bottom:12px;">Esta obra todavía no tiene objeto/inclusiones/exclusiones extraídos.</div>';
+  }
+  body.innerHTML=html;
+  aOv('cccontrato');
+  var archivo=o.cp_dig||o.cp_esc;
+  if(archivo&&/\.docx?$/i.test(archivo)&&window.mammoth){
+    var loading=document.createElement('div');
+    loading.style.cssText='font-size:11px;color:#7da7ff;padding:8px;';
+    loading.textContent='📄 Leyendo el documento completo del cliente...';
+    body.appendChild(loading);
+    try{
+      var res=await sb.storage.from('rec-archivos').createSignedUrl(archivo,3600);
+      if(res.data&&res.data.signedUrl){
+        var resp=await fetch(res.data.signedUrl);
+        var buf=await resp.arrayBuffer();
+        var out=await window.mammoth.extractRawText({arrayBuffer:buf});
+        loading.remove();
+        if(out&&out.value){
+          var full=document.createElement('div');
+          full.style.cssText='background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:14px;';
+          full.innerHTML='<div style="font-size:10px;color:var(--ws);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Documento completo del cliente</div>'+
+            '<pre style="white-space:pre-wrap;font-family:inherit;font-size:12px;line-height:1.5;color:var(--wd);margin:0;">'+out.value.replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>';
+          body.appendChild(full);
+        }
+      }
+    }catch(e){loading.textContent='No se pudo leer el documento completo (podés verlo con "Ver archivo").';}
+  }
+}
+
+async function _ccVerArchivo(){
+  var o=_ccObraActual();
+  if(!o){toast('Elegí primero una obra','warning');return;}
+  var archivo=o.cp_esc||o.cp_dig;
+  if(!archivo){toast('Esta obra no tiene archivo de contrato del cliente cargado','warning');return;}
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(archivo,3600);
+    if(res.error)throw new Error(res.error.message);
+    window.open(res.data.signedUrl,'_blank');
+  }catch(e){toast('Error abriendo el archivo: '+e.message,'error');}
+}
+
+async function _ccUsarComoModelo(){
+  var o=_ccObraActual();
+  if(!o){toast('Elegí primero una obra','warning');return;}
+  var texto=_ccTextoContrato(o);
+  if(!texto||texto.length<20){toast('Esta obra no tiene contrato del cliente para usar de modelo','warning');return;}
+  var elObj=document.getElementById('fat-obj');
+  var elInc=document.getElementById('fat-inc');
+  if((elObj&&elObj.value.trim())||(elInc&&elInc.value.trim())){
+    if(!confirm('Los campos OBJETO / INCLUIDO tienen texto. ¿Reemplazar con el modelo ordenado del contrato del cliente?\n\n(Vas a poder editar después)'))return;
+  }
+  var btn=document.getElementById('cc-btn-modelo');
+  var st=document.getElementById('cc-modelo-status');
+  btn.disabled=true;btn.style.opacity='.5';
+  st.innerHTML='<span style="color:#7da7ff;">✨ Ordenando los requerimientos con IA...</span>';
+  try{
+    var resp=await fetch(SB_URL+'/functions/v1/geat-transferir-requerimientos',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY},
+      body:JSON.stringify({contrato_cliente:texto,contexto_obra:o.nom})
+    });
+    if(!resp.ok)throw new Error('El servicio respondió '+resp.status);
+    var data=await resp.json();
+    if(data.error)throw new Error(data.detail||data.error);
+    if(elObj&&data.objeto)elObj.value=data.objeto;
+    if(elInc&&data.incluido)elInc.value=data.incluido;
+    st.innerHTML='<span style="color:var(--Gc);">✅ Modelo cargado. Revisá y editá antes de guardar.</span>';
+    toast('Requerimientos transferidos del contrato del cliente','success','📥');
+  }catch(e){
+    st.innerHTML='<span style="color:var(--Rc);">❌ '+e.message+'</span>';
+    if(typeof _guardarError==='function')_guardarError('cc_modelo',e.message);
+  }finally{
+    btn.disabled=false;btn.style.opacity='1';
+  }
 }
 
 function fatCopiarDeOtraObra(){
