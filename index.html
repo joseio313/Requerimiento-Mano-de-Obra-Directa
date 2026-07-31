@@ -1010,7 +1010,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v97 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v98 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1699,14 +1699,14 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <!-- v97 — PASO 1: INFO DEL CLIENTE (lo que subió David) -->
       <div class="card" id="ca-docs-cliente-card" style="border-top:3px solid #7da7ff;display:none;">
         <div class="ct" style="color:#7da7ff;">① Mirá la info del cliente</div>
-        <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 Lo que David subió de esta obra: con esto preparás tus planos, estudios y cálculos.</div>
+        <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 <b>INDICACIONES:</b> Lo que David subió de esta obra: con esto preparás tus planos, estudios y cálculos.</div>
         <div id="ca-docs-cliente-body"></div>
       </div>
 
       <!-- v96/v97 — PASO 2: LO QUE ELABORÁS -->
       <div class="card" id="ca-doctec-card" style="border-top:3px solid var(--Z);margin-top:6px;display:none;">
         <div class="ct" style="color:var(--Zc);">② Subí lo que elaborás</div>
-        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 Tus entregables de esta obra. El <b>plano ejecutivo cliente</b> tiene plazo: David lo revisa con el cliente; si hay cambios lo actualizás; aprobado, David sube el firmado.</div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 <b>INDICACIONES:</b> Tus entregables de esta obra. El <b>plano ejecutivo cliente</b> tiene plazo: David lo revisa con el cliente; si hay cambios lo actualizás; aprobado, David sube el firmado.</div>
         <div id="ca-plazo-banner"></div>
         <div id="ca-doctec-body" style="display:none;"></div>
         <div id="ca-doctec-msg" style="margin-top:14px;"></div>
@@ -1715,7 +1715,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <!-- T40 — PASO 3: ESPECIFICACIONES PARA APROBAR -->
       <div class="card" id="ca-espec-card" style="border-top:3px solid #f59e0b;display:none;">
         <div class="ct" style="color:#f59e0b;">③ Revisá y aprobá especificaciones <span id="ca-espec-count" style="font-size:11px;color:var(--ws);font-weight:600;"></span></div>
-        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 David envió estas especificaciones. Podés <b>editarlas</b>, <b>observarlas</b> (vuelven a David) o <b>aprobarlas</b>. Sin tu aprobación no se firman.</div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 <b>INDICACIONES:</b> David envió estas especificaciones. Podés <b>editarlas</b>, <b>observarlas</b> (vuelven a David) o <b>aprobarlas</b>. Sin tu aprobación no se firman.</div>
         <div id="ca-espec-list"></div>
       </div>
 
@@ -1725,111 +1725,11 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         <div id="ca-flujo-bancario-body"></div>
       </div>
 
-      <!-- PASO 4: ESCANEADOS FIRMADOS DEL CONTRATISTA -->
-      <div class="card" style="margin-top:6px;">
-        <div class="ct">④ Subí los firmados del contratista</div>
-        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 Cuando Josemiguel hace firmar al contratista, escaneás y subís: <b>contrato firmado</b> y <b>planos de ejecución firmados</b>. (Acá se elige por contrato, no por obra.)</div>
-        <div class="f" style="margin-bottom:12px;">
-          <label>Seleccioná contrato</label>
-          <select id="ca-sel-ct" onchange="caSelCt(this.value)">
-            <option value="">— Elegir contrato —</option>
-          </select>
-        </div>
-        <div id="ca-form" style="display:none;">
-          <div id="ca-info-ct"></div>
-          <div id="ca-status" style="margin-bottom:14px;"></div>
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
-
-            <!-- CONTRATO CONTRATISTA -->
-            <div class="up-card" id="upc-ca-ct">
-              <div class="up-card-head">
-                <div class="up-card-ico">📄</div>
-                <div>
-                  <div class="up-card-title">Contrato firmado contratista</div>
-                  <div class="up-card-sub">Firmado por contratista</div>
-                </div>
-              </div>
-              <div class="up-card-btns">
-                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','contrato')">📷 Escanear</button>
-                <label class="up-card-btn">
-                  📁 Archivo
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('contrato',this)">
-                </label>
-              </div>
-              <div class="up-card-status" id="st-upc-ca-ct">Sin cargar</div>
-            </div>
-
-            <!-- PLANOS EJECUCIÓN -->
-            <div class="up-card" id="upc-ca-pl">
-              <div class="up-card-head">
-                <div class="up-card-ico">📐</div>
-                <div>
-                  <div class="up-card-title">Planos ejecución firmados</div>
-                  <div class="up-card-sub">Generados por Carolina + firmados</div>
-                </div>
-              </div>
-              <div class="up-card-btns">
-                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','planos')">📷 Escanear</button>
-                <label class="up-card-btn">
-                  📁 Archivo
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('planos',this)">
-                </label>
-              </div>
-              <div class="up-card-status" id="st-upc-ca-pl">Sin cargar</div>
-            </div>
-
-            <!-- CÁLCULO ESTRUCTURAL (T19) -->
-            <div class="up-card" id="upc-ca-ce">
-              <div class="up-card-head">
-                <div class="up-card-ico">🔬</div>
-                <div>
-                  <div class="up-card-title">Cálculo estructural</div>
-                  <div class="up-card-sub">PDF del ingeniero estructural</div>
-                </div>
-              </div>
-              <div class="up-card-btns">
-                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','calculo')">📷 Escanear</button>
-                <label class="up-card-btn">
-                  📁 Archivo
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('calculo',this)">
-                </label>
-              </div>
-              <div class="up-card-status" id="st-upc-ca-ce">Sin cargar</div>
-            </div>
-
-            <!-- INFORME USO DE SUELO (T19) -->
-            <div class="up-card" id="upc-ca-us">
-              <div class="up-card-head">
-                <div class="up-card-ico">🗺️</div>
-                <div>
-                  <div class="up-card-title">Informe uso de suelo</div>
-                  <div class="up-card-sub">PDF informe municipal</div>
-                </div>
-              </div>
-              <div class="up-card-btns">
-                <button type="button" class="up-card-btn cam" onclick="scanOpen('ca','uso_suelo')">📷 Escanear</button>
-                <label class="up-card-btn">
-                  📁 Archivo
-                  <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUpload('uso_suelo',this)">
-                </label>
-              </div>
-              <div class="up-card-status" id="st-upc-ca-us">Sin cargar</div>
-            </div>
-          </div>
-          <div id="ca-msg" style="margin-top:14px;"></div>
-
-          <!-- BOTÓN CONFIRMAR (T19) -->
-          <div id="ca-confirmar-zone" style="margin-top:16px;border-top:1px solid var(--bd);padding-top:14px;">
-            <div id="ca-confirm-status"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CONSULTA ANTICIPADA (referencia, al final) -->
-      <div class="card" style="border-top:3px solid var(--am);">
-        <div class="ct">📑 Contratos del cliente — consulta rápida</div>
-        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 Para consultar contratos de cualquier obra mientras preparás tu trabajo.</div>
-        <div id="ca-consulta-contratos"></div>
+      <!-- v98 — PASO 4: FIRMADOS (solo ver, Carolina no sube) -->
+      <div class="card" id="ca-firmados-card" style="margin-top:6px;border-top:3px solid var(--Gc);">
+        <div class="ct" style="color:var(--Gc);">④ Firmados (solo consulta)</div>
+        <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 <b>INDICACIONES:</b> Acá ves los documentos firmados: los que David hace firmar con el cliente y los que Josemiguel hace firmar con el contratista. Vos no subís nada acá.</div>
+        <div id="ca-firmados-body"></div>
       </div>
 
       <div class="card">
@@ -2037,6 +1937,20 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
   </div>
 </div>
 
+<!-- v98 — MODAL VISOR DE CONTRATO PARA CAROLINA (sin salir de la página, sin descarga) -->
+<div class="overlay" id="ov-cavisor">
+  <div class="modal" id="cavisor-modal" style="max-width:760px;width:96%;">
+    <div class="modal-hdr">
+      <h3 id="cavisor-titulo">📄 Documento</h3>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-o btn-sm" onclick="_caVisorGrande()">🔍 Ver más grande</button>
+        <button class="xbtn" onclick="cOv('cavisor')">✕</button>
+      </div>
+    </div>
+    <div id="cavisor-body" style="max-height:65vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
 <!-- T40 — MODAL EDITOR DE ESPECIFICACIONES TÉCNICAS -->
 <div class="overlay" id="ov-especeditor">
   <div class="modal" style="max-width:720px;width:96%;">
@@ -2224,7 +2138,7 @@ function buildNav(){
     fatima:[{id:'fatima',l:'📋 Mi Panel'},{id:'sup',l:'🏗️ Supervisión'}],
     supervisor:[{id:'sup',l:'🏗️ Supervisión'}],
     david:[{id:'david',l:'📐 Carga del Propietario'}],
-    carolina:[{id:'carolina',l:'📋 Carga del Contratista'},{id:'sup',l:'🏗️ Supervisión'}],
+    carolina:[{id:'carolina',l:'📐 Carga de planos Carolina'},{id:'sup',l:'🏗️ Supervisión'}],
     lector:[{id:'sup',l:'🏗️ Supervisión'}]
   };
   (maps[CU.r]||[]).forEach(b=>{
@@ -5822,7 +5736,9 @@ async function dvUpload(tipo,inp){
   if(dvObraId){
     var oCk=obras.find(function(x){return x.id===dvObraId;});
     var colCk=_DV_COL_POR_TIPO[tipo];
-    if(oCk&&oCk.docs_prop_confirmados&&colCk&&oCk[colCk]){
+    // v98 — Las ESPECIFICACIONES siempre son re-subibles por el cerrador
+    // (pedido de David: poder actualizar las especificaciones tras la confirmación)
+    if(oCk&&oCk.docs_prop_confirmados&&colCk&&oCk[colCk]&&tipo!=='especificaciones'){
       toast('Ese documento ya fue confirmado y está protegido. Para reemplazarlo avisá al admin.','warning','🔒 Documento protegido');
       if(inp&&'value' in inp)inp.value='';
       return false;
@@ -6080,11 +5996,15 @@ function renderCarolina(){
   _especRenderPendientesTecnico();
   // v96 — Documentos técnicos que elabora Carolina (va antes del return temprano de abajo)
   _caRenderSelObraTec();
+  // v98 — Firmados (solo consulta)
+  if(typeof _caRenderFirmados==='function')_caRenderFirmados();
   var sel=document.getElementById('ca-sel-ct');
-  if(!sel)return;
   var aprobados=contratos.filter(function(c){
     return c.est_ct==='aprobado'||c.est_ct==='firmado';
   });
+  // v98 — el selector de subida ya no está en el panel (Carolina no sube firmados),
+  // pero el historial de abajo sigue funcionando igual.
+  if(sel){
   sel.innerHTML='<option value="">— Elegir contrato —</option>'+
     aprobados.map(function(c){
       var o=gO(c.oid);
@@ -6099,6 +6019,7 @@ function renderCarolina(){
       }
       return '<option value="'+c.id+'">'+(o.nom||'?')+' / '+c.nom+' '+ct+pl+urgencia+'</option>';
     }).join('');
+  }
   var h=document.getElementById('ca-historial');
   if(h){
     if(!aprobados.length){h.innerHTML='<div style="color:var(--ws);">Sin contratos aprobados todavía.</div>';return;}
@@ -6704,13 +6625,14 @@ function caSelObraTec(oid){
   _caRenderDocTec();
 }
 
-// ═══ v97 — PASO 1: documentos del cliente (lo que subió David) ═══
+// ═══ v97/v98 — PASO 1: documentos del cliente (lo que subió David) ═══
+// v98: contratos NUNCA descargables para Carolina; se ven en visor interno
 var _CA_DOCS_CLIENTE=[
-  {t:'Contrato del cliente (digital)',ico:'📄',col:'cp_dig',descargable:true},
-  {t:'Contrato firmado escaneado',ico:'🖋️',col:'cp_esc',descargable:false},
-  {t:'Planos notariados (2D + eléctrico)',ico:'📐',col:'planos_propietario_pdf',descargable:true},
-  {t:'Lista de materiales',ico:'🧱',col:'materiales_pdf',descargable:true},
-  {t:'Especificaciones (archivo)',ico:'📋',col:'especificaciones_pdf',descargable:true}
+  {t:'Contrato del cliente (digital)',ico:'📄',col:'cp_dig',descargable:false,visor:'texto'},
+  {t:'Contrato firmado escaneado',ico:'🖋️',col:'cp_esc',descargable:false,visor:'pdf'},
+  {t:'Planos notariados (2D + eléctrico)',ico:'📐',col:'planos_propietario_pdf',descargable:true,visor:'pdf'},
+  {t:'Lista de materiales',ico:'🧱',col:'materiales_pdf',descargable:true,visor:'pdf'},
+  {t:'Especificaciones (archivo)',ico:'📋',col:'especificaciones_pdf',descargable:true,visor:'pdf'}
 ];
 
 function _caRenderDocsCliente(){
@@ -6734,18 +6656,127 @@ function _caRenderDocsCliente(){
   el.innerHTML=html;
 }
 
-async function _caDocClienteUrl(col,down){
-  var o=obras.find(function(x){return x.id===caObraTecId;});
-  if(!o||!o[col]){toast('Documento no disponible','warning');return null;}
-  try{
-    var opts=down?{download:true}:undefined;
-    var res=await sb.storage.from('rec-archivos').createSignedUrl(o[col],3600,opts);
-    if(res.error)throw new Error(res.error.message);
-    return res.data.signedUrl;
-  }catch(e){toast('Error: '+e.message,'error');return null;}
+// v98 — Visor interno: los documentos se ven SIN salir de la página
+function _caVisorGrande(){
+  var m=document.getElementById('cavisor-modal');
+  if(!m)return;
+  if(m.style.maxWidth==='98vw'){m.style.maxWidth='760px';m.style.height='';}
+  else{m.style.maxWidth='98vw';m.style.height='94vh';}
+  var b=document.getElementById('cavisor-body');
+  if(b)b.style.maxHeight=(m.style.maxWidth==='98vw')?'82vh':'65vh';
 }
-async function _caVerDocCliente(col){var u=await _caDocClienteUrl(col,false);if(u)window.open(u,'_blank');}
-async function _caDescargarDocCliente(col){var u=await _caDocClienteUrl(col,true);if(u)window.open(u,'_blank');}
+
+async function _caVerDocCliente(col){
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o||!o[col]){toast('Documento no disponible','warning');return;}
+  var d=null;
+  for(var i=0;i<_CA_DOCS_CLIENTE.length;i++){if(_CA_DOCS_CLIENTE[i].col===col){d=_CA_DOCS_CLIENTE[i];break;}}
+  var titulo=document.getElementById('cavisor-titulo');
+  var body=document.getElementById('cavisor-body');
+  if(titulo)titulo.textContent=(d?d.ico+' '+d.t:'📄 Documento');
+  if(!body)return;
+  body.innerHTML='<div style="font-size:12px;color:#7da7ff;padding:12px;">⏳ Cargando documento...</div>';
+  aOv('cavisor');
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(o[col],3600);
+    if(res.error)throw new Error(res.error.message);
+    var url=res.data.signedUrl;
+    var esDocx=/\.docx?$/i.test(o[col]);
+    if(esDocx&&window.mammoth){
+      // Word → extraer texto y mostrarlo como lectura (sin abrir Word, sin descargar)
+      var resp=await fetch(url);
+      var buf=await resp.arrayBuffer();
+      var out=await window.mammoth.extractRawText({arrayBuffer:buf});
+      var texto=(out&&out.value)?out.value:'(No se pudo leer el contenido)';
+      body.innerHTML='<pre style="white-space:pre-wrap;font-family:inherit;font-size:12px;line-height:1.6;color:var(--w);margin:0;padding:4px;">'+texto.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</pre>';
+    } else {
+      // PDF/imagen → visor embebido en la misma página
+      body.innerHTML='<iframe src="'+url+'#toolbar=0" style="width:100%;height:60vh;border:none;border-radius:8px;background:#fff;"></iframe>';
+    }
+  }catch(e){
+    body.innerHTML='<div class="al al-r">❌ No se pudo mostrar: '+e.message+'</div>';
+  }
+}
+
+// v98 — Descarga solo para los documentos descargables
+async function _caDescargarDocCliente(col){
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o||!o[col]){toast('Documento no disponible','warning');return;}
+  var permitido=false;
+  for(var i=0;i<_CA_DOCS_CLIENTE.length;i++){if(_CA_DOCS_CLIENTE[i].col===col&&_CA_DOCS_CLIENTE[i].descargable){permitido=true;break;}}
+  if(!permitido){toast('Este documento no se puede descargar, solo ver','warning');return;}
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(o[col],3600,{download:true});
+    if(res.error)throw new Error(res.error.message);
+    window.open(res.data.signedUrl,'_blank');
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ═══ v98 — ELIMINAR un documento técnico propio (Carolina) ═══
+async function _caEliminarDocTec(tipo){
+  var d=_caDocTecDef(tipo);
+  if(!d)return;
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o||!o[d.col]){toast('No hay documento para eliminar','warning');return;}
+  if(!confirm('¿Eliminar "'+d.t+'" de '+(o.nom||'esta obra')+'?\n\nVas a poder subir uno nuevo después. Queda registrado.'))return;
+  try{
+    var upd={};
+    upd[d.col]=null;upd[d.by]=null;upd[d.d]=null;
+    var res=await sb.from('rec_obras').update(upd).eq('id',o.id);
+    if(res.error)throw new Error(res.error.message);
+    o[d.col]=null;o[d.by]=null;o[d.d]=null;
+    dbLog(CU.n,'Eliminó '+d.t+' (documento técnico): '+(o.nom||o.id));
+    toast(d.t+' eliminado. Podés subir uno nuevo.','info','🗑️');
+    _caRenderDocTec();_caRenderPlazoBanner();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ═══ v98 — PASO 4: FIRMADOS (solo consulta) ═══
+function _caRenderFirmados(){
+  var el=document.getElementById('ca-firmados-body');
+  if(!el)return;
+  var html='';
+  var obrasConFirmados=obrasActivas().filter(function(o){return o.cp_esc||o.plano_ejec_firmado_pdf;});
+  if(obrasConFirmados.length){
+    html+='<div style="font-size:11px;font-weight:800;color:var(--Zc);margin:4px 0 8px;">🖋️ Firmados con el CLIENTE (sube David)</div>';
+    obrasConFirmados.forEach(function(o){
+      html+='<div style="background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:8px;">'+
+        '<div style="font-size:12px;font-weight:700;color:var(--am);margin-bottom:6px;">'+(o.nom||'?')+' <span style="font-size:10px;color:var(--ws);font-weight:400;">'+(o.cod||'')+'</span></div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+        (o.cp_esc?'<button type="button" class="btn btn-y btn-sm" onclick="caObraTecId='+o.id+';_caVerDocCliente(\'cp_esc\')">👁️ Contrato firmado</button>':'')+
+        (o.plano_ejec_firmado_pdf?'<button type="button" class="btn btn-y btn-sm" onclick="caObraTecId='+o.id+';_caVerFirmadoCt(\''+(o.plano_ejec_firmado_pdf||'')+'\',\'Plano ejecutivo firmado\')">👁️ Plano ejecutivo firmado</button>':'')+
+        '</div></div>';
+    });
+  }
+  var ctsFirmados=(typeof contratos!=='undefined'?contratos:[]).filter(function(ct){return ct.firm_scan;});
+  if(ctsFirmados.length){
+    html+='<div style="font-size:11px;font-weight:800;color:var(--Zc);margin:12px 0 8px;">📋 Firmados con el CONTRATISTA (hace firmar Josemiguel)</div>';
+    ctsFirmados.forEach(function(ct){
+      html+='<div style="background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:8px;">'+
+        '<div style="font-size:12px;font-weight:700;color:var(--am);margin-bottom:6px;">'+(ct.nom||ct.obra_nombre||('Contrato #'+ct.id))+'</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+        '<button type="button" class="btn btn-y btn-sm" onclick="_caVerFirmadoCt(\''+(ct.firm_scan||'')+'\',\'Contrato firmado contratista\')">👁️ Contrato firmado</button>'+
+        '</div></div>';
+    });
+  }
+  if(!html)html='<div style="font-size:11px;color:var(--ws);padding:8px 0;">Todavía no hay documentos firmados subidos.</div>';
+  el.innerHTML=html;
+}
+
+async function _caVerFirmadoCt(path,titulo){
+  if(!path){toast('Documento no disponible','warning');return;}
+  var tEl=document.getElementById('cavisor-titulo');
+  var body=document.getElementById('cavisor-body');
+  if(tEl)tEl.textContent='🖋️ '+(titulo||'Documento firmado');
+  if(!body)return;
+  body.innerHTML='<div style="font-size:12px;color:#7da7ff;padding:12px;">⏳ Cargando documento...</div>';
+  aOv('cavisor');
+  try{
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(path,3600);
+    if(res.error)throw new Error(res.error.message);
+    body.innerHTML='<iframe src="'+res.data.signedUrl+'#toolbar=0" style="width:100%;height:60vh;border:none;border-radius:8px;background:#fff;"></iframe>';
+  }catch(e){body.innerHTML='<div class="al al-r">❌ No se pudo mostrar: '+e.message+'</div>';}
+}
 
 // ═══ v97 — PLAZO del plano ejecutivo cliente (7 días desde firma en notaría) ═══
 function _caPlazoInfo(o){
@@ -6866,6 +6897,7 @@ function _caRenderDocTec(){
       (val?'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
              '<button type="button" class="btn btn-y btn-sm" onclick="_caVerDocTec(\''+d.k+'\')">👁️ Ver</button>'+
              '<button type="button" class="btn btn-o btn-sm" onclick="_caDescargarDocTec(\''+d.k+'\')">⬇️ Descargar</button>'+
+             '<button type="button" class="btn btn-o btn-sm" onclick="_caEliminarDocTec(\''+d.k+'\')" style="color:var(--Rc);border-color:var(--Rc);">🗑️ Eliminar</button>'+
            '</div>':'')+
       '<div class="up-card-status">'+(val?'✅ Cargado por '+por+(fec?' · '+fec:''):'Sin cargar')+'</div>'+
     '</div>';
