@@ -1979,6 +1979,10 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       </div>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;border-top:1px solid var(--bd);padding-top:14px;">
+      <label class="btn btn-o btn-sm" style="cursor:pointer;">
+        📁 Subir archivo y leerlo
+        <input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="_especSubirYLeer(this)">
+      </label>
       <button class="btn btn-o btn-sm" onclick="_especGuardarBorrador()">💾 Guardar borrador</button>
       <button class="btn btn-y btn-sm" onclick="_especEnviarAprobacion()">📤 Enviar a aprobación técnica</button>
       <button class="btn btn-o btn-sm" id="espec-btn-generar" onclick="_especGenerarArchivo()" style="display:none;">⬇️ Descargar</button>
@@ -5847,6 +5851,49 @@ function _especRenderEstado(o){
   } else {
     ta.removeAttribute('readonly');
     ta.style.opacity='1';
+  }
+}
+
+// ═══ v99 — David sube un archivo de especificaciones y la IA lo transcribe
+// para que pueda editarlo. El archivo original SE GUARDA igual.
+async function _especSubirYLeer(inp){
+  if(!inp.files||!inp.files[0])return;
+  var file=inp.files[0];
+  var st=document.getElementById('espec-ia-status');
+  var ta=document.getElementById('espec-texto');
+  if((ta.value||'').trim().length>20){
+    if(!confirm('Ya hay texto escrito. El contenido del archivo lo va a REEMPLAZAR.\n\n¿Continuar?')){inp.value='';return;}
+  }
+  try{
+    if(st)st.innerHTML='<span style="color:#7da7ff;">⏳ Guardando el archivo...</span>';
+    var subido=await dvUpload('especificaciones',inp);
+    if(!subido){if(st)st.innerHTML='<span style="color:var(--Rc);">❌ No se pudo guardar el archivo.</span>';return;}
+
+    if(st)st.innerHTML='<span style="color:#7da7ff;">✨ La IA está leyendo el documento...</span>';
+    var b64=await new Promise(function(res,rej){
+      var r=new FileReader();
+      r.onload=function(){res(String(r.result).split(',')[1]);};
+      r.onerror=function(){rej(new Error('No se pudo leer el archivo'));};
+      r.readAsDataURL(file);
+    });
+    var o=obras.find(function(x){return x.id===dvObraId;});
+    var contexto=o?('Obra: '+o.nom+(o.sup?', '+o.sup+' m²':'')):'';
+    var resp=await fetch(SB_URL+'/functions/v1/geat-especificaciones-leer',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SB_KEY},
+      body:JSON.stringify({base64:b64,mime:file.type||'',filename:file.name||'documento',contexto_obra:contexto})
+    });
+    var data=await resp.json();
+    if(!resp.ok||!data.texto)throw new Error(data.detail||data.error||('El servicio respondió '+resp.status));
+    ta.value=data.texto;
+    ta.removeAttribute('readonly');ta.style.opacity='1';
+    if(st)st.innerHTML='<span style="color:var(--Gc);">✅ Documento leído. Revisalo, corregí lo que haga falta y guardá.</span>';
+    toast('Especificaciones leídas del archivo. Revisá el texto antes de guardar.','success','📋');
+  }catch(e){
+    if(st)st.innerHTML='<span style="color:var(--Rc);">❌ El archivo se guardó, pero la IA no lo pudo leer: '+e.message+'</span>';
+    toast('El archivo quedó guardado. La lectura con IA falló: '+e.message,'warning');
+  }finally{
+    if(inp&&'value' in inp)inp.value='';
   }
 }
 
