@@ -1010,7 +1010,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v98 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v99 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1727,7 +1727,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
 
       <!-- v98 — PASO 4: FIRMADOS (solo ver, Carolina no sube) -->
       <div class="card" id="ca-firmados-card" style="margin-top:6px;border-top:3px solid var(--Gc);">
-        <div class="ct" style="color:var(--Gc);">④ Firmados (solo consulta)</div>
+        <div class="ct" style="color:var(--Gc);">④ Firmados</div>
         <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 <b>INDICACIONES:</b> Acá ves los documentos firmados: los que David hace firmar con el cliente y los que Josemiguel hace firmar con el contratista. Vos no subís nada acá.</div>
         <div id="ca-firmados-body"></div>
       </div>
@@ -5999,8 +5999,10 @@ function renderCarolina(){
   // v98 — Firmados (solo consulta)
   if(typeof _caRenderFirmados==='function')_caRenderFirmados();
   var sel=document.getElementById('ca-sel-ct');
+  // v99 — excluir contratos de obras dadas de baja (activo=false)
+  var _idsAct={};obrasActivas().forEach(function(o){_idsAct[o.id]=1;});
   var aprobados=contratos.filter(function(c){
-    return c.est_ct==='aprobado'||c.est_ct==='firmado';
+    return (c.est_ct==='aprobado'||c.est_ct==='firmado') && _idsAct[c.oid];
   });
   // v98 — el selector de subida ya no está en el panel (Carolina no sube firmados),
   // pero el historial de abajo sigue funcionando igual.
@@ -6748,7 +6750,9 @@ function _caRenderFirmados(){
         '</div></div>';
     });
   }
-  var ctsFirmados=(typeof contratos!=='undefined'?contratos:[]).filter(function(ct){return ct.firm_scan;});
+  // v99 — excluir contratos de obras dadas de baja
+  var _idsActF={};obrasActivas().forEach(function(o){_idsActF[o.id]=1;});
+  var ctsFirmados=(typeof contratos!=='undefined'?contratos:[]).filter(function(ct){return ct.firm_scan && _idsActF[ct.oid];});
   if(ctsFirmados.length){
     html+='<div style="font-size:11px;font-weight:800;color:var(--Zc);margin:12px 0 8px;">📋 Firmados con el CONTRATISTA (hace firmar Josemiguel)</div>';
     ctsFirmados.forEach(function(ct){
