@@ -543,6 +543,15 @@ function mapObra(o){return{
   docs_prop_confirmados_por:o.docs_prop_confirmados_por||null,
   // v96 — documentos técnicos que elabora Carolina (se guardan en la obra)
   planos_ejecutivos_pdf:o.planos_ejecutivos_pdf||null,
+  plano_ejec_contratista_pdf:o.plano_ejec_contratista_pdf||null,
+  plano_ejec_contratista_fecha:o.plano_ejec_contratista_fecha||null,
+  plano_ejec_contratista_subido_por:o.plano_ejec_contratista_subido_por||null,
+  plano_ejec_estado:o.plano_ejec_estado||'pendiente',
+  plano_ejec_vence:o.plano_ejec_vence||null,
+  plano_ejec_ampliaciones:o.plano_ejec_ampliaciones||[],
+  plano_ejec_firmado_pdf:o.plano_ejec_firmado_pdf||null,
+  plano_ejec_firmado_fecha:o.plano_ejec_firmado_fecha||null,
+  plano_ejec_firmado_subido_por:o.plano_ejec_firmado_subido_por||null,
   planos_ejecutivos_subido_por:o.planos_ejecutivos_subido_por||null,
   planos_ejecutivos_fecha:o.planos_ejecutivos_fecha||null,
   estudio_suelo_pdf:o.estudio_suelo_pdf||null,
@@ -1001,7 +1010,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v96 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v97 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1662,53 +1671,64 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
     ══════════════════════════════════════════ -->
     <div class="panel" id="panel-carolina">
 
-      <!-- BANNER ROL -->
+      <!-- BANNER ROL — v97 restructura -->
       <div style="background:linear-gradient(135deg,rgba(30,64,175,.15),var(--p2));border:1px solid var(--Z);border-radius:8px;padding:14px;margin-bottom:14px;">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Zc);font-weight:800;margin-bottom:4px;">📋 DOCUMENTACIÓN DEL CONTRATISTA — CAROLINA</div>
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--Zc);font-weight:800;margin-bottom:4px;">📐 CARGA DE PLANOS — CAROLINA</div>
         <div style="font-size:11px;color:var(--wd);line-height:1.6;">
-          <b style="color:var(--Zc);">Tu tarea:</b> generás los planos de ejecución del contratista. Después que Josemiguel los hace firmar, escaneás y subís 2 documentos.<br>
-          <b>① Contrato firmado por contratista</b> · <b>② Planos de ejecución firmados</b><br>
-          <span style="color:var(--ws);font-size:10px;">⚡ Solo aparecen contratos ya aprobados por Steffi. Al subir el contrato firmado, la obra pasa automáticamente a estado "Completo".</span>
+          Tu panel sigue tus pasos de trabajo: <b>① mirá la info del cliente</b> → <b>② subí lo que elaborás</b> → <b>③ revisá especificaciones</b> → <b>④ subí los firmados</b>.
         </div>
       </div>
 
-      <!-- T40 — ESPECIFICACIONES PARA APROBAR (control técnico de Carolina) -->
-      <div class="card" id="ca-espec-card" style="border-top:3px solid #f59e0b;display:none;">
-        <div class="ct" style="color:#f59e0b;">📋 Especificaciones para revisar y aprobar <span id="ca-espec-count" style="font-size:11px;color:var(--ws);font-weight:600;"></span></div>
-        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 David envió estas especificaciones. Revisalas: podés <b>editarlas a mano</b>, <b>observarlas</b> (vuelven a David con tu comentario) o <b>aprobarlas</b>. Sin tu aprobación, no se pueden firmar.</div>
-        <div id="ca-espec-list"></div>
+      <!-- v97 — TU TRABAJO DE HOY -->
+      <div class="card" id="ca-hoy-card" style="border-top:3px solid var(--Rc);display:none;">
+        <div class="ct" style="color:var(--Rc);">🔔 Tu trabajo de hoy</div>
+        <div id="ca-hoy-list" style="font-size:12px;"></div>
       </div>
 
-      <!-- T22: CONSULTA ANTICIPADA — contratos del propietario para preparar cómputo/planos -->
+      <!-- v97 — SELECTOR ÚNICO DE OBRA -->
       <div class="card" style="border-top:3px solid var(--am);">
-        <div class="ct">📑 Contratos del Propietario — Consulta Anticipada</div>
-        <div class="al al-z" style="margin-bottom:14px;">📌 Mientras los demás avanzan, podés consultar los contratos del cliente para ir preparando tu trabajo (cómputo, planos). <b>Si el cliente es bancario</b>, tu cómputo es crítico para el presupuesto bancario.</div>
-        <div id="ca-consulta-contratos"></div>
-      </div>
-
-      <!-- v96 — DOCUMENTOS TÉCNICOS QUE ELABORA CAROLINA (se guardan en la OBRA) -->
-      <div class="card" id="ca-doctec-card" style="border-top:3px solid var(--Z);margin-top:6px;">
-        <div class="ct" style="color:var(--Zc);">📐 Documentos técnicos — los que elaborás</div>
-        <div class="al al-z" style="margin-bottom:14px;">📌 Acá subís <b>los documentos que vos elaborás</b> para la obra: <b>planos ejecutivos</b>, <b>estudio de suelo</b> y <b>cálculo estructural</b>. Podés subir el archivo (PDF o foto) o escanearlo con la cámara.</div>
-        <div class="f" style="margin-bottom:12px;">
-          <label>Seleccioná obra</label>
-          <select id="ca-sel-obra-tec" onchange="caSelObraTec(this.value)">
+        <div class="ct">🏗️ Elegí la obra</div>
+        <div class="al al-z" style="margin-bottom:12px;font-size:11px;">Todo lo de abajo (pasos 1 y 2) se refiere a la obra que elijas acá.</div>
+        <div class="f">
+          <select id="ca-sel-obra-tec" onchange="caSelObraTec(this.value)" style="font-size:14px;padding:12px;font-weight:700;">
             <option value="">— Elegir obra —</option>
           </select>
         </div>
+      </div>
+
+      <!-- v97 — PASO 1: INFO DEL CLIENTE (lo que subió David) -->
+      <div class="card" id="ca-docs-cliente-card" style="border-top:3px solid #7da7ff;display:none;">
+        <div class="ct" style="color:#7da7ff;">① Mirá la info del cliente</div>
+        <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 Lo que David subió de esta obra: con esto preparás tus planos, estudios y cálculos.</div>
+        <div id="ca-docs-cliente-body"></div>
+      </div>
+
+      <!-- v96/v97 — PASO 2: LO QUE ELABORÁS -->
+      <div class="card" id="ca-doctec-card" style="border-top:3px solid var(--Z);margin-top:6px;display:none;">
+        <div class="ct" style="color:var(--Zc);">② Subí lo que elaborás</div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 Tus entregables de esta obra. El <b>plano ejecutivo cliente</b> tiene plazo: David lo revisa con el cliente; si hay cambios lo actualizás; aprobado, David sube el firmado.</div>
+        <div id="ca-plazo-banner"></div>
         <div id="ca-doctec-body" style="display:none;"></div>
         <div id="ca-doctec-msg" style="margin-top:14px;"></div>
       </div>
 
-      <!-- T22: FLUJO BANCARIO — solo si la obra elegida es con financiamiento -->
+      <!-- T40 — PASO 3: ESPECIFICACIONES PARA APROBAR -->
+      <div class="card" id="ca-espec-card" style="border-top:3px solid #f59e0b;display:none;">
+        <div class="ct" style="color:#f59e0b;">③ Revisá y aprobá especificaciones <span id="ca-espec-count" style="font-size:11px;color:var(--ws);font-weight:600;"></span></div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 David envió estas especificaciones. Podés <b>editarlas</b>, <b>observarlas</b> (vuelven a David) o <b>aprobarlas</b>. Sin tu aprobación no se firman.</div>
+        <div id="ca-espec-list"></div>
+      </div>
+
+      <!-- T22: FLUJO BANCARIO — solo si la obra es con financiamiento -->
       <div class="card" id="ca-flujo-bancario-card" style="display:none;border-top:3px solid #f59e0b;margin-top:6px;">
         <div class="ct" style="color:#f59e0b;">🏦 Flujo Bancario — Cómputo y Presupuesto</div>
         <div id="ca-flujo-bancario-body"></div>
       </div>
 
+      <!-- PASO 4: ESCANEADOS FIRMADOS DEL CONTRATISTA -->
       <div class="card" style="margin-top:6px;">
-        <div class="ct">📋 Cargas del Contratista — Subir Escaneados Firmados</div>
-        <div class="al al-z" style="margin-bottom:14px;">📌 Una vez que Josemiguel hizo firmar al contratista, escaneás y subís: <b>contrato firmado</b> y <b>planos de ejecución firmados</b>. Solo aparecen contratos aprobados por Steffi.</div>
+        <div class="ct">④ Subí los firmados del contratista</div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 Cuando Josemiguel hace firmar al contratista, escaneás y subís: <b>contrato firmado</b> y <b>planos de ejecución firmados</b>. (Acá se elige por contrato, no por obra.)</div>
         <div class="f" style="margin-bottom:12px;">
           <label>Seleccioná contrato</label>
           <select id="ca-sel-ct" onchange="caSelCt(this.value)">
@@ -1804,6 +1824,14 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
           </div>
         </div>
       </div>
+
+      <!-- CONSULTA ANTICIPADA (referencia, al final) -->
+      <div class="card" style="border-top:3px solid var(--am);">
+        <div class="ct">📑 Contratos del cliente — consulta rápida</div>
+        <div class="al al-z" style="margin-bottom:14px;font-size:11px;">📌 Para consultar contratos de cualquier obra mientras preparás tu trabajo.</div>
+        <div id="ca-consulta-contratos"></div>
+      </div>
+
       <div class="card">
         <div class="ct">📋 Estado de Cargas — Todos los Contratos</div>
         <div id="ca-historial" style="font-size:11px;"></div>
@@ -6614,8 +6642,10 @@ async function caConfirmarCarga(){
 // ═══════════════════════════════════════════════════════════════
 var caObraTecId=null;
 var _CA_DOCTEC=[
-  {k:'planos_ejecutivos',ico:'📐',t:'Planos ejecutivos',sub:'Planos de ejecución que elaborás',
+  {k:'planos_ejecutivos',ico:'📐',t:'Plano ejecutivo CLIENTE',sub:'Lo firma el cliente · tiene plazo',
    col:'planos_ejecutivos_pdf',by:'planos_ejecutivos_subido_por',d:'planos_ejecutivos_fecha'},
+  {k:'plano_ejec_contratista',ico:'📏',t:'Plano ejecutivo CONTRATISTA',sub:'Josemiguel lo imprime y hace firmar',
+   col:'plano_ejec_contratista_pdf',by:'plano_ejec_contratista_subido_por',d:'plano_ejec_contratista_fecha'},
   {k:'estudio_suelo',ico:'🧪',t:'Estudio de suelo',sub:'Informe de estudio de suelos',
    col:'estudio_suelo_pdf',by:'estudio_suelo_subido_por',d:'estudio_suelo_fecha'},
   {k:'calculo_estructural',ico:'🏗️',t:'Cálculo estructural',sub:'Memoria de cálculo estructural',
@@ -6635,13 +6665,20 @@ function _caRenderSelObraTec(){
   sel.innerHTML='<option value="">— Elegir obra —</option>'+lista.map(function(o){
     var n=0;
     _CA_DOCTEC.forEach(function(d){if(o[d.col])n++;});
-    return '<option value="'+o.id+'"'+(caObraTecId===o.id?' selected':'')+'>'+(o.nom||'?')+' ('+n+'/3)</option>';
+    return '<option value="'+o.id+'"'+(caObraTecId===o.id?' selected':'')+'>'+(o.nom||'?')+' ('+n+'/4)</option>';
   }).join('');
   var body=document.getElementById('ca-doctec-body');
   if(body){
-    if(caObraTecId){body.style.display='block';_caRenderDocTec();}
+    if(caObraTecId){
+      body.style.display='block';
+      var cd97=document.getElementById('ca-docs-cliente-card');if(cd97)cd97.style.display='block';
+      var ct97=document.getElementById('ca-doctec-card');if(ct97)ct97.style.display='block';
+      _caRenderDocsCliente();_caRenderPlazoBanner();_caRenderDocTec();
+    }
     else{body.style.display='none';body.innerHTML='';}
   }
+  // v97 — resumen de trabajo pendiente
+  if(typeof _caRenderHoy==='function')_caRenderHoy();
 }
 
 function caSelObraTec(oid){
@@ -6649,10 +6686,152 @@ function caSelObraTec(oid){
   var body=document.getElementById('ca-doctec-body');
   var msg=document.getElementById('ca-doctec-msg');
   if(msg)msg.innerHTML='';
-  if(!body)return;
-  if(!caObraTecId){body.style.display='none';body.innerHTML='';return;}
-  body.style.display='block';
+  // v97 — mostrar/ocultar las cards de pasos según haya obra elegida
+  var cardDocs=document.getElementById('ca-docs-cliente-card');
+  var cardTec=document.getElementById('ca-doctec-card');
+  if(!caObraTecId){
+    if(body){body.style.display='none';body.innerHTML='';}
+    if(cardDocs)cardDocs.style.display='none';
+    if(cardTec)cardTec.style.display='none';
+    var pb=document.getElementById('ca-plazo-banner');if(pb)pb.innerHTML='';
+    return;
+  }
+  if(cardDocs)cardDocs.style.display='block';
+  if(cardTec)cardTec.style.display='block';
+  if(body)body.style.display='block';
+  _caRenderDocsCliente();
+  _caRenderPlazoBanner();
   _caRenderDocTec();
+}
+
+// ═══ v97 — PASO 1: documentos del cliente (lo que subió David) ═══
+var _CA_DOCS_CLIENTE=[
+  {t:'Contrato del cliente (digital)',ico:'📄',col:'cp_dig',descargable:true},
+  {t:'Contrato firmado escaneado',ico:'🖋️',col:'cp_esc',descargable:false},
+  {t:'Planos notariados (2D + eléctrico)',ico:'📐',col:'planos_propietario_pdf',descargable:true},
+  {t:'Lista de materiales',ico:'🧱',col:'materiales_pdf',descargable:true},
+  {t:'Especificaciones (archivo)',ico:'📋',col:'especificaciones_pdf',descargable:true}
+];
+
+function _caRenderDocsCliente(){
+  var el=document.getElementById('ca-docs-cliente-body');
+  if(!el)return;
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o){el.innerHTML='';return;}
+  var html='';
+  _CA_DOCS_CLIENTE.forEach(function(d){
+    var val=o[d.col]||null;
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;background:var(--p1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:8px;">'+
+      '<div style="font-size:12px;"><span style="margin-right:6px;">'+d.ico+'</span>'+d.t+'</div>'+
+      (val
+        ?'<div style="display:flex;gap:6px;">'+
+           '<button type="button" class="btn btn-y btn-sm" onclick="_caVerDocCliente(\''+d.col+'\')">👁️ Ver</button>'+
+           (d.descargable?'<button type="button" class="btn btn-o btn-sm" onclick="_caDescargarDocCliente(\''+d.col+'\')">⬇️ Descargar</button>':'')+
+         '</div>'
+        :'<span style="font-size:10px;color:var(--ws);">— sin cargar —</span>')+
+    '</div>';
+  });
+  el.innerHTML=html;
+}
+
+async function _caDocClienteUrl(col,down){
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o||!o[col]){toast('Documento no disponible','warning');return null;}
+  try{
+    var opts=down?{download:true}:undefined;
+    var res=await sb.storage.from('rec-archivos').createSignedUrl(o[col],3600,opts);
+    if(res.error)throw new Error(res.error.message);
+    return res.data.signedUrl;
+  }catch(e){toast('Error: '+e.message,'error');return null;}
+}
+async function _caVerDocCliente(col){var u=await _caDocClienteUrl(col,false);if(u)window.open(u,'_blank');}
+async function _caDescargarDocCliente(col){var u=await _caDocClienteUrl(col,true);if(u)window.open(u,'_blank');}
+
+// ═══ v97 — PLAZO del plano ejecutivo cliente (7 días desde firma en notaría) ═══
+function _caPlazoInfo(o){
+  // Fecha base: cuando David subió el contrato firmado escaneado (firma en notaría)
+  var vence=o.plano_ejec_vence?new Date(o.plano_ejec_vence):null;
+  if(!vence&&o.contrato_propietario_fecha){
+    vence=new Date(o.contrato_propietario_fecha);
+    vence.setDate(vence.getDate()+7);
+  }
+  if(!vence)return null;
+  var hoy=new Date();
+  var dias=Math.ceil((vence-hoy)/(1000*60*60*24));
+  return {vence:vence,dias:dias};
+}
+
+function _caRenderPlazoBanner(){
+  var el=document.getElementById('ca-plazo-banner');
+  if(!el)return;
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o){el.innerHTML='';return;}
+  // Si el plano ejecutivo cliente ya está subido, mostrar estado en lugar de plazo
+  if(o.planos_ejecutivos_pdf){
+    el.innerHTML='<div class="al al-g" style="margin-bottom:12px;font-size:11px;">✅ Plano ejecutivo cliente subido. David lo revisa con el cliente; si hay cambios lo actualizás acá mismo (volvé a subirlo).</div>';
+    return;
+  }
+  var p=_caPlazoInfo(o);
+  if(!p){
+    el.innerHTML='<div class="al al-z" style="margin-bottom:12px;font-size:11px;">⏱️ El plazo de 7 días para el plano ejecutivo cliente arranca cuando David suba el contrato firmado en notaría.</div>';
+    return;
+  }
+  var color=p.dias<0?'al-r':(p.dias<=2?'al-o':'al-z');
+  var txt=p.dias<0
+    ?'🔴 Plazo VENCIDO hace '+Math.abs(p.dias)+' día(s) (vencía '+p.vence.toLocaleDateString('es-BO')+')'
+    :'⏱️ Te quedan <b>'+p.dias+' día(s)</b> para subir el plano ejecutivo cliente (vence '+p.vence.toLocaleDateString('es-BO')+')';
+  el.innerHTML='<div class="al '+color+'" style="margin-bottom:12px;font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">'+
+    '<span>'+txt+'</span>'+
+    '<button type="button" class="btn btn-o btn-sm" onclick="_caAmpliarPlazo()">➕ Ampliar plazo</button>'+
+  '</div>';
+}
+
+async function _caAmpliarPlazo(){
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o)return;
+  var diasStr=prompt('¿Cuántos días más necesitás? (queda registrado)');
+  if(diasStr===null)return;
+  var dias=parseInt(diasStr);
+  if(!dias||dias<1||dias>60){toast('Poné un número de días válido (1 a 60)','warning');return;}
+  var motivo=prompt('Motivo de la ampliación (queda registrado):')||'';
+  var p=_caPlazoInfo(o);
+  var base=p?p.vence:new Date();
+  var nueva=new Date(base);
+  nueva.setDate(nueva.getDate()+dias);
+  var ampl=(o.plano_ejec_ampliaciones||[]).slice();
+  ampl.push({por:CU.n,fecha:new Date().toISOString(),dias:dias,motivo:motivo,nueva_fecha:nueva.toISOString()});
+  try{
+    var res=await sb.from('rec_obras').update({plano_ejec_vence:nueva.toISOString(),plano_ejec_ampliaciones:ampl}).eq('id',o.id);
+    if(res.error)throw new Error(res.error.message);
+    o.plano_ejec_vence=nueva.toISOString();
+    o.plano_ejec_ampliaciones=ampl;
+    dbLog(CU.n,'Amplió plazo plano ejecutivo +'+dias+' días ('+(o.nom||'')+'): '+motivo);
+    try{notifCrear('Josemiguel','plazo_ampliado','Plazo de plano ampliado',CU.n+' amplió el plazo del plano ejecutivo de '+(o.nom||'')+' en '+dias+' días. Motivo: '+(motivo||'—'),{obra_id:o.id});}catch(_e){}
+    toast('Plazo ampliado '+dias+' días (registrado)','success','⏱️');
+    _caRenderPlazoBanner();
+  }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ═══ v97 — TU TRABAJO DE HOY ═══
+function _caRenderHoy(){
+  var card=document.getElementById('ca-hoy-card');
+  var list=document.getElementById('ca-hoy-list');
+  if(!card||!list)return;
+  var items=[];
+  // Plazos de planos ejecutivos por vencer o vencidos
+  obrasActivas().forEach(function(o){
+    if(o.planos_ejecutivos_pdf)return; // ya subido
+    var p=_caPlazoInfo(o);
+    if(!p)return;
+    if(p.dias<0)items.push('🔴 <b>'+(o.nom||'?')+'</b>: plano ejecutivo VENCIDO hace '+Math.abs(p.dias)+' día(s)');
+    else if(p.dias<=3)items.push('🟠 <b>'+(o.nom||'?')+'</b>: plano ejecutivo vence en '+p.dias+' día(s)');
+  });
+  // Especificaciones esperando aprobación
+  var esp=obras.filter(function(o){return o.especificaciones_estado==='en_aprobacion'&&o.especificaciones_texto;}).length;
+  if(esp>0)items.push('📋 '+esp+' especificación(es) esperando tu revisión (paso ③)');
+  if(!items.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML=items.map(function(i){return '<div style="padding:6px 0;border-bottom:1px solid var(--bd);">'+i+'</div>';}).join('');
 }
 
 function _caRenderDocTec(){
