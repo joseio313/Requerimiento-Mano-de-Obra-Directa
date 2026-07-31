@@ -541,6 +541,16 @@ function mapObra(o){return{
   docs_prop_confirmados:o.docs_prop_confirmados||false,
   docs_prop_confirmados_en:o.docs_prop_confirmados_en||null,
   docs_prop_confirmados_por:o.docs_prop_confirmados_por||null,
+  // v96 — documentos técnicos que elabora Carolina (se guardan en la obra)
+  planos_ejecutivos_pdf:o.planos_ejecutivos_pdf||null,
+  planos_ejecutivos_subido_por:o.planos_ejecutivos_subido_por||null,
+  planos_ejecutivos_fecha:o.planos_ejecutivos_fecha||null,
+  estudio_suelo_pdf:o.estudio_suelo_pdf||null,
+  estudio_suelo_subido_por:o.estudio_suelo_subido_por||null,
+  estudio_suelo_fecha:o.estudio_suelo_fecha||null,
+  calculo_estructural_pdf:o.calculo_estructural_pdf||null,
+  calculo_estructural_subido_por:o.calculo_estructural_subido_por||null,
+  calculo_estructural_fecha:o.calculo_estructural_fecha||null,
   // v95 — baja lógica (soft delete): la obra NO se borra, se marca activo=false
   activo:o.activo!==false,
   baja_motivo:o.baja_motivo||null,
@@ -991,7 +1001,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v95 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v96 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1674,6 +1684,20 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         <div class="ct">📑 Contratos del Propietario — Consulta Anticipada</div>
         <div class="al al-z" style="margin-bottom:14px;">📌 Mientras los demás avanzan, podés consultar los contratos del cliente para ir preparando tu trabajo (cómputo, planos). <b>Si el cliente es bancario</b>, tu cómputo es crítico para el presupuesto bancario.</div>
         <div id="ca-consulta-contratos"></div>
+      </div>
+
+      <!-- v96 — DOCUMENTOS TÉCNICOS QUE ELABORA CAROLINA (se guardan en la OBRA) -->
+      <div class="card" id="ca-doctec-card" style="border-top:3px solid var(--Z);margin-top:6px;">
+        <div class="ct" style="color:var(--Zc);">📐 Documentos técnicos — los que elaborás</div>
+        <div class="al al-z" style="margin-bottom:14px;">📌 Acá subís <b>los documentos que vos elaborás</b> para la obra: <b>planos ejecutivos</b>, <b>estudio de suelo</b> y <b>cálculo estructural</b>. Podés subir el archivo (PDF o foto) o escanearlo con la cámara.</div>
+        <div class="f" style="margin-bottom:12px;">
+          <label>Seleccioná obra</label>
+          <select id="ca-sel-obra-tec" onchange="caSelObraTec(this.value)">
+            <option value="">— Elegir obra —</option>
+          </select>
+        </div>
+        <div id="ca-doctec-body" style="display:none;"></div>
+        <div id="ca-doctec-msg" style="margin-top:14px;"></div>
       </div>
 
       <!-- T22: FLUJO BANCARIO — solo si la obra elegida es con financiamiento -->
@@ -6026,6 +6050,8 @@ function renderCarolina(){
   _renderCarolinaConsultaContratos();
   // T40 — Especificaciones para revisar y aprobar (Carolina)
   _especRenderPendientesTecnico();
+  // v96 — Documentos técnicos que elabora Carolina (va antes del return temprano de abajo)
+  _caRenderSelObraTec();
   var sel=document.getElementById('ca-sel-ct');
   if(!sel)return;
   var aprobados=contratos.filter(function(c){
@@ -6576,6 +6602,169 @@ async function caConfirmarCarga(){
       {obra_id:c.oid,obra_nombre:obraNom,panel_destino:'sup',prioridad:'normal'});
     caSelCt(caCtId);
   }catch(e){toast('Error: '+e.message,'error');}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// v96 — DOCUMENTOS TÉCNICOS QUE ELABORA CAROLINA (guardados en la OBRA)
+// Planos ejecutivos · Estudio de suelo · Cálculo estructural.
+// Reutiliza el mismo flujo de subida ya arreglado en v95: devuelve true/false
+// para que el escáner (scanFinish) sepa si el archivo llegó de verdad al bucket.
+// OJO: rec_obras.calculo_estructural_pdf (este) NO es lo mismo que
+// rec_contratos.calculo_estructural_pdf (el del ingeniero del contratista).
+// ═══════════════════════════════════════════════════════════════
+var caObraTecId=null;
+var _CA_DOCTEC=[
+  {k:'planos_ejecutivos',ico:'📐',t:'Planos ejecutivos',sub:'Planos de ejecución que elaborás',
+   col:'planos_ejecutivos_pdf',by:'planos_ejecutivos_subido_por',d:'planos_ejecutivos_fecha'},
+  {k:'estudio_suelo',ico:'🧪',t:'Estudio de suelo',sub:'Informe de estudio de suelos',
+   col:'estudio_suelo_pdf',by:'estudio_suelo_subido_por',d:'estudio_suelo_fecha'},
+  {k:'calculo_estructural',ico:'🏗️',t:'Cálculo estructural',sub:'Memoria de cálculo estructural',
+   col:'calculo_estructural_pdf',by:'calculo_estructural_subido_por',d:'calculo_estructural_fecha'}
+];
+function _caDocTecDef(k){
+  for(var i=0;i<_CA_DOCTEC.length;i++){if(_CA_DOCTEC[i].k===k)return _CA_DOCTEC[i];}
+  return null;
+}
+
+// Llena el selector de obras (solo vigentes) conservando la que ya estaba elegida
+function _caRenderSelObraTec(){
+  var sel=document.getElementById('ca-sel-obra-tec');
+  if(!sel)return;
+  var lista=obrasActivas().slice().sort(function(a,b){return (b.id||0)-(a.id||0);});
+  if(caObraTecId&&!lista.some(function(o){return o.id===caObraTecId;}))caObraTecId=null;
+  sel.innerHTML='<option value="">— Elegir obra —</option>'+lista.map(function(o){
+    var n=0;
+    _CA_DOCTEC.forEach(function(d){if(o[d.col])n++;});
+    return '<option value="'+o.id+'"'+(caObraTecId===o.id?' selected':'')+'>'+(o.nom||'?')+' ('+n+'/3)</option>';
+  }).join('');
+  var body=document.getElementById('ca-doctec-body');
+  if(body){
+    if(caObraTecId){body.style.display='block';_caRenderDocTec();}
+    else{body.style.display='none';body.innerHTML='';}
+  }
+}
+
+function caSelObraTec(oid){
+  caObraTecId=oid?parseInt(oid):null;
+  var body=document.getElementById('ca-doctec-body');
+  var msg=document.getElementById('ca-doctec-msg');
+  if(msg)msg.innerHTML='';
+  if(!body)return;
+  if(!caObraTecId){body.style.display='none';body.innerHTML='';return;}
+  body.style.display='block';
+  _caRenderDocTec();
+}
+
+function _caRenderDocTec(){
+  var body=document.getElementById('ca-doctec-body');
+  if(!body)return;
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o){body.style.display='none';body.innerHTML='';return;}
+  var html='<div style="background:var(--p2);border-radius:6px;padding:10px 12px;margin-bottom:12px;">'+
+      '<div style="font-weight:800;font-size:13px;">'+(o.nom||'?')+'</div>'+
+      '<div style="font-size:10px;color:var(--ws);">'+(o.cod||'')+'</div>'+
+    '</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;">';
+  _CA_DOCTEC.forEach(function(d){
+    var val=o[d.col]||null;
+    var por=o[d.by]||'—';
+    var fec=o[d.d]?new Date(o[d.d]).toLocaleDateString('es-BO'):'';
+    html+='<div class="up-card'+(val?' ok':'')+'">'+
+      '<div class="up-card-head">'+
+        '<div class="up-card-ico">'+d.ico+'</div>'+
+        '<div>'+
+          '<div class="up-card-title">'+d.t+'</div>'+
+          '<div class="up-card-sub">'+d.sub+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="up-card-btns">'+
+        '<label class="up-card-btn">'+
+          '📁 Archivo'+
+          '<input type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/*" style="display:none;" onchange="caUploadDocTec(\''+d.k+'\',this)">'+
+        '</label>'+
+        '<button type="button" class="up-card-btn cam" onclick="scanOpen(\'caDocTec\',\''+d.k+'\','+o.id+')">📷 Escanear</button>'+
+      '</div>'+
+      (val?'<div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+             '<button type="button" class="btn btn-y btn-sm" onclick="_caVerDocTec(\''+d.k+'\')">👁️ Ver</button>'+
+             '<button type="button" class="btn btn-o btn-sm" onclick="_caDescargarDocTec(\''+d.k+'\')">⬇️ Descargar</button>'+
+           '</div>':'')+
+      '<div class="up-card-status">'+(val?'✅ Cargado por '+por+(fec?' · '+fec:''):'Sin cargar')+'</div>'+
+    '</div>';
+  });
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+// URL firmada del bucket rec-archivos (3600 seg). download=true fuerza la descarga.
+async function _caDocTecUrl(tipo,forzarDescarga){
+  var d=_caDocTecDef(tipo);
+  if(!d){toast('Tipo de documento no reconocido','error');return null;}
+  var o=obras.find(function(x){return x.id===caObraTecId;});
+  if(!o||!o[d.col]){toast('Ese documento todavía no está cargado','warning');return null;}
+  try{
+    var res=forzarDescarga
+      ? await sb.storage.from('rec-archivos').createSignedUrl(o[d.col],3600,{download:true})
+      : await sb.storage.from('rec-archivos').createSignedUrl(o[d.col],3600);
+    if(res.error)throw new Error(res.error.message);
+    return res.data.signedUrl;
+  }catch(e){
+    toast('No se pudo abrir el archivo: '+e.message,'error');
+    return null;
+  }
+}
+async function _caVerDocTec(tipo){
+  var url=await _caDocTecUrl(tipo,false);
+  if(url)window.open(url,'_blank','noopener');
+}
+async function _caDescargarDocTec(tipo){
+  var url=await _caDocTecUrl(tipo,true);
+  if(url)window.open(url,'_blank','noopener');
+}
+
+// Subida (archivo o escáner). oidForce lo usa el escáner, que trae la obra en scanCtx.
+async function caUploadDocTec(tipo,inp,oidForce){
+  if(!inp.files||!inp.files[0])return false;
+  var d=_caDocTecDef(tipo);
+  if(!d){toast('Tipo de documento no reconocido','error');return false;}
+  var oid=oidForce||caObraTecId;
+  if(!oid){toast('Seleccioná una obra primero.','warning');if(inp&&'value' in inp)inp.value='';return false;}
+  var file=inp.files[0];
+  if(file.size>140*1024*1024){toast('Archivo muy grande. Máximo 140MB.','error');if(inp&&'value' in inp)inp.value='';return false;}
+  var msg=document.getElementById('ca-doctec-msg');
+  if(msg)msg.innerHTML='<div class="al al-z">⏳ Procesando '+d.t+'...</div>';
+  try{
+    file=await _compressImage(file);
+    file=await comprimirPDFsiPesado(file,function(txt){if(msg)msg.innerHTML='<div class="al al-z">⏳ '+txt+'</div>';});
+    if(msg)msg.innerHTML='<div class="al al-z">⏳ Subiendo '+d.t+'...</div>';
+    // storagePath sanitiza el nombre (sin tildes ni comas — Storage los rechaza)
+    var path=storagePath('obras',oid,d.k,file.name||(d.k+'.pdf'));
+    await storageUpload(path,file);
+    var fechaISO=new Date().toISOString();
+    var update={};
+    update[d.col]=path;
+    update[d.by]=CU.n;
+    update[d.d]=fechaISO;
+    var res=await sb.from('rec_obras').update(update).eq('id',oid);
+    if(res&&res.error)throw new Error(res.error.message);
+    var o=obras.find(function(x){return x.id===oid;});
+    if(o){o[d.col]=path;o[d.by]=CU.n;o[d.d]=fechaISO;}
+    dbLog(CU.n,'Subió '+d.t+' (documento técnico): '+((o&&o.nom)||oid));
+    if(msg)msg.innerHTML='<div class="al al-g">✅ '+d.t+' subido correctamente</div>';
+    toast(d.t+' subido correctamente','success','📐 Documento técnico');
+    if(inp&&'value' in inp)inp.value='';
+    _caRenderSelObraTec();
+    setTimeout(function(){if(msg)msg.innerHTML='';},2500);
+    return true;
+  }catch(e){
+    // Mismo criterio que v95: avisar por toast (el mensaje inline queda tapado por el
+    // escáner) y devolver false para que scanFinish NO simule éxito ni borre las páginas.
+    if(msg)msg.innerHTML='<div class="al al-r">❌ Error: '+e.message+'</div>';
+    toast('No se pudo subir '+d.t+': '+e.message,'error','❌ Subida fallida');
+    _guardarError('caUploadDocTec_'+tipo,e.message||e);
+    console.error('caUploadDocTec error:',e);
+    if(inp&&'value' in inp)inp.value='';
+    return false;
+  }
 }
 
 // v95 — devuelve true/false igual que dvUpload (lo consume el escáner)
@@ -7242,6 +7431,8 @@ function scanOpen(destino,tipo,oid){
   if(destino==='fat'&&!fatObraId){toast('Seleccioná una obra primero','warning');return;}
   // T29 — Flujo bancario: necesita oid explícito
   if((destino==='caBancoPlano'||destino==='caBancoPpto')&&!oid){toast('Obra no especificada','warning');return;}
+  // v96 — Documentos técnicos de Carolina: también necesita la obra
+  if(destino==='caDocTec'&&!oid){toast('Seleccioná una obra primero','warning');return;}
   scanCtx.destino=destino;
   scanCtx.tipo=tipo;
   scanCtx.bancoOid=oid||null;
@@ -7265,6 +7456,8 @@ function _scanTipoLabel(d,t){
   // T29
   if(d==='caBancoPlano')return 'Plano firmado para banco';
   if(d==='caBancoPpto')return 'Presupuesto firmado para banco';
+  // v96 — documentos técnicos de Carolina
+  if(d==='caDocTec'){var dt=_caDocTecDef(t);return dt?dt.t:t;}
   return t;
 }
 
@@ -7719,6 +7912,8 @@ async function _scanUploadToDestino(file){
   // T29 — Flujo bancario Carolina (plano/ppto firmado)
   else if(scanCtx.destino==='caBancoPlano'){r=await _caSubirFirmado(scanCtx.bancoOid,'plano',fakeInput);}
   else if(scanCtx.destino==='caBancoPpto'){r=await _caSubirFirmado(scanCtx.bancoOid,'ppto',fakeInput);}
+  // v96 — Documentos técnicos de Carolina (la obra viaja en scanCtx.bancoOid)
+  else if(scanCtx.destino==='caDocTec'){r=await caUploadDocTec(scanCtx.tipo,fakeInput,scanCtx.bancoOid);}
   else{
     // Destino desconocido: antes no hacía nada y el escáner igual se cerraba "ok"
     throw new Error('Destino de escaneo no reconocido: '+scanCtx.destino);
