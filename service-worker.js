@@ -1,6 +1,6 @@
 // Service Worker — Gestión Operativa 1
 // v23 — Auto-update agresivo
-const CACHE_NAME = 'gop1-v25';
+const CACHE_NAME = 'gop1-v26';
 const CACHE_FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', function(event) {

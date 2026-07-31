@@ -1010,7 +1010,7 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
       <button type="button" class="nk del delk" onclick="delPin()">⌫</button>
     </div>
     <p class="pin-hint">Ingresa tu código de 4 dígitos</p>
-    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v99 · GESTION OPERATIVA 1</p>
+    <p style="font-size:9px;color:var(--am);margin-top:8px;letter-spacing:1px;">v100 · GESTION OPERATIVA 1</p>
     <div class="pin-error" id="pin-err"></div>
   </div>
 </div>
@@ -1725,12 +1725,10 @@ async function subirArchivoSeguro(folder,id,campo,file,opciones){
         <div id="ca-flujo-bancario-body"></div>
       </div>
 
-      <!-- v98 — PASO 4: FIRMADOS (solo ver, Carolina no sube) -->
-      <div class="card" id="ca-firmados-card" style="margin-top:6px;border-top:3px solid var(--Gc);">
-        <div class="ct" style="color:var(--Gc);">④ Firmados</div>
-        <div class="al al-z" style="margin-bottom:12px;font-size:11px;">📌 <b>INDICACIONES:</b> Acá ves los documentos firmados: los que David hace firmar con el cliente y los que Josemiguel hace firmar con el contratista. Vos no subís nada acá.</div>
-        <div id="ca-firmados-body"></div>
-      </div>
+      <!-- v100 — Sección ④ Firmados retirada del panel de Carolina (pedido de Josemiguel:
+           ya tiene los firmados en otro lado). La lógica JS (_caRenderFirmados,
+           _caVerFirmadoCt) queda intacta y se apaga sola por el if(!el)return.
+           Para reactivar: restaurar este bloque HTML del commit 81e5278. -->
 
       <div class="card">
         <div class="ct">📋 Estado de Cargas — Todos los Contratos</div>
